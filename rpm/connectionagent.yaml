@@ -1,0 +1,36 @@
+Name: Connection Agent
+Summary: User Agent daemon
+Version: 0.1
+Release: 0
+Group: "System/ConnectionAgent"
+License: LGPLv2+
+URL: http://gitorious.org/connectionagent
+Description: |
+    Connection Agent provides multi user access to connman's User Agent.
+Sources:
+    - "%{name}-%{version}.tar.bz2"
+    - "connectionagent.service"
+Requires:
+    - qt
+    - qt-dbus
+
+PkgConfigBR:
+    - QtCore
+    - QtDBus
+
+Configure: none
+Builder: qmake
+UseAsNeeded: no
+
+QMakeOptions:
+
+SubPackages:
+    - Name: declarative
+      Summary: Declarative plugin for connection agent.
+      Group: Development/Tools
+      Description: This package contains the declarative plugin for connection agent.
+      Requires:
+          - "%{name} = %{version}"
+      Files:
+          - "%{_libdir}/qt4/imports/com/jolla/connection/*"
+

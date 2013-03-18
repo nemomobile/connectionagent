@@ -1,0 +1,12 @@
+[Unit]
+Description=Connection daemon for connman UserAgent
+Requires=dbus.socket dbus.service
+
+[Service]
+ExecStart=/usr/bin/connectionagent
+Restart=always
+BusName=com.jolla.Connectiond
+Type=dbus
+
+[Install]
+WantedBy=jolla-middleware.target
