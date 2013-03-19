@@ -1,41 +1,16 @@
 /****************************************************************************
 **
-** Copyright (C) 2012 Jolla Ltd.
+** Copyright (C) 2013 Jolla Ltd
 ** Contact: lorn.potter@gmail.com
 **
-
-**
-** $QT_BEGIN_LICENSE:LGPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
+** This file may be used under the terms of the GNU Lesser
 ** General Public License version 2.1 as published by the Free Software
 ** Foundation and appearing in the file LICENSE.LGPL included in the
 ** packaging of this file.  Please review the following information to
 ** ensure the GNU Lesser General Public License version 2.1 requirements
 ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
-**
-** $QT_END_LICENSE$
 **
 ****************************************************************************/
 
@@ -109,31 +84,26 @@ void QConnectionManager::onUserInputRequested(const QString &servicePath, const 
 {
     // gets called when a connman service gets called to connect and needs more configurations.
 
-    qDebug() << Q_FUNC_INFO;// << servicePath << fields;
     Q_EMIT userInputRequested(servicePath, fields);
 }
 
 // from useragent
 void QConnectionManager::onUserInputCanceled()
 {
-    qDebug() << Q_FUNC_INFO;
     Q_EMIT userInputCanceled();
 }
 
 // from useragent
 void QConnectionManager::onErrorReported(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
     Q_EMIT errorReported(error);
 }
 
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
-    qDebug() << Q_FUNC_INFO;
 //    if (!autoConnect()) {
         Q_EMIT connectionRequest();
-
   //  }
 }
 
@@ -144,13 +114,11 @@ void QConnectionManager::sendMessage()
 
 void QConnectionManager::sendConnectReply(const QString &in0, int in1)
 {
-    qDebug() << Q_FUNC_INFO << in0 << in1;
     ua->sendConnectReply(in0, in1);
 }
 
 void QConnectionManager::sendUserReply(const QVariantMap &input)
 {
-    qDebug() << Q_FUNC_INFO;
     ua->sendUserReply(input);
 }
 
@@ -197,12 +165,11 @@ void QConnectionManager::serviceErrorChanged(const QString &error)
 
 void QConnectionManager::stateChanged(const QString &state)
 {
-    qDebug()  << Q_FUNC_INFO << state;
+    Q_UNUSED(state)
 }
 
 bool QConnectionManager::autoConnect()
 {
-    qDebug() << Q_FUNC_INFO;
     QStringList techList = netman->technologiesList();
     Q_FOREACH (const QString &tech, techList) {
 

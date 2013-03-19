@@ -1,3 +1,19 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Jolla Ltd
+** Contact: lorn.potter@gmail.com
+**
+**
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+****************************************************************************/
+
 #ifndef CONNECTIONAGENTPLUGIN_H
 #define CONNECTIONAGENTPLUGIN_H
 
@@ -8,10 +24,10 @@
 class ConnectionAgentPlugin : public QObject
 {
     Q_OBJECT
- //   Q_DISABLE_COPY(ConnectionAgentPlugin)
+    Q_DISABLE_COPY(ConnectionAgentPlugin)
     
 public:
-    ConnectionAgentPlugin(QObject *parent = 0);
+    explicit ConnectionAgentPlugin(QObject *parent = 0);
     ~ConnectionAgentPlugin();
 
 public slots:
@@ -24,7 +40,6 @@ signals:
     void errorReported(const QString &error);
     void connectionRequest();
 
-//    void userConnectRequested(const QDBusMessage &message);
 private:
     com::jolla::Connectiond *connManagerInterface;
     QDBusServiceWatcher *connectiondWatcher;

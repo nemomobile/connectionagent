@@ -1,3 +1,18 @@
+/****************************************************************************
+**
+** Copyright (C) 2013 Jolla Ltd
+** Contact: lorn.potter@gmail.com
+**
+**
+** GNU Lesser General Public License Usage
+** This file may be used under the terms of the GNU Lesser
+** General Public License version 2.1 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 2.1 requirements
+** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+**
+****************************************************************************/
 #include "connectionagentplugin.h"
 #include "connectionamanagerinterface.h"
 
@@ -9,8 +24,6 @@
 ConnectionAgentPlugin::ConnectionAgentPlugin(QObject *parent):
     QObject(parent)
 {
-    qDebug() << Q_FUNC_INFO << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << this;
-
     connectiondWatcher = new QDBusServiceWatcher(CONND_SERVICE,QDBusConnection::sessionBus(),
             QDBusServiceWatcher::WatchForRegistration |
             QDBusServiceWatcher::WatchForUnregistration, this);
@@ -20,14 +33,7 @@ ConnectionAgentPlugin::ConnectionAgentPlugin(QObject *parent):
     connect(connectiondWatcher, SIGNAL(serviceUnregistered(QString)),
             this, SLOT(connectiondUnregistered(QString)));
 
-    bool available = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE);
-
-    if(available) {
-        connectToConnectiond();
-        qDebug() << Q_FUNC_INFO << CONND_SERVICE << "success!!";
-    } else {
-     qDebug() << Q_FUNC_INFO << CONND_SERVICE << "not available";
-    }
+    connectToConnectiond();
 }
 
 ConnectionAgentPlugin::~ConnectionAgentPlugin()
@@ -36,7 +42,6 @@ ConnectionAgentPlugin::~ConnectionAgentPlugin()
 
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 {
-    qDebug() << Q_FUNC_INFO << this << sender();
     QDBusPendingReply<> reply = connManagerInterface->sendUserReply(input);
     if (reply.isError()) {
      qDebug() << Q_FUNC_INFO << reply.error().message();
@@ -45,13 +50,11 @@ void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 
 void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int timeout)
 {
-    qDebug() << Q_FUNC_INFO << replyMessage << timeout;
      connManagerInterface->sendConnectReply(replyMessage,timeout);
 }
 
 void ConnectionAgentPlugin::onErrorReported(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
     Q_EMIT errorReported(error);
 }
 
@@ -78,7 +81,6 @@ void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const Q
 
 void ConnectionAgentPlugin::onConnectionRequested()
 {
-    qDebug() << Q_FUNC_INFO;
     Q_EMIT connectionRequest();
 }
 
@@ -88,6 +90,17 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
         delete connManagerInterface;
         connManagerInterface = 0;
     }
+
+    bool available = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE);
+
+    if(!available) {
+        QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
+        if (!reply.isValid()) {
+            qDebug() << Q_FUNC_INFO << reply.error().message();
+            return;
+        }
+    }
+
     connManagerInterface = new com::jolla::Connectiond(CONND_SERVICE, CONND_PATH, QDBusConnection::sessionBus(), this);
 
     connect(connManagerInterface,SIGNAL(connectionRequest()),
