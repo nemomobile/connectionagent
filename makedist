@@ -4,8 +4,7 @@
 
 
 # Determine project name based on current directory
-#PROJECT=$(basename $PWD)
-PROJECT=sensorfw
+PROJECT=$(basename $PWD)
 
 # NOTE: Don't like this?  Then uncomment one of the following as appropriate
 #
