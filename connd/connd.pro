@@ -17,7 +17,7 @@ INCLUDEPATH += libconnman-qt
 OTHER_FILES += com.jolla.Connectiond.xml
 
 # create adaptor
-system(qdbusxml2cpp -c ConnAdaptor -a connadaptor.h:connadaptor.cpp com.jolla.Connectiond.xml)
+#system(qdbusxml2cpp -c ConnAdaptor -a connadaptor.h:connadaptor.cpp com.jolla.Connectiond.xml)
 
 SOURCES += main.cpp \
     qconnectionmanager.cpp \
