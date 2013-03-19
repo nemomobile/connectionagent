@@ -11,7 +11,7 @@ This is because currently, there can only be one UserAgent per system.
 
 It also makes use of a patch to connman, that allows the UserAgent
 to get signaled when a connection is needed. This is the real reason
-this deamon is needed. An InputRequest is short lived, and thus, may
+this daemon is needed. An InputRequest is short lived, and thus, may
 not clash with other apps that need to use UserAgent.
 
 When you are trying to intercept a connection request, you need a long
