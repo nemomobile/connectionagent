@@ -3,7 +3,7 @@ QT += core network dbus gui
 QT -= gui
 
 TARGET = connectionagent
-CONFIG   += console
+CONFIG   += console link_pkgconfig 
 CONFIG   -= app_bundle
 
 TEMPLATE = app
@@ -13,6 +13,7 @@ QT -= gui
 
 
 INCLUDEPATH += libconnman-qt
+PKGCONFIG += connman-qt4
 
 OTHER_FILES += com.jolla.Connectiond.xml
 

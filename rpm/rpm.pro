@@ -1,3 +1,4 @@
+TEMPLATE = subdirs
 OTHER_FILES += \
  com.jolla.Connectiond.service
 
