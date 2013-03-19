@@ -31,7 +31,7 @@ HEADERS+= \
 LIBS += -lconnman-qt4
 # LIBS += -llipstick
 
-target.path = /usr/sbin
+target.path = /usr/bin
 INSTALLS += target
 
 MOC_DIR=.moc
