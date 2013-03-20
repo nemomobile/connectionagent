@@ -17,6 +17,12 @@
 #include "connectionagentplugin.h"
 #include "connectionamanagerinterface.h"
 
+#include <connman-qt/networkmanager.h>
+#include <connman-qt/networktechnology.h>
+#include <connman-qt/networkservice.h>
+
+//#include "notifications/notificationmanager.h"
+
 #include <qobject.h>
 
 #define CONND_SERVICE "com.jolla.Connectiond"
@@ -52,6 +58,12 @@ void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int timeout)
 {
      connManagerInterface->sendConnectReply(replyMessage,timeout);
+}
+
+void ConnectionAgentPlugin::connectToType(const QString &type)
+{
+    qDebug() << Q_FUNC_INFO << type;;
+    connManagerInterface->connectToType(type);
 }
 
 void ConnectionAgentPlugin::onErrorReported(const QString &error)
@@ -106,6 +118,9 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
 
     connect(connManagerInterface,SIGNAL(connectionRequest()),
             this,SLOT(onConnectionRequested()));
+    connect(connManagerInterface,SIGNAL(wlanConfigurationNeeded()),
+            this,SIGNAL(wlanConfigurationNeeded()));
+
     connect(connManagerInterface,SIGNAL(userInputCanceled()),
             this,SIGNAL(userInputCanceled()));
 
@@ -125,4 +140,10 @@ void ConnectionAgentPlugin::connectiondUnregistered(QString)
         delete connManagerInterface;
         connManagerInterface = 0;
     }
+}
+
+void ConnectionAgentPlugin::onWlanConfigurationNeeded()
+{
+    qDebug() << Q_FUNC_INFO;
+    Q_EMIT wlanConfigurationNeeded();
 }

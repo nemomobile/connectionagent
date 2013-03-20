@@ -21,6 +21,7 @@
 #include "connectionagentplugin.h"
 #include "connectionamanagerinterface.h"
 
+class NetworkManager;
 class ConnectionAgentPlugin : public QObject
 {
     Q_OBJECT
@@ -33,12 +34,14 @@ public:
 public slots:
     void sendUserReply(const QVariantMap &input);
     void sendConnectReply(const QString &replyMessage, int timeout = 120);
+    void connectToType(const QString &type);
 
 signals:
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
     void userInputCanceled();
     void errorReported(const QString &error);
     void connectionRequest();
+    void wlanConfigurationNeeded();
 
 private:
     com::jolla::Connectiond *connManagerInterface;
@@ -49,6 +52,7 @@ private slots:
     void onRequestBrowser(const QString &url);
     void onUserInputRequested(const QString &service, const QVariantMap &fields);
     void onConnectionRequested();
+    void onWlanConfigurationNeeded();
 
     void connectToConnectiond(const QString = QString());
     void connectiondUnregistered(const QString = QString());

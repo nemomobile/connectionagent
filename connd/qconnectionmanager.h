@@ -47,6 +47,7 @@ Q_SIGNALS:
     void userInputCanceled();
     void errorReported(const QString &error);
     void connectionRequest();
+    void wlanConfigurationNeeded();
 
 public Q_SLOTS:
 
@@ -66,14 +67,23 @@ public Q_SLOTS:
     void serviceErrorChanged(const QString &error);
     void stateChanged(const QString &state);
 
+    void connectToType(const QString &type);
+
 private:
     explicit QConnectionManager(QObject *parent = 0);
     static QConnectionManager *self;
     ConnAdaptor *connectionAdaptor;
     UserAgent *ua;
-    NetworkManager *netman;
+
     bool autoConnect();
+    NetworkManager *netman;
+    bool okToConnect;
     QString currentNetworkState;
+    QString currentType;
+
+private slots:
+    void onScanFinished();
+
 };
 
 #endif // QCONNECTIONMANAGER_H

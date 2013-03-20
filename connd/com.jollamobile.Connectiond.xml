@@ -1,27 +1,30 @@
-<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
-"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
   <interface name="com.jolla.Connectiond">
-    <method name="sendUserReply">
-      <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In0"/>
-      <arg type="a{sv}" name="input"/>
-    </method>
-    <method name="sendConnectReply">
-      <arg direction="in" type="s"/>
-      <arg direction="in" type="i"/>
-    </method>
-    <signal name="userInputRequested">
-      <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In1"/>
-      <arg type="s" name="service"/>
-      <arg type="a{sv}" name="fields"/>
-    </signal>
-    <signal name="userInputCanceled"/>
+    <signal name="connectionRequest"/>
+    <signal name="configurationNeeded"/>
     <signal name="errorReported">
-      <arg type="s" name="error"/>
+      <arg direction="out" type="s" name="error"/>
     </signal>
     <signal name="requestBrowser">
-      <arg type="s" name="url"/>
+      <arg direction="out" type="s" name="url"/>
     </signal>
-    <signal name="connectionRequest"/>
+    <signal name="userInputCanceled"/>
+    <signal name="userInputRequested">
+      <arg direction="out" type="s" name="service"/>
+      <arg direction="out" type="a{sv}" name="fields"/>
+      <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In1"/>
+    </signal>
+    <method name="sendConnectReply">
+      <arg direction="in" type="s" name="in0"/>
+      <arg direction="in" type="i" name="in1"/>
+    </method>
+    <method name="sendUserReply">
+      <arg direction="in" type="a{sv}" name="input"/>
+      <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In0"/>
+    </method>
+    <method name="connectToType">
+      <arg direction="in" type="s" name="in0"/>
+    </method>
   </interface>
 </node>
