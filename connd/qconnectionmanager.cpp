@@ -36,9 +36,11 @@ QConnectionManager* QConnectionManager::self = NULL;
 QConnectionManager::QConnectionManager(QObject *parent) :
     QObject(parent),
      netman(NetworkManagerFactory::createInstance()),
+     netService(0),
      okToConnect(0),
      currentNetworkState(QString()),
-     currentType(QString())
+     currentType(QString()),
+     serviceConnect(0)
 {
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -99,6 +101,7 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &error)
 {
+    qDebug() << Q_FUNC_INFO << error;
     Q_EMIT errorReported(error);
 }
 
@@ -107,8 +110,6 @@ void QConnectionManager::onConnectionRequest()
 {
     qDebug() << Q_FUNC_INFO;
     if (!autoConnect()) {
-        qDebug() << Q_FUNC_INFO << "emit connectionRequest";
-
         Q_EMIT connectionRequest();
     }
 }
@@ -125,31 +126,30 @@ void QConnectionManager::sendConnectReply(const QString &in0, int in1)
 
 void QConnectionManager::sendUserReply(const QVariantMap &input)
 {
+    qDebug() << Q_FUNC_INFO << input;
     ua->sendUserReply(input);
 }
 
 void QConnectionManager::networkStateChanged(const QString &state)
 {
+    if (serviceConnect)
+        return;
     QString msg;
-    if (currentNetworkState == "idle" && state == "association") {
+    if (currentNetworkState == "idle" && state == "ready") {
         msg = "Connecting...";
     } else  if (currentNetworkState == "ready" && state == "online") {
         msg = "Connected";
     } else  if (state == "offline") {
         msg = "Offline";
+    } else if (state == "idle") {
+        msg = "Disconnected";
     }
     qDebug() << Q_FUNC_INFO << currentNetworkState << state << msg;
+    Q_EMIT connectionState(msg);
 
-//    NotificationManager *manager = NotificationManager::instance();
-//    QVariantHash hints;
-//    hints.insert(NotificationManager::HINT_URGENCY, 2);
-//    hints.insert(NotificationManager::HINT_CATEGORY, "device.error");
-//    hints.insert(NotificationManager::HINT_PREVIEW_BODY, msg);
-//    manager->Notify(qApp->applicationName(), 0, QString(), QString(), QString(), QStringList(), hints, -1);
-
-//    if (!msg.isEmpty()) {
-//        emit serviceStateChanged(msg);
-//    }
+    //    if (!msg.isEmpty()) {
+    //        emit serviceStateChanged(msg);
+    //    }
     currentNetworkState = state;
 }
 
@@ -157,14 +157,19 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
 {
 //    qDebug() << Q_FUNC_INFO << servicePath;
     if (okToConnect) {
-        NetworkService *netService;
+        if (netService) {
+            delete netService;
+            netService = 0;
+        }
         netService = new NetworkService(this);
         netService->setPath(servicePath);
         if (netService->favorite()) {
+            serviceConnect = true;
             QObject::connect(netService, SIGNAL(stateChanged(QString)),
-                             this,SLOT(stateChanged(QString)));
+                             this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
             QObject::connect(netService, SIGNAL(connectRequestFailed(QString)),
-                             this,SLOT(serviceErrorChanged(QString)));
+                             this,SLOT(serviceErrorChanged(QString)), Qt::UniqueConnection);
+
             netService->requestConnect();
         }
     }
@@ -173,38 +178,29 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
     qDebug() << Q_FUNC_INFO << error;
-//    NotificationManager *manager = NotificationManager::instance();
-//    QVariantHash hints;
-//    hints.insert(NotificationManager::HINT_URGENCY, 1);
-//    hints.insert(NotificationManager::HINT_CATEGORY, "device.error");
-//    hints.insert(NotificationManager::HINT_PREVIEW_BODY, error);
-//    manager->Notify(qApp->applicationName(), 0, QString(), QString(), QString(), QStringList(), hints, -1);
+    Q_EMIT errorReported(error);
 }
 
 void QConnectionManager::stateChanged(const QString &state)
 {
     Q_UNUSED(state)
-    //    QString msg;
-    //    if (currentNetworkState == "idle" && state == "association") {
-    //        msg = "Connecting...";
-    //    } else  if (currentNetworkState == "ready" && state == "online") {
-    //        msg = "Connected";
-    //    } else  if (state == "offline") {
-    //        msg = "Offline";
-    //    }
-    //    qDebug() << Q_FUNC_INFO << currentNetworkState << state << msg;
-
-    ////    NotificationManager *manager = NotificationManager::instance();
-    ////    QVariantHash hints;
-    ////    hints.insert(NotificationManager::HINT_URGENCY, 2);
-    ////    hints.insert(NotificationManager::HINT_CATEGORY, "device.error");
-    ////    hints.insert(NotificationManager::HINT_PREVIEW_BODY, msg);
-    ////    manager->Notify(qApp->applicationName(), 0, QString(), QString(), QString(), QStringList(), hints, -1);
-
+        QString msg;
+        if ((currentNetworkState == "idle" && state == "association")
+                || (currentNetworkState == "association" && state == "configuration")
+                || (currentNetworkState == "configuration" && state == "ready")) {
+            msg = "Connecting...";
+        } else  if (currentNetworkState == "ready" && state == "online") {
+            msg = "Connected";
+            serviceConnect = false;
+        } else if (state == "offline") {
+            msg = "Offline";
+        }
+        qDebug() << Q_FUNC_INFO << currentNetworkState << state << msg;
+        Q_EMIT connectionState(msg);
     //    if (!msg.isEmpty()) {
     //        emit serviceStateChanged(msg);
     //    }
-    //    currentNetworkState = state;
+        currentNetworkState = state;
 }
 
 bool QConnectionManager::autoConnect()
@@ -216,20 +212,17 @@ bool QConnectionManager::autoConnect()
 
         Q_FOREACH (NetworkService *service, serviceList) {
             if(service->autoConnect() && service->favorite()) {
-
+                serviceConnect = true;
                 QObject::connect(service, SIGNAL(stateChanged(QString)),
-                                 this,SLOT(stateChanged(QString)));
+                                 this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
                 QObject::connect(service, SIGNAL(connectRequestFailed(QString)),
-                                 this,SLOT(serviceErrorChanged(QString)));
+                                 this,SLOT(serviceErrorChanged(QString)), Qt::UniqueConnection);
 
                 service->requestConnect();
-                qDebug() << Q_FUNC_INFO << true;
-
                 return true;
             }
         }
     }
-    qDebug() << Q_FUNC_INFO << false;
     return false;
 }
 
@@ -246,7 +239,8 @@ void QConnectionManager::connectToType(const QString &type)
         netTech.setPowered(true);
     }
     QStringList servicesList = netman->servicesList(type);
-qDebug() << servicesList;
+
+    qDebug() << servicesList;
 
     if (servicesList.isEmpty()) {
         if (type == "wifi") {
@@ -256,7 +250,10 @@ qDebug() << servicesList;
             onScanFinished();
         }
     } else {
-        NetworkService *netService;
+        if (netService) {
+            delete netService;
+            netService = 0;
+        }
         netService = new NetworkService(this);
         bool needConfig = false;
         Q_FOREACH (const QString path, servicesList) {
@@ -266,15 +263,14 @@ qDebug() << servicesList;
             if (netService->favorite()) {
                 qDebug() << "power on, fav";
                 needConfig = false;
+                serviceConnect = true;
                 QObject::connect(netService, SIGNAL(stateChanged(QString)),
-                                 this,SLOT(stateChanged(QString)));
+                                 this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
 
                 QObject::connect(netService, SIGNAL(connectRequestFailed(QString)),
-                                 this,SLOT(serviceErrorChanged(QString)));
+                                 this,SLOT(serviceErrorChanged(QString)), Qt::UniqueConnection);
 
                 qDebug() << Q_FUNC_INFO << "just connect to this  thing";
-
-                //window->rootContext()->setContextProperty("connecting", QVariant(true));
 
 //                NetworkTechnology *tech = netman->getTechnology(netService->type());
 //                tech->setIdleTimeout(120);

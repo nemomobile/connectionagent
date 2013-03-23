@@ -9,8 +9,8 @@
  * before re-generating it.
  */
 
-#ifndef CONNADAPTOR_H_1363743442
-#define CONNADAPTOR_H_1363743442
+#ifndef CONNADAPTOR_H_1363752885
+#define CONNADAPTOR_H_1363752885
 
 #include <QtCore/QObject>
 #include <QtDBus/QtDBus>
@@ -44,6 +44,9 @@ class ConnAdaptor: public QDBusAbstractAdaptor
 "      <arg direction=\"out\" type=\"a{sv}\" name=\"fields\"/>\n"
 "      <annotation value=\"QVariantMap\" name=\"org.qtproject.QtDBus.QtTypeName.In1\"/>\n"
 "    </signal>\n"
+"    <signal name=\"connectionState\">\n"
+"      <arg direction=\"out\" type=\"s\" name=\"state\"/>\n"
+"    </signal>\n"
 "    <method name=\"sendConnectReply\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"in0\"/>\n"
 "      <arg direction=\"in\" type=\"i\" name=\"in1\"/>\n"
@@ -68,6 +71,7 @@ public Q_SLOTS: // METHODS
     void sendUserReply(const QVariantMap &input);
 Q_SIGNALS: // SIGNALS
     void connectionRequest();
+    void connectionState(const QString &state);
     void errorReported(const QString &error);
     void requestBrowser(const QString &url);
     void userInputCanceled();

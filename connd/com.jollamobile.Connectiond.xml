@@ -2,7 +2,7 @@
 <node>
   <interface name="com.jolla.Connectiond">
     <signal name="connectionRequest"/>
-    <signal name="configurationNeeded"/>
+    <signal name="wlanConfigurationNeeded"/>
     <signal name="errorReported">
       <arg direction="out" type="s" name="error"/>
     </signal>
@@ -14,6 +14,9 @@
       <arg direction="out" type="s" name="service"/>
       <arg direction="out" type="a{sv}" name="fields"/>
       <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In1"/>
+    </signal>
+    <signal name="connectionState">
+      <arg direction="out" type="s" name="state"/>
     </signal>
     <method name="sendConnectReply">
       <arg direction="in" type="s" name="in0"/>

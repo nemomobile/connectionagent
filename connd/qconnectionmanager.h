@@ -29,6 +29,7 @@ class SessionAgent;
 
 class ConnAdaptor;
 class NetworkManager;
+class NetworkService;
 
 class QConnectionManager : public QObject
 {
@@ -48,6 +49,7 @@ Q_SIGNALS:
     void errorReported(const QString &error);
     void connectionRequest();
     void wlanConfigurationNeeded();
+    void connectionState(const QString &state);
 
 public Q_SLOTS:
 
@@ -77,9 +79,12 @@ private:
 
     bool autoConnect();
     NetworkManager *netman;
+    NetworkService *netService;
+
     bool okToConnect;
     QString currentNetworkState;
     QString currentType;
+    bool serviceConnect;
 
 private slots:
     void onScanFinished();

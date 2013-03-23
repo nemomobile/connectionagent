@@ -13,6 +13,7 @@ QT -= gui
 
 
 INCLUDEPATH += libconnman-qt
+#INCLUDEPATH += lipstick
 
 OTHER_FILES += com.jolla.Connectiond.xml
 
@@ -29,7 +30,7 @@ HEADERS+= \
     connadaptor.h
 
 LIBS += -lconnman-qt4
-# LIBS += -llipstick
+#LIBS += -llipstick
 
 target.path = /usr/bin
 INSTALLS += target

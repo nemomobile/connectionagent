@@ -8,8 +8,8 @@
  * Do not edit! All changes made to it will be lost.
  */
 
-#ifndef CONNECTIONAMANAGERINTERFACE_H_1363743454
-#define CONNECTIONAMANAGERINTERFACE_H_1363743454
+#ifndef CONNECTIONAMANAGERINTERFACE_H_1363759925
+#define CONNECTIONAMANAGERINTERFACE_H_1363759925
 
 #include <QtCore/QObject>
 #include <QtCore/QByteArray>
@@ -59,6 +59,7 @@ public Q_SLOTS: // METHODS
 
 Q_SIGNALS: // SIGNALS
     void connectionRequest();
+    void connectionState(const QString &state);
     void errorReported(const QString &error);
     void requestBrowser(const QString &url);
     void userInputCanceled();

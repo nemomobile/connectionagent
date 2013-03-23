@@ -49,6 +49,7 @@ ConnectionAgentPlugin::~ConnectionAgentPlugin()
 
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 {
+     qDebug() << Q_FUNC_INFO;
     QDBusPendingReply<> reply = connManagerInterface->sendUserReply(input);
     if (reply.isError()) {
      qDebug() << Q_FUNC_INFO << reply.error().message();
@@ -89,6 +90,7 @@ void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const Q
         QVariantMap vmap = qdbus_cast<QVariantMap>(arg);
         map.insert(i.key(), vmap);
     }
+    qDebug() << Q_FUNC_INFO << map;
     Q_EMIT userInputRequested(service, map);
 }
 
@@ -127,6 +129,9 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
     connect(connManagerInterface,SIGNAL(errorReported(QString)),
                      this,SLOT(onErrorReported(QString)));
 
+    connect(connManagerInterface,SIGNAL(connectionState(QString)),
+                     this,SLOT(onConnectionState(QString)));
+
     connect(connManagerInterface,SIGNAL(requestBrowser(QString)),
                      this,SLOT(onRequestBrowser(QString)));
 
@@ -146,4 +151,10 @@ void ConnectionAgentPlugin::onWlanConfigurationNeeded()
 {
     qDebug() << Q_FUNC_INFO;
     Q_EMIT wlanConfigurationNeeded();
+}
+
+void ConnectionAgentPlugin::onConnectionState(const QString &state)
+{
+    qDebug() << Q_FUNC_INFO << state;
+    Q_EMIT connectionState(state);
 }
