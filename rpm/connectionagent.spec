@@ -17,7 +17,7 @@ URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  connectionagent.yaml
 Requires:   qt
-Requires:   qt-dbus
+Requires:   libqtdbus4
 Requires:   connman-qt
 Requires:   connman-qt-declarative
 BuildRequires:  pkgconfig(QtCore)

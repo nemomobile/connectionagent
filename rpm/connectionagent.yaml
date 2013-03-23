@@ -11,7 +11,7 @@ Sources:
     - "%{name}-%{version}.tar.bz2"
 Requires:
     - qt
-    - qt-dbus
+    - libqtdbus4
     - connman-qt
     - connman-qt-declarative
     
