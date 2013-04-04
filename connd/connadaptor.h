@@ -46,6 +46,7 @@ class ConnAdaptor: public QDBusAbstractAdaptor
 "    </signal>\n"
 "    <signal name=\"connectionState\">\n"
 "      <arg direction=\"out\" type=\"s\" name=\"state\"/>\n"
+"      <arg direction=\"out\" type=\"s\" name=\"type\"/>\n"
 "    </signal>\n"
 "    <method name=\"sendConnectReply\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"in0\"/>\n"
@@ -71,7 +72,7 @@ public Q_SLOTS: // METHODS
     void sendUserReply(const QVariantMap &input);
 Q_SIGNALS: // SIGNALS
     void connectionRequest();
-    void connectionState(const QString &state);
+    void connectionState(const QString &state, const QString &type);
     void errorReported(const QString &error);
     void requestBrowser(const QString &url);
     void userInputCanceled();

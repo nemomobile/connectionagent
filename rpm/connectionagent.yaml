@@ -19,13 +19,13 @@ PkgConfigBR:
     - QtCore
     - QtDBus
 
- 
+BuildRequires: pkgconfig(connman-qt)
+
 Configure: none
 Builder: qmake
 Files:
-    - "%{_usr}/bin/connectionagent"
-    - "%{_usr}/share/dbus-1/services/com.jolla.Connectiond.service"
-
+    - "%{_bindir}/connectionagent"
+    - "%{_datadir}/dbus-1/services/com.jolla.Connectiond.service"
 SubPackages:
     - Name: declarative
       Summary: Declarative plugin for connection agent.

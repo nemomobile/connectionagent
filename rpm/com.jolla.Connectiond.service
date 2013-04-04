@@ -1,6 +1,5 @@
-# (Lines starting with hash marks are comments)
-
-# Fixed section header (do not change):
 [D-BUS Service]
 Name=com.jolla.Connectiond
 Exec=/usr/bin/connectionagent
+SystemdService=connectionagent.service
+Interface=/Connectiond

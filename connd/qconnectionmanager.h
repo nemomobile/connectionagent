@@ -49,7 +49,7 @@ Q_SIGNALS:
     void errorReported(const QString &error);
     void connectionRequest();
     void wlanConfigurationNeeded();
-    void connectionState(const QString &state);
+    void connectionState(const QString &state, const QString &type);
 
 public Q_SLOTS:
 
@@ -64,12 +64,13 @@ public Q_SLOTS:
     void sendConnectReply(const QString &in0, int in1);
     void sendUserReply(const QVariantMap &input);
 
-    void networkStateChanged(const QString &state);
     void onServiceAdded(const QString &servicePath);
+    void onServiceRemoved(const QString &servicePath);
     void serviceErrorChanged(const QString &error);
     void stateChanged(const QString &state);
 
     void connectToType(const QString &type);
+    void defaultRouteChanged(NetworkService* defaultRoute);
 
 private:
     explicit QConnectionManager(QObject *parent = 0);
@@ -79,15 +80,24 @@ private:
 
     bool autoConnect();
     NetworkManager *netman;
-    NetworkService *netService;
+ //   NetworkService *netService;
+    SessionAgent *sessionAgent;
 
     bool okToConnect;
     QString currentNetworkState;
     QString currentType;
     bool serviceConnect;
+    void connectToNetworkService(const QString &service);
+    void showNotification(const QString &message,int timeout);
+    uint currentNotification;
+
+    QList <QString> servicePaths;
+    QHash<QString,NetworkService *> servicesMap;
 
 private slots:
     void onScanFinished();
+    void updateServicesMap();
+    void sessionSettingsUpdated(const QVariantMap &map);
 
 };
 

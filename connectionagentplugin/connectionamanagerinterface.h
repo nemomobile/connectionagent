@@ -59,7 +59,7 @@ public Q_SLOTS: // METHODS
 
 Q_SIGNALS: // SIGNALS
     void connectionRequest();
-    void connectionState(const QString &state);
+    void connectionState(const QString &state, const QString &type);
     void errorReported(const QString &error);
     void requestBrowser(const QString &url);
     void userInputCanceled();

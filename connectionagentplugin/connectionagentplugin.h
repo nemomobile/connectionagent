@@ -42,7 +42,7 @@ signals:
     void errorReported(const QString &error);
     void connectionRequest();
     void wlanConfigurationNeeded();
-    void connectionState(const QString &state);
+    void connectionState(const QString &state, const QString &type);
 
 private:
     com::jolla::Connectiond *connManagerInterface;
@@ -54,7 +54,7 @@ private slots:
     void onUserInputRequested(const QString &service, const QVariantMap &fields);
     void onConnectionRequested();
     void onWlanConfigurationNeeded();
-    void onConnectionState(const QString &state);
+    void onConnectionState(const QString &state, const QString &type);
 
     void connectToConnectiond(const QString = QString());
     void connectiondUnregistered(const QString = QString());

@@ -47,6 +47,55 @@ ConnectionAgentPlugin::~ConnectionAgentPlugin()
 {
 }
 
+void ConnectionAgentPlugin::connectToConnectiond(QString)
+{
+    qDebug() << Q_FUNC_INFO << connManagerInterface;
+    if (connManagerInterface) {
+        delete connManagerInterface;
+        connManagerInterface = 0;
+    }
+
+    bool available = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE);
+    qDebug() << Q_FUNC_INFO << available;
+
+//    if(!available) {
+        QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
+        if (!reply.isValid()) {
+            qDebug() << Q_FUNC_INFO << reply.error().message();
+            return;
+        }
+//    }
+
+    if (!QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE)) {
+     qDebug() << Q_FUNC_INFO << QString("XXXXXXXXXXXXXXXXXXXXXXXXXX %1 not available").arg(CONND_SERVICE);
+    }
+
+    connManagerInterface = new com::jolla::Connectiond(CONND_SERVICE, CONND_PATH,
+                                                       QDBusConnection::sessionBus(), this);
+    if (!connManagerInterface->isValid()) {
+        qDebug() << Q_FUNC_INFO << "is not valid interface";
+    }
+    connect(connManagerInterface,SIGNAL(connectionRequest()),
+            this,SLOT(onConnectionRequested()));
+    connect(connManagerInterface,SIGNAL(wlanConfigurationNeeded()),
+            this,SIGNAL(wlanConfigurationNeeded()));
+
+    connect(connManagerInterface,SIGNAL(userInputCanceled()),
+            this,SIGNAL(userInputCanceled()));
+
+    connect(connManagerInterface,SIGNAL(errorReported(QString)),
+                     this,SLOT(onErrorReported(QString)));
+
+    connect(connManagerInterface,SIGNAL(connectionState(QString, QString)),
+                     this,SLOT(onConnectionState(QString, QString)));
+
+    connect(connManagerInterface,SIGNAL(requestBrowser(QString)),
+                     this,SLOT(onRequestBrowser(QString)));
+
+    connect(connManagerInterface,SIGNAL(userInputRequested(QString,QVariantMap)),
+                     this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
+}
+
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 {
      qDebug() << Q_FUNC_INFO;
@@ -99,45 +148,6 @@ void ConnectionAgentPlugin::onConnectionRequested()
     Q_EMIT connectionRequest();
 }
 
-void ConnectionAgentPlugin::connectToConnectiond(QString)
-{
-    if (connManagerInterface) {
-        delete connManagerInterface;
-        connManagerInterface = 0;
-    }
-
-    bool available = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE);
-
-    if(!available) {
-        QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
-        if (!reply.isValid()) {
-            qDebug() << Q_FUNC_INFO << reply.error().message();
-            return;
-        }
-    }
-
-    connManagerInterface = new com::jolla::Connectiond(CONND_SERVICE, CONND_PATH, QDBusConnection::sessionBus(), this);
-
-    connect(connManagerInterface,SIGNAL(connectionRequest()),
-            this,SLOT(onConnectionRequested()));
-    connect(connManagerInterface,SIGNAL(wlanConfigurationNeeded()),
-            this,SIGNAL(wlanConfigurationNeeded()));
-
-    connect(connManagerInterface,SIGNAL(userInputCanceled()),
-            this,SIGNAL(userInputCanceled()));
-
-    connect(connManagerInterface,SIGNAL(errorReported(QString)),
-                     this,SLOT(onErrorReported(QString)));
-
-    connect(connManagerInterface,SIGNAL(connectionState(QString)),
-                     this,SLOT(onConnectionState(QString)));
-
-    connect(connManagerInterface,SIGNAL(requestBrowser(QString)),
-                     this,SLOT(onRequestBrowser(QString)));
-
-    connect(connManagerInterface,SIGNAL(userInputRequested(QString,QVariantMap)),
-                     this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
-}
 
 void ConnectionAgentPlugin::connectiondUnregistered(QString)
 {
@@ -153,8 +163,8 @@ void ConnectionAgentPlugin::onWlanConfigurationNeeded()
     Q_EMIT wlanConfigurationNeeded();
 }
 
-void ConnectionAgentPlugin::onConnectionState(const QString &state)
+void ConnectionAgentPlugin::onConnectionState(const QString &state, const QString &type)
 {
-    qDebug() << Q_FUNC_INFO << state;
-    Q_EMIT connectionState(state);
+    qDebug() << Q_FUNC_INFO << state << type;
+    Q_EMIT connectionState(state, type);
 }

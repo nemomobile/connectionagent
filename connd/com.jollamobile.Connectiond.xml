@@ -17,6 +17,7 @@
     </signal>
     <signal name="connectionState">
       <arg direction="out" type="s" name="state"/>
+      <arg direction="out" type="s" name="type"/>
     </signal>
     <method name="sendConnectReply">
       <arg direction="in" type="s" name="in0"/>
