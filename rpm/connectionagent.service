@@ -6,3 +6,6 @@ Requires=dbus.socket
 ExecStart=/usr/bin/connectionagent
 Type=dbus
 BusName=com.jolla.Connectiond
+
+ [Install]
+ WantedBy=jolla-middleware.target
