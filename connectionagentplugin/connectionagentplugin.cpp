@@ -21,8 +21,6 @@
 #include <connman-qt/networktechnology.h>
 #include <connman-qt/networkservice.h>
 
-//#include "notifications/notificationmanager.h"
-
 #include <qobject.h>
 
 #define CONND_SERVICE "com.jolla.Connectiond"
@@ -49,25 +47,19 @@ ConnectionAgentPlugin::~ConnectionAgentPlugin()
 
 void ConnectionAgentPlugin::connectToConnectiond(QString)
 {
-    qDebug() << Q_FUNC_INFO << connManagerInterface;
     if (connManagerInterface) {
         delete connManagerInterface;
         connManagerInterface = 0;
     }
 
-    bool available = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE);
-    qDebug() << Q_FUNC_INFO << available;
-
-//    if(!available) {
-        QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
-        if (!reply.isValid()) {
-            qDebug() << Q_FUNC_INFO << reply.error().message();
-            return;
-        }
-//    }
+    QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
+    if (!reply.isValid()) {
+        qDebug() << Q_FUNC_INFO << reply.error().message();
+        return;
+    }
 
     if (!QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE)) {
-     qDebug() << Q_FUNC_INFO << QString("XXXXXXXXXXXXXXXXXXXXXXXXXX %1 not available").arg(CONND_SERVICE);
+        qDebug() << Q_FUNC_INFO << QString("connection service not available").arg(CONND_SERVICE);
     }
 
     connManagerInterface = new com::jolla::Connectiond(CONND_SERVICE, CONND_PATH,
@@ -98,10 +90,9 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
 
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 {
-     qDebug() << Q_FUNC_INFO;
     QDBusPendingReply<> reply = connManagerInterface->sendUserReply(input);
     if (reply.isError()) {
-     qDebug() << Q_FUNC_INFO << reply.error().message();
+        qDebug() << Q_FUNC_INFO << reply.error().message();
     }
 }
 
@@ -139,7 +130,7 @@ void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const Q
         QVariantMap vmap = qdbus_cast<QVariantMap>(arg);
         map.insert(i.key(), vmap);
     }
-    qDebug() << Q_FUNC_INFO << map;
+//    qDebug() << Q_FUNC_INFO << map;
     Q_EMIT userInputRequested(service, map);
 }
 

@@ -20,11 +20,6 @@
 #include <connman-qt/useragent.h>
 #include <connman-qt/service.h>
 
-//#include <connman-qt/counter.h>
-//#include <connman-qt/session.h>
-//#include <connman-qt/networksession.h>
-//#include <connman-qt/sessionagent.h>
-
 #include <connman-qt/manager.h>
 
 #include <connman-qt/networkmanager.h>
@@ -32,20 +27,16 @@
 #include <connman-qt/networkservice.h>
 #include <connman-qt/sessionagent.h>
 
-//#include <lipstick/notificationmanager.h>
-
 QConnectionManager* QConnectionManager::self = NULL;
 
 #define CONND_SERVICE "com.jolla.Connectiond"
 #define CONND_PATH "/Connectiond"
-
 
 // TODO single connection
 
 QConnectionManager::QConnectionManager(QObject *parent) :
     QObject(parent),
      netman(NetworkManagerFactory::createInstance()),
-  //   netService(0),
      okToConnect(0),
      currentNetworkState(QString()),
      currentType(QString()),
@@ -58,9 +49,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
 
-    if (!dbus.registerService(CONND_SERVICE)/*,
-            QDBusConnectionInterface::ReplaceExistingService,
-            QDBusConnectionInterface::DontAllowReplacement*/) {
+    if (!dbus.registerService(CONND_SERVICE)) {
         qDebug() << "XXXXXXXXXXX could not register service XXXXXXXXXXXXXXXXXX";
     }
 
@@ -93,13 +82,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
     // let me control autoconnect
     netman->setSessionMode(true);
-
-//    sessionAgent = new SessionAgent("/ConnectionSessionAgent",this);
-//    sessionAgent->setConnectionType("internet");
-//    sessionAgent->setAllowedBearers(QStringList() << "wifi" << "cellular" << "bluetooth");
-//    connect(sessionAgent,SIGNAL(settingsUpdated(QVariantMap)),
-//            this,SLOT(sessionSettingsUpdated(QVariantMap)));
-
 }
 
 QConnectionManager::~QConnectionManager()
@@ -120,6 +102,7 @@ QConnectionManager & QConnectionManager::instance()
 void QConnectionManager::onUserInputRequested(const QString &servicePath, const QVariantMap &fields)
 {
     // gets called when a connman service gets called to connect and needs more configurations.
+    qDebug() << Q_FUNC_INFO << servicePath << fields;
 
     Q_EMIT userInputRequested(servicePath, fields);
 }
@@ -133,7 +116,8 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
+    qDebug() << Q_FUNC_INFO << error;;
+
     Q_EMIT errorReported(error);
 }
 
@@ -144,11 +128,6 @@ void QConnectionManager::onConnectionRequest()
     if (!autoConnect()) {
         Q_EMIT connectionRequest();
     }
-}
-
-void QConnectionManager::sendMessage()
-{
-  //  ua->sendConnectReply(QLatin1String("Suppress"));
 }
 
 void QConnectionManager::sendConnectReply(const QString &in0, int in1)
@@ -166,23 +145,9 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
 {
     //TODO connection migration?
 
-    //    qDebug() << Q_FUNC_INFO << servicePath << okToConnect << currentType;
-    //      qDebug() << "connected services" << connectedServices;
-
     if (!servicesMap.contains(servicePath)) {
         updateServicesMap();
-
-        //        NetworkService *netService = new NetworkService(this);
-        //        netService->setPath(servicePath);
-        //        qDebug() << Q_FUNC_INFO << "add" << netService->name();
-        ////TODO sort ?
-
-        //        servicesMap.insert(servicePath, netService);
-
-        //        QObject::connect(servicesMap.value(servicePath), SIGNAL(stateChanged(QString)),
-        //                         this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
     }
-
 
     if (okToConnect && !currentType.isEmpty()) {
         if (servicesMap.contains(servicePath)
@@ -215,14 +180,10 @@ void QConnectionManager::stateChanged(const QString &state)
 
     qDebug() << Q_FUNC_INFO << state << service->name();
 
-//    qDebug() << Q_FUNC_INFO << currentNetworkState << state;
-//    if (state == "online" || state == "association" || state == "idle"))
-
     if (!(currentNetworkState == "online" && state == "association"))
         Q_EMIT connectionState(state, service->type());
 
     currentNetworkState = state;
-    qDebug() << Q_FUNC_INFO << state ;
 }
 
 bool QConnectionManager::autoConnect()
@@ -253,42 +214,28 @@ bool QConnectionManager::autoConnect()
                 strength = servicesMap.value(servicePath)->strength();
             }
             currentType = servicesMap.value(servicePath)->type();
-
-            //                sessionAgent->setAllowedBearers(QStringList() <<service->type());//<< "wifi" << "cellular");
-            //                    sessionAgent->setAllowedBearers(QStringList() << "cellular" << "wifi");
-            //              sessionAgent->requestConnect();
-
-            //                QObject::connect(service, SIGNAL(stateChanged(QString)),
-            //                                 this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
-            //                QObject::connect(service, SIGNAL(connectRequestFailed(QString)),
-            //                                 this,SLOT(serviceErrorChanged(QString)), Qt::UniqueConnection);
-
         }
     }
 
-    qDebug() << "out of loop now";
     if (!selectedService.isEmpty()) {
-        qDebug() << Q_FUNC_INFO << selectedService;
         qDebug() << Q_FUNC_INFO << servicesMap.value(selectedService)->name();
         serviceConnect = true;
         servicesMap.value(selectedService)->requestConnect();
         return true;
     }
 
-    qDebug() << Q_FUNC_INFO << false;
     return false;
 }
 
 void QConnectionManager::connectToType(const QString &type)
 {
-    qDebug() << Q_FUNC_INFO << type;
     currentType = type;
     QString techPath = netman->technologyPathForType(type);
 
     NetworkTechnology netTech;
     netTech.setPath(techPath);
 
-    if (!netTech.powered()) { //?
+    if (!netTech.powered()) { // user has indicated they want a connection
         netTech.setPowered(true);
     }
     QStringList servicesList = netman->servicesList(type);
@@ -306,13 +253,11 @@ void QConnectionManager::connectToType(const QString &type)
     } else {
         currentType = "";
         bool needConfig = false;
-qDebug() << Q_FUNC_INFO << servicesMap.keys();
 
         Q_FOREACH (const QString path, servicesList) {
             qDebug() << Q_FUNC_INFO << path << servicesMap.contains(path);
 
             if (servicesMap.contains(path) && servicesMap.value(path)->favorite()) {
-                qDebug() << "power on, fav";
                 connectToNetworkService(path);
                 needConfig = false;
                 return;
@@ -346,13 +291,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
     qDebug() << Q_FUNC_INFO << "idle timeout set";
 
     servicesMap.value(servicePath)->requestConnect();
-
-//    if (servicesMap.value(servicePath)->type() == "wifi")
-//        sessionAgent->setAllowedBearers(QStringList() << "wifi");// << "cellular" << "bluetooth");
-//    else if (servicesMap.value(servicePath)->type() == "cellular")
-//        sessionAgent->setAllowedBearers(QStringList() << "cellular");// << "wifi" << "bluetooth");
-//    sessionAgent->requestConnect();
-
     okToConnect = false;
 }
 
@@ -360,24 +298,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 void QConnectionManager::onScanFinished()
 {
     qDebug() << Q_FUNC_INFO;
-}
-
-void QConnectionManager::showNotification(const QString &/*message*/,int /*timeout*/)
-{
-//    qDebug() << Q_FUNC_INFO << message;
-//    if (message.isEmpty())
-//        return;
-
-//    NotificationManager *manager = NotificationManager::instance();
-//    QVariantHash hints;
-//    hints.insert(NotificationManager::HINT_URGENCY, 2);
-//    hints.insert(NotificationManager::HINT_CATEGORY, "connection.mobile");
-//    uint tmpUint;
-//    //    hints.insert(NotificationManager::HINT_PREVIEW_BODY, message);
-
-//    tmpUint = manager->Notify(qApp->applicationName(), 0, QString(), QString(),
-//                              QString(), QStringList(), hints, -1);
-//    currentNotification = tmpUint;
 }
 
 void QConnectionManager::defaultRouteChanged(NetworkService* defaultRoute)
@@ -408,9 +328,4 @@ void QConnectionManager::updateServicesMap()
                              this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
         }
     }
-}
-
-void QConnectionManager::sessionSettingsUpdated(const QVariantMap &map)
-{
-    qDebug() <<Q_FUNC_INFO<< map;
 }

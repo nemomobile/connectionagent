@@ -56,7 +56,6 @@
 
 void ConnectionagentpluginPlugin::registerTypes(const char *uri)
 {
-    qDebug() << Q_FUNC_INFO << uri;
     // @uri com.jolla.connection
     qmlRegisterType<ConnectionAgentPlugin>(uri, 1, 0, "ConnectionAgent");
 }

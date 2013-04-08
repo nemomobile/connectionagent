@@ -59,8 +59,6 @@ public Q_SLOTS:
 
     void onConnectionRequest();
 
-    void sendMessage();// ?
-
     void sendConnectReply(const QString &in0, int in1);
     void sendUserReply(const QVariantMap &input);
 
@@ -80,7 +78,6 @@ private:
 
     bool autoConnect();
     NetworkManager *netman;
- //   NetworkService *netService;
     SessionAgent *sessionAgent;
 
     bool okToConnect;
@@ -88,16 +85,13 @@ private:
     QString currentType;
     bool serviceConnect;
     void connectToNetworkService(const QString &service);
-    void showNotification(const QString &message,int timeout);
     uint currentNotification;
 
-    QList <QString> servicePaths;
     QHash<QString,NetworkService *> servicesMap;
 
 private slots:
     void onScanFinished();
     void updateServicesMap();
-    void sessionSettingsUpdated(const QVariantMap &map);
 
 };
 
