@@ -7,6 +7,8 @@ License: LGPLv2
 URL: http://github.com/lpotter/connectionagent 
 Description: |
     Connection Agent provides multi user access to connman's User Agent.
+    It also provides autoconnecting features.
+
 Sources:
     - "%{name}-%{version}.tar.bz2"
 Requires:

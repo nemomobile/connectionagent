@@ -25,7 +25,7 @@ BuildRequires:  pkgconfig(QtDBus)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
-
+    It also provides autoconnecting features.
 
 %package declarative
 Summary:    Declarative plugin for connection agent.
