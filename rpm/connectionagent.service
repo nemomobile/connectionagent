@@ -1,0 +1,8 @@
+[Unit]
+Description=Connection Agent
+Requires=dbus.socket
+
+[Service]
+ExecStart=/usr/bin/connectionagent
+Type=dbus
+BusName=com.jolla.Connectiond

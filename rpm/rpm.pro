@@ -3,8 +3,10 @@ TEMPLATE = subdirs
 OTHER_FILES += \
  com.jolla.Connectiond.service
 
-service.path = $${INSTALL_PREFIX}/usr/share/dbus-1/services
-service.files = com.jolla.Connectiond.service
+dbusservice.path = $${INSTALL_PREFIX}/usr/share/dbus-1/services
+dbusservice.files = com.jolla.Connectiond.service
 
+systemdservice.path = $${INSTALL_PREFIX}/usr/lib/systemd/user
+systemdservice.files = connectionagent.service
 
-INSTALLS += service
+INSTALLS += dbusservice systemdservice
