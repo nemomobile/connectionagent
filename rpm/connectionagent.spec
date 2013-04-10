@@ -16,16 +16,14 @@ License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  connectionagent.yaml
-Requires:   qt
-Requires:   libqtdbus4
-Requires:   connman-qt
 Requires:   connman-qt-declarative
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
-    It also provides autoconnecting features.
+It also provides autoconnecting features.
+
 
 %package declarative
 Summary:    Declarative plugin for connection agent.

@@ -12,16 +12,13 @@ Description: |
 Sources:
     - "%{name}-%{version}.tar.bz2"
 Requires:
-    - qt
-    - libqtdbus4
-    - connman-qt
     - connman-qt-declarative
     
 PkgConfigBR:
     - QtCore
     - QtDBus
 
-BuildRequires: pkgconfig(connman-qt)
+BuildRequires: pkgconfig(connman-qt4)
 
 Configure: none
 Builder: qmake
