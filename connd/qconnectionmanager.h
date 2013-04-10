@@ -48,7 +48,7 @@ Q_SIGNALS:
     void userInputCanceled();
     void errorReported(const QString &error);
     void connectionRequest();
-    void wlanConfigurationNeeded();
+    void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
 
 public Q_SLOTS:
@@ -88,6 +88,8 @@ private:
     uint currentNotification;
 
     QHash<QString,NetworkService *> servicesMap;
+    void connectionHandover(const QString &oldService, const QString &newService);
+    QList <QString> connectedServices;
 
 private slots:
     void onScanFinished();

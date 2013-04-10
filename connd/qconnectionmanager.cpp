@@ -43,9 +43,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      serviceConnect(0),
      currentNotification(0)
 {
-    bool available = QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE);
-
-    qDebug() << Q_FUNC_INFO << available;
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
 
@@ -56,7 +53,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     if (!dbus.registerObject(CONND_PATH, this)) {
         qDebug() << "XXXXXXXXXXX could not register object XXXXXXXXXXXXXXXXXX";
     }
-    qDebug() << "XXXXXXXXXXX everything hunky dory XXXXXXXXXXXXXXXXXX";
 
     ua = new UserAgent(this);
 
@@ -116,9 +112,9 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;;
-
+    qDebug() << Q_FUNC_INFO << error;
     Q_EMIT errorReported(error);
+
 }
 
 // from useragent
@@ -155,10 +151,30 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
                 && servicesMap.value(servicePath)->favorite()) {
             connectToNetworkService(servicePath);
         } else {
-            Q_EMIT wlanConfigurationNeeded();
+            Q_EMIT configurationNeeded(servicesMap.value(servicePath)->type());
             serviceConnect = false;
         }
     }
+    //automigrate
+            for (int i = 0; i < servicesMap.keys().count(); i++) {
+            QString path = servicesMap.keys().at(i);
+
+            if (!connectedServices.isEmpty()
+                    && !connectedServices.contains(path)
+                    && (servicesMap.value(path)->strength() > servicesMap.value(connectedServices.at(0))->strength())
+                    && (servicesMap.value(path)->state() != "online")
+                    && servicesMap.value(path)->favorite()
+                    && servicesMap.value(path)->autoConnect()) {
+
+                qDebug() << " a better service becomes available";
+
+                connectionHandover(connectedServices.at(0),path);
+            }
+                  qDebug() << Q_FUNC_INFO
+                                     << servicesMap.value(path)->name()
+                                     << servicesMap.value(path)->state()
+                                     << servicesMap.value(path)->favorite();
+        }
 }
 
 void QConnectionManager::onServiceRemoved(const QString &servicePath)
@@ -179,7 +195,13 @@ void QConnectionManager::stateChanged(const QString &state)
     NetworkService *service = qobject_cast<NetworkService *>(sender());
 
     qDebug() << Q_FUNC_INFO << state << service->name();
-
+    if (currentNetworkState == "disconnect") {
+      ua->sendConnectReply("Clear");
+    }
+    if (state == "failure") {
+        service->requestDisconnect();
+        service->remove(); //reset this service
+    }
     if (!(currentNetworkState == "online" && state == "association"))
         Q_EMIT connectionState(state, service->type());
 
@@ -220,7 +242,7 @@ bool QConnectionManager::autoConnect()
     if (!selectedService.isEmpty()) {
         qDebug() << Q_FUNC_INFO << servicesMap.value(selectedService)->name();
         serviceConnect = true;
-        servicesMap.value(selectedService)->requestConnect();
+        connectToNetworkService(selectedService); //->requestConnect();
         return true;
     }
 
@@ -268,7 +290,7 @@ void QConnectionManager::connectToType(const QString &type)
 
         if (needConfig) {
             qDebug() << Q_FUNC_INFO << "no favorite service found. Configuration needed";
-            Q_EMIT wlanConfigurationNeeded();
+            Q_EMIT configurationNeeded(type);
             serviceConnect = false;
             okToConnect = false;
         }
@@ -279,8 +301,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
     serviceConnect = true;
 
-    QObject::connect(servicesMap.value(servicePath), SIGNAL(connectRequestFailed(QString)),
-                     this,SLOT(serviceErrorChanged(QString)), Qt::UniqueConnection);
 
     qDebug() << Q_FUNC_INFO << "just connect to this  thing"
              << servicesMap.value(servicePath)->type();
@@ -302,6 +322,7 @@ void QConnectionManager::onScanFinished()
 
 void QConnectionManager::defaultRouteChanged(NetworkService* defaultRoute)
 {
+    //not really default route, more of default/first service in list
     qDebug() << Q_FUNC_INFO << defaultRoute;
 
     if (defaultRoute) //this apparently can be null
@@ -326,6 +347,17 @@ void QConnectionManager::updateServicesMap()
             qDebug() << Q_FUNC_INFO <<"::::::::::::::::::::: "<< serv->path();
             QObject::connect(serv, SIGNAL(stateChanged(QString)),
                              this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
+            QObject::connect(serv, SIGNAL(connectRequestFailed(QString)),
+                             this,SLOT(serviceErrorChanged(QString)), Qt::UniqueConnection);
         }
     }
 }
+
+void QConnectionManager::connectionHandover(const QString &oldService, const QString &newService)
+{
+    qDebug() << Q_FUNC_INFO <<"XXXXXXXXXXXXXXXXXXXXXXXXXXX" << oldService << newService;
+
+    servicesMap.value(oldService)->requestDisconnect();
+    connectToNetworkService(newService);
+}
+

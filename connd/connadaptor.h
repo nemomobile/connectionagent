@@ -31,7 +31,9 @@ class ConnAdaptor: public QDBusAbstractAdaptor
     Q_CLASSINFO("D-Bus Introspection", ""
 "  <interface name=\"com.jolla.Connectiond\">\n"
 "    <signal name=\"connectionRequest\"/>\n"
-"    <signal name=\"wlanConfigurationNeeded\"/>\n"
+"    <signal name=\"configurationNeeded\">\n"
+"      <arg direction=\"out\" type=\"s\" name=\"url\"/>\n"
+"    </signal>\n"
 "    <signal name=\"errorReported\">\n"
 "      <arg direction=\"out\" type=\"s\" name=\"error\"/>\n"
 "    </signal>\n"
@@ -77,7 +79,7 @@ Q_SIGNALS: // SIGNALS
     void requestBrowser(const QString &url);
     void userInputCanceled();
     void userInputRequested(const QString &service, const QVariantMap &fields);
-    void wlanConfigurationNeeded();
+    void configurationNeeded( const QString &type);
 };
 
 #endif

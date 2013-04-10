@@ -139,7 +139,6 @@ void ConnectionAgentPlugin::onConnectionRequested()
     Q_EMIT connectionRequest();
 }
 
-
 void ConnectionAgentPlugin::connectiondUnregistered(QString)
 {
     if (connManagerInterface) {
@@ -148,10 +147,10 @@ void ConnectionAgentPlugin::connectiondUnregistered(QString)
     }
 }
 
-void ConnectionAgentPlugin::onWlanConfigurationNeeded()
+void ConnectionAgentPlugin::onConfigurationNeeded(const QString &type)
 {
     qDebug() << Q_FUNC_INFO;
-    Q_EMIT wlanConfigurationNeeded();
+    Q_EMIT configurationNeeded(type);
 }
 
 void ConnectionAgentPlugin::onConnectionState(const QString &state, const QString &type)

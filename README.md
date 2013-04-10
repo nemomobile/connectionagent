@@ -9,7 +9,11 @@ The daemon and QtDeclarative plugin are licensed un ther LGPL.
 This class is for accessing connman's UserAgent from multiple sources.
 This is because currently, there can only be one UserAgent per system.
 
-It also makes use of a patch to connman, that allows the UserAgent
+It also handles autoconnect features. In the future it might handle 
+sessions and connection 'migration' or re-connection when a better known 
+service becomes available.
+
+It makes use of a patch to connman, that allows the UserAgent
 to get signaled when a connection is needed. This is the real reason
 this daemon is needed. An InputRequest is short lived, and thus, may
 not clash with other apps that need to use UserAgent.

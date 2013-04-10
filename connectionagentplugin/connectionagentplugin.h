@@ -41,7 +41,7 @@ signals:
     void userInputCanceled();
     void errorReported(const QString &error);
     void connectionRequest();
-    void wlanConfigurationNeeded();
+    void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
 
 private:
@@ -53,7 +53,7 @@ private slots:
     void onRequestBrowser(const QString &url);
     void onUserInputRequested(const QString &service, const QVariantMap &fields);
     void onConnectionRequested();
-    void onWlanConfigurationNeeded();
+    void onConfigurationNeeded(const QString &type);
     void onConnectionState(const QString &state, const QString &type);
 
     void connectToConnectiond(const QString = QString());
