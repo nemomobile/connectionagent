@@ -17,8 +17,7 @@ URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  connectionagent.yaml
 Requires:   connman-qt-declarative
-BuildRequires:  pkgconfig(QtCore)
-BuildRequires:  pkgconfig(QtDBus)
+BuildRequires:  pkgconfig(connman-qt4)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.

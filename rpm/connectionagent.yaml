@@ -18,7 +18,8 @@ PkgConfigBR:
     - QtCore
     - QtDBus
 
-BuildRequires: pkgconfig(connman-qt4)
+PkgConfigBR:
+    - connman-qt4
 
 Configure: none
 Builder: qmake
