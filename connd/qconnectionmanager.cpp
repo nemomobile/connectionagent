@@ -26,6 +26,8 @@
 #include <connman-qt/networktechnology.h>
 #include <connman-qt/networkservice.h>
 #include <connman-qt/sessionagent.h>
+#include <QtDBus/QDBusConnection>
+#include <Qt/qobject.h>
 
 QConnectionManager* QConnectionManager::self = NULL;
 
@@ -98,8 +100,6 @@ QConnectionManager & QConnectionManager::instance()
 void QConnectionManager::onUserInputRequested(const QString &servicePath, const QVariantMap &fields)
 {
     // gets called when a connman service gets called to connect and needs more configurations.
-    qDebug() << Q_FUNC_INFO << servicePath << fields;
-
     Q_EMIT userInputRequested(servicePath, fields);
 }
 
@@ -112,7 +112,6 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
     Q_EMIT errorReported(error);
 
 }
@@ -120,7 +119,6 @@ void QConnectionManager::onErrorReported(const QString &error)
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
-    qDebug() << Q_FUNC_INFO;
     if (!autoConnect()) {
         Q_EMIT connectionRequest();
     }
@@ -133,7 +131,6 @@ void QConnectionManager::sendConnectReply(const QString &in0, int in1)
 
 void QConnectionManager::sendUserReply(const QVariantMap &input)
 {
-    qDebug() << Q_FUNC_INFO << input;
     ua->sendUserReply(input);
 }
 
@@ -179,14 +176,11 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
 
 void QConnectionManager::onServiceRemoved(const QString &servicePath)
 {
-    qDebug() << Q_FUNC_INFO << servicePath;
     updateServicesMap();
-    qDebug() << servicesMap.keys();
 }
 
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
     Q_EMIT errorReported(error);
 }
 
@@ -194,7 +188,6 @@ void QConnectionManager::stateChanged(const QString &state)
 {
     NetworkService *service = qobject_cast<NetworkService *>(sender());
 
-    qDebug() << Q_FUNC_INFO << state << service->name();
     if (currentNetworkState == "disconnect") {
       ua->sendConnectReply("Clear");
     }
@@ -210,8 +203,6 @@ void QConnectionManager::stateChanged(const QString &state)
 
 bool QConnectionManager::autoConnect()
 {
-    qDebug() << Q_FUNC_INFO <<  servicesMap.keys() <<  servicesMap.keys().count();
-
     QString selectedService;
     uint strength = 0;
     QString currentType;
@@ -220,9 +211,6 @@ bool QConnectionManager::autoConnect()
 
         if(servicesMap.value(servicePath)->autoConnect()
                 && servicesMap.value(servicePath)->favorite()) {
-
-            qDebug() << servicesMap.value(servicePath)->name()
-                     << servicesMap.value(servicePath)->strength();
 
             if (!selectedService.isEmpty()
                     && (!currentType.isEmpty()
@@ -240,9 +228,8 @@ bool QConnectionManager::autoConnect()
     }
 
     if (!selectedService.isEmpty()) {
-        qDebug() << Q_FUNC_INFO << servicesMap.value(selectedService)->name();
         serviceConnect = true;
-        connectToNetworkService(selectedService); //->requestConnect();
+        connectToNetworkService(selectedService); 
         return true;
     }
 
@@ -262,8 +249,6 @@ void QConnectionManager::connectToType(const QString &type)
     }
     QStringList servicesList = netman->servicesList(type);
 
-    qDebug() << servicesList;
-
     if (servicesList.isEmpty()) {
         if (type == "wifi") {
             okToConnect = true;
@@ -277,7 +262,6 @@ void QConnectionManager::connectToType(const QString &type)
         bool needConfig = false;
 
         Q_FOREACH (const QString path, servicesList) {
-            qDebug() << Q_FUNC_INFO << path << servicesMap.contains(path);
 
             if (servicesMap.contains(path) && servicesMap.value(path)->favorite()) {
                 connectToNetworkService(path);
@@ -300,15 +284,8 @@ void QConnectionManager::connectToType(const QString &type)
 void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
     serviceConnect = true;
-
-
-    qDebug() << Q_FUNC_INFO << "just connect to this  thing"
-             << servicesMap.value(servicePath)->type();
-    qDebug() << Q_FUNC_INFO << "set idle timeout";
-
     NetworkTechnology *tech = netman->getTechnology(servicesMap.value(servicePath)->type());
     tech->setIdleTimeout(120);
-    qDebug() << Q_FUNC_INFO << "idle timeout set";
 
     servicesMap.value(servicePath)->requestConnect();
     okToConnect = false;
@@ -317,13 +294,11 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 
 void QConnectionManager::onScanFinished()
 {
-    qDebug() << Q_FUNC_INFO;
 }
 
 void QConnectionManager::defaultRouteChanged(NetworkService* defaultRoute)
 {
     //not really default route, more of default/first service in list
-    qDebug() << Q_FUNC_INFO << defaultRoute;
 
     if (defaultRoute) //this apparently can be null
         Q_EMIT connectionState(defaultRoute->state(), defaultRoute->type());
@@ -344,7 +319,6 @@ void QConnectionManager::updateServicesMap()
 
         Q_FOREACH (NetworkService *serv, services) {
             servicesMap.insert(serv->path(), serv);
-            qDebug() << Q_FUNC_INFO <<"::::::::::::::::::::: "<< serv->path();
             QObject::connect(serv, SIGNAL(stateChanged(QString)),
                              this,SLOT(stateChanged(QString)), Qt::UniqueConnection);
             QObject::connect(serv, SIGNAL(connectRequestFailed(QString)),
@@ -355,8 +329,6 @@ void QConnectionManager::updateServicesMap()
 
 void QConnectionManager::connectionHandover(const QString &oldService, const QString &newService)
 {
-    qDebug() << Q_FUNC_INFO <<"XXXXXXXXXXXXXXXXXXXXXXXXXXX" << oldService << newService;
-
     servicesMap.value(oldService)->requestDisconnect();
     connectToNetworkService(newService);
 }
