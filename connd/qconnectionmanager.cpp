@@ -156,25 +156,25 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
         }
     }
     //automigrate
-            for (int i = 0; i < servicesMap.keys().count(); i++) {
-            QString path = servicesMap.keys().at(i);
+//            for (int i = 0; i < servicesMap.keys().count(); i++) {
+//            QString path = servicesMap.keys().at(i);
 
-            if (!connectedServices.isEmpty()
-                    && !connectedServices.contains(path)
-                    && (servicesMap.value(path)->strength() > servicesMap.value(connectedServices.at(0))->strength())
-                    && (servicesMap.value(path)->state() != "online")
-                    && servicesMap.value(path)->favorite()
-                    && servicesMap.value(path)->autoConnect()) {
+//            if (!connectedServices.isEmpty()
+//                    && !connectedServices.contains(path)
+//                    && (servicesMap.value(path)->strength() > servicesMap.value(connectedServices.at(0))->strength())
+//                    && (servicesMap.value(path)->state() != "online")
+//                    && servicesMap.value(path)->favorite()
+//                    && servicesMap.value(path)->autoConnect()) {
 
-                qDebug() << " a better service becomes available";
+//                qDebug() << " a better service becomes available";
 
-                connectionHandover(connectedServices.at(0),path);
-            }
-                  qDebug() << Q_FUNC_INFO
-                                     << servicesMap.value(path)->name()
-                                     << servicesMap.value(path)->state()
-                                     << servicesMap.value(path)->favorite();
-        }
+//                connectionHandover(connectedServices.at(0),path);
+//            }
+//                  qDebug() << Q_FUNC_INFO
+//                                     << servicesMap.value(path)->name()
+//                                     << servicesMap.value(path)->state()
+//                                     << servicesMap.value(path)->favorite();
+//        }
 }
 
 void QConnectionManager::onServiceRemoved(const QString &servicePath)
