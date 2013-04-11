@@ -18,6 +18,7 @@ PkgConfigBR:
     - QtCore
     - QtDBus
     - connman-qt4
+    - lipstick
 
 Configure: none
 Builder: qmake

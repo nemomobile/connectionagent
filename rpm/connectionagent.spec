@@ -20,6 +20,7 @@ Requires:   connman-qt-declarative
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
 BuildRequires:  pkgconfig(connman-qt4)
+BuildRequires:  pkgconfig(lipstick)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
