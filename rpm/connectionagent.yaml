@@ -17,8 +17,6 @@ Requires:
 PkgConfigBR:
     - QtCore
     - QtDBus
-
-PkgConfigBR:
     - connman-qt4
 
 Configure: none
