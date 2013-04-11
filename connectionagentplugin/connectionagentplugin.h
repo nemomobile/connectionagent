@@ -53,7 +53,6 @@ private slots:
     void onRequestBrowser(const QString &url);
     void onUserInputRequested(const QString &service, const QVariantMap &fields);
     void onConnectionRequested();
-    void onConfigurationNeeded(const QString &type);
     void onConnectionState(const QString &state, const QString &type);
 
     void connectToConnectiond(const QString = QString());

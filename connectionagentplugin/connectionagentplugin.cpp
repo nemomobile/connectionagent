@@ -69,8 +69,8 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
     }
     connect(connManagerInterface,SIGNAL(connectionRequest()),
             this,SLOT(onConnectionRequested()));
-    connect(connManagerInterface,SIGNAL(wlanConfigurationNeeded()),
-            this,SIGNAL(wlanConfigurationNeeded()));
+    connect(connManagerInterface,SIGNAL(configurationNeeded(QString)),
+            this,SIGNAL(configurationNeeded(QString)));
 
     connect(connManagerInterface,SIGNAL(userInputCanceled()),
             this,SIGNAL(userInputCanceled()));
@@ -145,12 +145,6 @@ void ConnectionAgentPlugin::connectiondUnregistered(QString)
         delete connManagerInterface;
         connManagerInterface = 0;
     }
-}
-
-void ConnectionAgentPlugin::onConfigurationNeeded(const QString &type)
-{
-    qDebug() << Q_FUNC_INFO;
-    Q_EMIT configurationNeeded(type);
 }
 
 void ConnectionAgentPlugin::onConnectionState(const QString &state, const QString &type)

@@ -59,7 +59,7 @@ Q_SIGNALS: // SIGNALS
     void requestBrowser(const QString &url);
     void userInputCanceled();
     void userInputRequested(const QString &service, const QVariantMap &fields);
-    void wlanConfigurationNeeded();
+    void configurationNeeded(const QString &type);
 };
 
 namespace com {
