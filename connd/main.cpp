@@ -89,6 +89,10 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationVersion("1.0");
 
     QCoreApplication a(argc, argv);
+    if (QDBusConnection::sessionBus().interface()->isServiceRegistered("com.jolla.Connectiond")) {
+        qDebug() << "Connectionagent service is already running. Exiting now";
+        return 1;
+    }
 
     QConnectionManager::instance();
 

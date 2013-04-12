@@ -299,12 +299,7 @@ void QConnectionManager::onScanFinished()
 void QConnectionManager::defaultRouteChanged(NetworkService* defaultRoute)
 {
     //not really default route, more of default/first service in list
-
-    if (defaultRoute) //this apparently can be null
-        Q_EMIT connectionState(defaultRoute->state(), defaultRoute->type());
-    else
-        Q_EMIT connectionState(QString(), QString());
-
+    Q_UNUSED(defaultRoute)
 }
 
 void QConnectionManager::updateServicesMap()
