@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 TEMPLATE += ordered
 
 
-SUBDIRS += rpm
+SUBDIRS += config 
 SUBDIRS += connd
 SUBDIRS += connectionagentplugin
 SUBDIRS += test/testqml

@@ -1,11 +1,9 @@
 TEMPLATE = subdirs
 
 OTHER_FILES += \
- com.jolla.Connectiond.service \
+    com.jolla.Connectiond.service \
     connectionagent.conf \
-    connectionagent.service\
-    connectionagent.spec\
-    connectionagent.yaml
+    connectionagent.service
 
 dbusservice.path = $${INSTALL_PREFIX}/usr/share/dbus-1/services
 dbusservice.files = com.jolla.Connectiond.service
