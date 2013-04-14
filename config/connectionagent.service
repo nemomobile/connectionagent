@@ -1,11 +1,12 @@
 [Unit]
 Description=Connection Agent
-Requires=dbus.socket
+Requires=dbus.service
 
 [Service]
 ExecStart=/usr/bin/connectionagent
 Type=dbus
 BusName=com.jolla.Connectiond
+Restart=always
 
  [Install]
  WantedBy=jolla-middleware.target
