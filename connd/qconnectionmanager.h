@@ -23,6 +23,8 @@
 #include <QVariant>
 #include <QDBusMessage>
 #include <QDBusObjectPath>
+#include <QQueue>
+#include <QPair>
 
 class UserAgent;
 class SessionAgent;
@@ -34,11 +36,14 @@ class NetworkService;
 class QConnectionManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool askRoaming READ askRoaming WRITE setAskRoaming)
 
 public:
     ~QConnectionManager();
     
     static QConnectionManager &instance();
+    bool askRoaming() const;
+    void setAskRoaming(bool value);
 
 Q_SIGNALS:
    void connectionChanged(const QString &, bool); // ?
@@ -62,13 +67,7 @@ public Q_SLOTS:
     void sendConnectReply(const QString &in0, int in1);
     void sendUserReply(const QVariantMap &input);
 
-    void onServiceAdded(const QString &servicePath);
-    void onServiceRemoved(const QString &servicePath);
-    void serviceErrorChanged(const QString &error);
-    void stateChanged(const QString &state);
-
     void connectToType(const QString &type);
-    void defaultRouteChanged(NetworkService* defaultRoute);
 
 private:
     explicit QConnectionManager(QObject *parent = 0);
@@ -87,13 +86,25 @@ private:
     void connectToNetworkService(const QString &service);
     uint currentNotification;
 
-    QHash<QString,NetworkService *> servicesMap;
+    QMap<QString,NetworkService *> servicesMap;
+    QStringList orderedServicesList;
+
+    QString findBestConnectableService();
     void connectionHandover(const QString &oldService, const QString &newService);
     QList <QString> connectedServices;
+    QStringList techPreferenceList;
+    bool askForRoaming;
 
 private slots:
     void onScanFinished();
     void updateServicesMap();
+
+    void onServiceAdded(const QString &servicePath);
+    void onServiceRemoved(const QString &servicePath);
+    void serviceErrorChanged(const QString &error);
+    void serviceStateChanged(const QString &state);
+    void networkStateChanged(const QString &state);
+    void onServiceStrengthChanged(uint);
 
 };
 

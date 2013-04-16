@@ -6,7 +6,7 @@ CONFIG += qt plugin
 uri = com.jolla.connection
 
 #create client
-#system(qdbusxml2cpp ../connd/com.jolla.Connectiond.xml -c ConnectionManagerInterface -p connectionamanagerinterface)
+#system(qdbusxml2cpp ../connd/com.jollamobile.Connectiond.xml -c ConnectionManagerInterface -p connectionamanagerinterface)
 
 SOURCES += \
     connectionagentplugin_plugin.cpp \

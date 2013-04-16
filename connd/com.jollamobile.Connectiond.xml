@@ -1,34 +1,42 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <node>
   <interface name="com.jolla.Connectiond">
-    <signal name="connectionRequest"/>
-    <signal name="wlanConfigurationNeeded"/>
-    <signal name="errorReported">
-      <arg direction="out" type="s" name="error"/>
-    </signal>
-    <signal name="requestBrowser">
-      <arg direction="out" type="s" name="url"/>
-    </signal>
-    <signal name="userInputCanceled"/>
-    <signal name="userInputRequested">
-      <arg direction="out" type="s" name="service"/>
-      <arg direction="out" type="a{sv}" name="fields"/>
-      <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In1"/>
+    <property name="askRoaming" type="b" access="readwrite"/>
+    <signal name="connectionRequest">
     </signal>
     <signal name="connectionState">
-      <arg direction="out" type="s" name="state"/>
-      <arg direction="out" type="s" name="type"/>
+      <arg name="state" type="s" direction="out"/>
+      <arg name="type" type="s" direction="out"/>
     </signal>
+    <signal name="errorReported">
+      <arg name="error" type="s" direction="out"/>
+    </signal>
+    <signal name="requestBrowser">
+      <arg name="url" type="s" direction="out"/>
+    </signal>
+    <signal name="userInputCanceled">
+    </signal>
+    <signal name="userInputRequested">
+      <arg name="service" type="s" direction="out"/>
+      <arg name="fields" type="a{sv}" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+    </signal>
+    <signal name="configurationNeeded">
+      <arg name="type" type="s" direction="out"/>
+    </signal>
+    <signal name="roamingAskChanged">
+      <arg name="askRoaming" type="b" direction="out"/>
+    </signal>
+    <method name="connectToType">
+      <arg name="in0" type="s" direction="in"/>
+    </method>
     <method name="sendConnectReply">
-      <arg direction="in" type="s" name="in0"/>
-      <arg direction="in" type="i" name="in1"/>
+      <arg name="in0" type="s" direction="in"/>
+      <arg name="in1" type="i" direction="in"/>
     </method>
     <method name="sendUserReply">
-      <arg direction="in" type="a{sv}" name="input"/>
-      <annotation value="QVariantMap" name="org.qtproject.QtDBus.QtTypeName.In0"/>
-    </method>
-    <method name="connectToType">
-      <arg direction="in" type="s" name="in0"/>
+      <arg name="input" type="a{sv}" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
   </interface>
 </node>

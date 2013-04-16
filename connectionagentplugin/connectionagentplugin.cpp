@@ -103,7 +103,6 @@ void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int ti
 
 void ConnectionAgentPlugin::connectToType(const QString &type)
 {
-    qDebug() << Q_FUNC_INFO << type;;
     connManagerInterface->connectToType(type);
 }
 
@@ -130,7 +129,6 @@ void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const Q
         QVariantMap vmap = qdbus_cast<QVariantMap>(arg);
         map.insert(i.key(), vmap);
     }
-//    qDebug() << Q_FUNC_INFO << map;
     Q_EMIT userInputRequested(service, map);
 }
 
@@ -149,6 +147,15 @@ void ConnectionAgentPlugin::connectiondUnregistered(QString)
 
 void ConnectionAgentPlugin::onConnectionState(const QString &state, const QString &type)
 {
-    qDebug() << Q_FUNC_INFO << state << type;
     Q_EMIT connectionState(state, type);
+}
+
+bool ConnectionAgentPlugin::askRoaming() const
+{
+    return connManagerInterface->askRoaming();
+}
+
+void ConnectionAgentPlugin::setAskRoaming(bool value)
+{
+    connManagerInterface->setAskRoaming(value);
 }
