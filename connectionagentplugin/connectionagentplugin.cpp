@@ -52,14 +52,13 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
         connManagerInterface = 0;
     }
 
-    QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
-    if (!reply.isValid()) {
-        qDebug() << Q_FUNC_INFO << reply.error().message();
-        return;
-    }
-
     if (!QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE)) {
         qDebug() << Q_FUNC_INFO << QString("connection service not available").arg(CONND_SERVICE);
+        QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
+        if (!reply.isValid()) {
+            qDebug() << Q_FUNC_INFO << reply.error().message();
+            return;
+        }
     }
 
     connManagerInterface = new com::jolla::Connectiond(CONND_SERVICE, CONND_PATH,
@@ -98,7 +97,7 @@ void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 
 void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int timeout)
 {
-     connManagerInterface->sendConnectReply(replyMessage,timeout);
+    connManagerInterface->sendConnectReply(replyMessage,timeout);
 }
 
 void ConnectionAgentPlugin::connectToType(const QString &type)

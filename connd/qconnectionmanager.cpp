@@ -92,9 +92,9 @@ QConnectionManager::QConnectionManager(QObject *parent) :
             }
         }
         connmanConf.close();
-    } else {
-        techPreferenceList << "wifi" << "bluetooth" << "cellular";
     }
+    if (techPreferenceList.isEmpty())
+        techPreferenceList << "wifi" << "bluetooth" << "cellular";
 
     updateServicesMap();
     currentNetworkState = netman->state();
@@ -234,6 +234,7 @@ bool QConnectionManager::autoConnect()
                 && servicesMap.value(servicePath)->roaming()) {
             isCellRoaming = askForRoaming;
         }
+
         if(servicesMap.value(servicePath)->autoConnect()
                 && servicesMap.value(servicePath)->favorite()
                 && !isCellRoaming) {
@@ -331,6 +332,7 @@ void QConnectionManager::updateServicesMap()
         QVector<NetworkService*> services = netman->getServices(tech);
 
         Q_FOREACH (NetworkService *serv, services) {
+
             servicesMap.insert(serv->path(), serv);
             orderedServicesList << serv->path();
 //auto migrate
@@ -393,7 +395,6 @@ void QConnectionManager::networkStateChanged(const QString &state)
 void QConnectionManager::onServiceStrengthChanged(uint level)
 {
     NetworkService *service = qobject_cast<NetworkService *>(sender());
-    qDebug() << Q_FUNC_INFO << service->name() << level;
 }
 
 bool QConnectionManager::askRoaming() const
