@@ -1,4 +1,7 @@
-* Fri Apr 19 2013 Lorn Potter <lorn.potter@jollamobile.co> - 0.5.8
+* Sun 21 APr 2013 Lorn Potter <lorn.potter@jollamobile.com> - 0.5.9
+- fix issue when new AP's are seen
+
+* Fri Apr 19 2013 Lorn Potter <lorn.potter@jollamobile.com> - 0.5.8
 - fix autonnection when there is no preferred tech in conf
 
 * Wed Apr 17 2013 Lorn Potter <lorn.potter@jollamobile.com> - 0.5.7
