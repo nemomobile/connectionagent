@@ -281,6 +281,7 @@ void QConnectionManager::connectToType(const QString &type)
             QObject::connect(&netTech,SIGNAL(scanFinished()),this,SLOT(onScanFinished()));
             netTech.scan();
         } else {
+            qDebug() << Q_FUNC_INFO << "services list is empty";
             onScanFinished();
         }
     } else {
@@ -288,7 +289,11 @@ void QConnectionManager::connectToType(const QString &type)
         bool needConfig = false;
 
         Q_FOREACH (const QString path, servicesList) {
-            if (servicesMap.contains(path) && servicesMap.value(path)->favorite()) {
+            // try harder with cell. a favorite is one that has been connected
+            // if there is a context configured but not yet connected, try to connect anyway
+            if (servicesMap.contains(path) &&
+                    (servicesMap.value(path)->favorite()
+                     || servicesMap.value(path)->type() == "cellular")) {
                 connectToNetworkService(path);
                 needConfig = false;
                 return;
