@@ -106,6 +106,8 @@ private slots:
     void networkStateChanged(const QString &state);
     void onServiceStrengthChanged(uint);
 
+    void connmanAvailabilityChanged(bool b);
+
 };
 
 #endif // QCONNECTIONMANAGER_H
