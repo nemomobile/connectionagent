@@ -18,9 +18,6 @@
 #include "connadaptor.h"
 
 #include <connman-qt/useragent.h>
-#include <connman-qt/service.h>
-
-#include <connman-qt/manager.h>
 
 #include <connman-qt/networkmanager.h>
 #include <connman-qt/networktechnology.h>
