@@ -17,8 +17,6 @@
 #include "connectionagentplugin_plugin.h"
 #include "connectionagentplugin.h"
 
-#include <qdeclarative.h>
-
 /*
  *This class is for accessing connman's UserAgent from multiple sources.
  *This is because currently, there can only be one UserAgent per system.

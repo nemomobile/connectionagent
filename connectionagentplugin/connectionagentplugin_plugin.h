@@ -16,8 +16,19 @@
 
 #ifndef CONNECTIONAGENTPLUGIN_PLUGIN_H
 #define CONNECTIONAGENTPLUGIN_PLUGIN_H
+#include <QtPlugin>
 
-#include <QDeclarativeExtensionPlugin>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+# include <QtQml>
+# include <QQmlEngine>
+# include <QQmlExtensionPlugin>
+# define QDeclarativeEngine QQmlEngine
+# define QDeclarativeExtensionPlugin QQmlExtensionPlugin
+#else
+# include <QtDeclarative>
+# include <QDeclarativeEngine>
+# include <QDeclarativeExtensionPlugin>
+#endif
 
 class ConnectionagentpluginPlugin : public QDeclarativeExtensionPlugin
 {

@@ -17,15 +17,23 @@
 #include "qconnectionmanager.h"
 #include "connadaptor.h"
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <connman-qt5/useragent.h>
+#include <connman-qt5/networkmanager.h>
+#include <connman-qt5/networktechnology.h>
+#include <connman-qt5/networkservice.h>
+#include <connman-qt5/sessionagent.h>
+#else
 #include <connman-qt/useragent.h>
-
 #include <connman-qt/networkmanager.h>
 #include <connman-qt/networktechnology.h>
 #include <connman-qt/networkservice.h>
 #include <connman-qt/sessionagent.h>
+#endif
+
 #include <QtDBus/QDBusConnection>
 
-#include <Qt/qobject.h>
+#include <QObject>
 #include <QSettings>
 
 
@@ -164,7 +172,7 @@ void QConnectionManager::sendUserReply(const QVariantMap &input)
 
 void QConnectionManager::onServiceAdded(const QString &servicePath)
 {
-    qDebug() << Q_FUNC_INFO;
+    qDebug() << Q_FUNC_INFO << servicePath;
     if (!servicesMap.contains(servicePath)) {
         updateServicesMap();
     }

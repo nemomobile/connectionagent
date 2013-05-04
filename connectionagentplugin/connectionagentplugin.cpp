@@ -17,9 +17,15 @@
 #include "connectionagentplugin.h"
 #include "connectionamanagerinterface.h"
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <connman-qt5/networkmanager.h>
+#include <connman-qt5/networktechnology.h>
+#include <connman-qt5/networkservice.h>
+#else
 #include <connman-qt/networkmanager.h>
 #include <connman-qt/networktechnology.h>
 #include <connman-qt/networkservice.h>
+#endif
 
 #include <qobject.h>
 

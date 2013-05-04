@@ -2,18 +2,25 @@
 QT += core network dbus gui
 QT -= gui
 
-TARGET = connectionagent
+equals(QT_MAJOR_VERSION, 4):  {
+    TARGET = connectionagent
+    INCLUDEPATH += libconnman-qt
+    INCLUDEPATH += lipstick
+    LIBS += -lconnman-qt4 -llipstick
+}
+equals(QT_MAJOR_VERSION, 5):  {
+    TARGET = connectionagent
+    INCLUDEPATH += libconnman-qt5
+    INCLUDEPATH += lipstick
+    LIBS += -lconnman-qt5 -llipstick-qt5
+}
+
 CONFIG   += console link_pkgconfig 
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 QT += core network dbus
-QT -= gui
-
-
-INCLUDEPATH += libconnman-qt
-INCLUDEPATH += lipstick
 
 OTHER_FILES += com.jolla.Connectiond.xml
 
@@ -28,9 +35,6 @@ SOURCES += main.cpp \
 HEADERS+= \
     qconnectionmanager.h \
     connadaptor.h
-
-LIBS += -lconnman-qt4
-LIBS += -llipstick
 
 target.path = /usr/bin
 INSTALLS += target

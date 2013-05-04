@@ -17,7 +17,6 @@
 #ifndef CONNECTIONAGENTPLUGIN_H
 #define CONNECTIONAGENTPLUGIN_H
 
-#include <QDeclarativeItem>
 #include "connectionagentplugin.h"
 #include "connectionamanagerinterface.h"
 
