@@ -9,17 +9,17 @@ Name:       connectionagent
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.6.2
+Version:    0.4
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  connectionagent.yaml
-Requires:   connman-qt5-declarative
+Requires:   connman-qt-declarative
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
-BuildRequires:  pkgconfig(connman-qt5)
+BuildRequires:  pkgconfig(connman-qt4)
 BuildRequires:  pkgconfig(lipstick)
 
 %description
@@ -55,7 +55,7 @@ This package contains the declarative plugin for connection agent.
 # >> build pre
 # << build pre
 
-%qmake5 
+%qmake 
 
 make %{?jobs:-j%jobs}
 
@@ -81,7 +81,7 @@ rm -rf %{buildroot}
 
 %files declarative
 %defattr(-,root,root,-)
-%{_libdir}/qt5/imports/com/jolla/connection/*
+%{_libdir}/qt4/imports/com/jolla/connection/*
 # >> files declarative
 # << files declarative
 
