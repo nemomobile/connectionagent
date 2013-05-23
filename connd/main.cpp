@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
             daemonize();
        }
 
-    QCoreApplication::setOrganizationName("Jolla Ltd");
+    QCoreApplication::setOrganizationName("Jolla");
     QCoreApplication::setOrganizationDomain("com.jollamobile");
     QCoreApplication::setApplicationName("connectionagent");
     QCoreApplication::setApplicationVersion("1.0");
