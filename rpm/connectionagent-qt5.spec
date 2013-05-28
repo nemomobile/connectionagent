@@ -9,7 +9,7 @@ Name:       connectionagent-qt5
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.6.6
+Version:    0.6.7
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -19,10 +19,7 @@ Source100:  connectionagent-qt5.yaml
 Requires:   connman-qt5-declarative
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
-BuildRequires:  pkgconfig(Qt5Quick)
-BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(connman-qt5)
-BuildRequires:  pkgconfig(lipstick-qt5)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
@@ -57,7 +54,6 @@ This package contains the declarative plugin for connection agent.
 # >> build pre
 # << build pre
 
-export QT_SELECT=5
 %qmake5 
 
 make %{?jobs:-j%jobs}
@@ -69,8 +65,7 @@ make %{?jobs:-j%jobs}
 rm -rf %{buildroot}
 # >> install pre
 # << install pre
-export QT_SELECT=5
-%qmake5_install
+%qmake_install
 
 # >> install post
 # << install post
@@ -89,3 +84,10 @@ export QT_SELECT=5
 # >> files declarative
 # << files declarative
 
+%files test
+%defattr(-,root,root,-)
+/opt/sdk/bin/testqml
+/opt/sdk/share/applications/testqml.desktop
+/opt/sdk/share/testqml/*
+# >> files test
+# << files test

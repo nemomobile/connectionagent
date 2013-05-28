@@ -9,7 +9,7 @@ Name:       connectionagent
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.6.6
+Version:    0.6.7
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -20,7 +20,6 @@ Requires:   connman-qt-declarative
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
 BuildRequires:  pkgconfig(connman-qt4)
-BuildRequires:  pkgconfig(lipstick)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
