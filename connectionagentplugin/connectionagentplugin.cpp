@@ -33,7 +33,8 @@
 #define CONND_PATH "/Connectiond"
 
 ConnectionAgentPlugin::ConnectionAgentPlugin(QObject *parent):
-    QObject(parent)
+    QObject(parent),
+    connManagerInterface(0)
 {
     connectiondWatcher = new QDBusServiceWatcher(CONND_SERVICE,QDBusConnection::sessionBus(),
             QDBusServiceWatcher::WatchForRegistration |
