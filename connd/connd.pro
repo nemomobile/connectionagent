@@ -4,13 +4,12 @@ QT -= gui
 
 equals(QT_MAJOR_VERSION, 4):  {
     TARGET = connectionagent
-    INCLUDEPATH += libconnman-qt
-    LIBS += -lconnman-qt4
+    PKGCONFIG += connman-qt4
+
 }
 equals(QT_MAJOR_VERSION, 5):  {
     TARGET = connectionagent
-    INCLUDEPATH += libconnman-qt5
-    LIBS += -lconnman-qt5
+    PKGCONFIG += connman-qt5
 }
 
 CONFIG   += console link_pkgconfig 

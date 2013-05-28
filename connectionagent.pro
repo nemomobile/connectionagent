@@ -2,9 +2,10 @@ TEMPLATE = subdirs
 
 TEMPLATE += ordered
 
-SUBDIRS += config 
+SUBDIRS += config
 SUBDIRS += connd
 SUBDIRS += connectionagentplugin
+SUBDIRS += test
 
 equals(QT_MAJOR_VERSION, 4):  {
     SUBDIRS += test/testqml

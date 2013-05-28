@@ -1,6 +1,6 @@
 Name: connectionagent
 Summary: User Agent daemon
-Version: 0.6.8
+Version: 0.6.9
 Release: 0
 Group: "Communications/Connectivity Adaptation"
 License: LGPLv2
@@ -17,8 +17,8 @@ Requires:
 PkgConfigBR:
     - QtCore
     - QtDBus
-    - connman-qt
-
+    - connman-qt4
+    - QtNetwork
 Configure: none
 Builder: qmake
 Files:
@@ -36,14 +36,14 @@ SubPackages:
           - "%{_libdir}/qt4/imports/com/jolla/connection/*"
 
     - Name: test
-      Summary: Declarative test for connection agent.
+      Summary: Tests for connection agent.
       Group: Development/Tools
-      Description: This package contains the declarative plugin for connection agent.
+      Description: This package contains the tests for connection agent.
       Requires:
           - "%{name} = %{version}"
       Files:
         - "/opt/sdk/bin/testqml"
         - "/opt/sdk/share/applications/testqml.desktop"
         - "/opt/sdk/share/testqml/*"
-
+        - "%{_prefix}/opt/tests/libqofono/*"
 

@@ -134,6 +134,8 @@ QConnectionManager & QConnectionManager::instance()
 // from useragent
 void QConnectionManager::onUserInputRequested(const QString &servicePath, const QVariantMap &fields)
 {
+    qDebug() << Q_FUNC_INFO;
+
     // gets called when a connman service gets called to connect and needs more configurations.
     Q_EMIT userInputRequested(servicePath, fields);
 }
@@ -141,12 +143,15 @@ void QConnectionManager::onUserInputRequested(const QString &servicePath, const 
 // from useragent
 void QConnectionManager::onUserInputCanceled()
 {
+    qDebug() << Q_FUNC_INFO;
+
     Q_EMIT userInputCanceled();
 }
 
 // from useragent
 void QConnectionManager::onErrorReported(const QString &error)
 {
+    qDebug() << Q_FUNC_INFO;
     Q_EMIT errorReported(error);
 
 }
@@ -154,6 +159,7 @@ void QConnectionManager::onErrorReported(const QString &error)
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
+    qDebug() << Q_FUNC_INFO;
     sendConnectReply("Suppress", 15);
     if (!autoConnect()) {
         Q_EMIT connectionRequest();
@@ -298,6 +304,12 @@ void QConnectionManager::connectToType(const QString &type)
 {
     currentType = type;
     QString techPath = netman->technologyPathForType(type);
+    qDebug() << Q_FUNC_INFO << techPath;
+
+    if (techPath.isEmpty()) {
+        Q_EMIT errorReported("Type not valid");
+        return;
+    }
 
     NetworkTechnology netTech;
     netTech.setPath(techPath);
@@ -316,6 +328,7 @@ void QConnectionManager::connectToType(const QString &type)
         } else {
             qDebug() << Q_FUNC_INFO << "services list is empty";
             needConfig = true;
+//            Q_EMIT errorReported("Service not found"); ?? do we want to report an error
         }
     } else {
         currentType = "";

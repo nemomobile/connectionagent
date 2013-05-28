@@ -140,6 +140,7 @@ void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const Q
 
 void ConnectionAgentPlugin::onConnectionRequested()
 {
+    qDebug() << Q_FUNC_INFO;
     Q_EMIT connectionRequest();
 }
 
