@@ -28,7 +28,7 @@
 
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
-
+#include <QNetworkReply>
 
 class Tst_connectionagent_pluginTest : public QObject
 {
@@ -42,8 +42,10 @@ private Q_SLOTS:
     void testRequestConnection_data();
     void testRequestConnection();
 
-//    void testError_data();
-    void testError();
+    void testUserInputRequested_data();
+    void testUserInputRequested();
+
+    void testErrorReported();
 private:
     ConnectionAgentPlugin *plugin;
 };
@@ -75,30 +77,30 @@ void Tst_connectionagent_pluginTest::testRequestConnection()
 
     QVector<NetworkService*> wifiServices = netman->getServices("wifi");
     for (int i = 0; i < wifiServices.count(); i++) {
-//        favorite = wifiServices[i]->favorite();
+        if (wifiServices[i]->autoConnect())
+            wifiServices[i]->setAutoConnect(false);
         if (wifiServices[i]->state() == "online"
                 || wifiServices[i]->state() == "ready") {
             wifiServices[i]->requestDisconnect();
+            //autoconnect disables the requestConnect signal
         }
     }
 
     QSignalSpy spy2(plugin, SIGNAL(connectionRequest()));
 
     QNetworkAccessManager manager;
-    manager.get(QNetworkRequest(QUrl("http://jolla.com")));
-
-    QTest::qWait(4000);
+    QNetworkReply *reply = manager.get(QNetworkRequest(QUrl("http://llornkcor.com")));
+    if (reply->error()) {
+        qDebug() << reply->error();
+    }
+    QTest::qWait(2000);
     QCOMPARE(spy2.count(),1);
     plugin->sendConnectReply("Clear",0);
 
 
 }
 
-//void Tst_connectionagent_pluginTest::testError_data()
-//{
-//}
-
-void Tst_connectionagent_pluginTest::testError()
+void Tst_connectionagent_pluginTest::testErrorReported()
 {
     QSignalSpy spy(plugin, SIGNAL(errorReported(QString)));
     plugin->connectToType("test");
@@ -107,6 +109,43 @@ void Tst_connectionagent_pluginTest::testError()
     QList<QVariant> arguments = spy.takeFirst();
     QCOMPARE(arguments.at(0).toString(), QString("Type not valid"));
 }
+
+void Tst_connectionagent_pluginTest::testUserInputRequested_data()
+{
+    testRequestConnection_data();
+}
+
+void Tst_connectionagent_pluginTest::testUserInputRequested()
+{
+    QFETCH(QString, tech);
+    NetworkManager *netman = NetworkManagerFactory::createInstance();
+
+    QString techPath = netman->technologyPathForType(tech);
+    NetworkTechnology netTech;
+    netTech.setPath(techPath);
+
+    QSignalSpy spy_userInput(plugin, SIGNAL(userInputRequested(QString,QVariantMap)));
+
+    QVector<NetworkService*> wifiServices = netman->getServices("wifi");
+    for (int i = 0; i < wifiServices.count(); i++) {
+        if(wifiServices[i]->favorite()) {
+            //favorite disables the need for user input
+            wifiServices[i]->remove();
+        }
+        if (wifiServices[i]->autoConnect())
+            wifiServices[i]->setAutoConnect(false);
+        if (wifiServices[i]->state() == "idle") {
+            wifiServices[i]->requestConnect();
+            break;
+        }
+    }
+
+    QTest::qWait(2000);
+    QCOMPARE(spy_userInput.count(),1);
+    QVariantMap map;
+    plugin->sendUserReply(map); //cancel
+}
+
 
 QTEST_MAIN(Tst_connectionagent_pluginTest)
 

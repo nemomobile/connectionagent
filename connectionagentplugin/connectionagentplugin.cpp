@@ -62,6 +62,7 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
     if (!QDBusConnection::sessionBus().interface()->isServiceRegistered(CONND_SERVICE)) {
         qDebug() << Q_FUNC_INFO << QString("connection service not available").arg(CONND_SERVICE);
         QDBusReply<void> reply = QDBusConnection::sessionBus().interface()->startService(CONND_SERVICE);
+
         if (!reply.isValid()) {
             qDebug() << Q_FUNC_INFO << reply.error().message();
             return;
@@ -96,19 +97,34 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
 
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
 {
+    if (!connManagerInterface || !connManagerInterface->isValid()) {
+        Q_EMIT errorReported("ConnectionAgent not available");
+        return;
+    }
     QDBusPendingReply<> reply = connManagerInterface->sendUserReply(input);
+    reply.waitForFinished();
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << reply.error().message();
+        Q_EMIT errorReported(reply.error().message());
     }
 }
 
 void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int timeout)
 {
+    if (!connManagerInterface || !connManagerInterface->isValid()) {
+        Q_EMIT errorReported("ConnectionAgent not available");
+        return;
+    }
     connManagerInterface->sendConnectReply(replyMessage,timeout);
 }
 
 void ConnectionAgentPlugin::connectToType(const QString &type)
 {
+    if (!connManagerInterface || !connManagerInterface->isValid()) {
+        Q_EMIT errorReported("ConnectionAgent not available");
+        return;
+    }
+
     connManagerInterface->connectToType(type);
 }
 

@@ -159,7 +159,7 @@ void QConnectionManager::onErrorReported(const QString &error)
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
-    qDebug() << Q_FUNC_INFO;
+    qDebug() << Q_FUNC_INFO << autoConnect();
     sendConnectReply("Suppress", 15);
     if (!autoConnect()) {
         Q_EMIT connectionRequest();
