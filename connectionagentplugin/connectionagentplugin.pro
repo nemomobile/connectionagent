@@ -11,7 +11,7 @@ equals(QT_MAJOR_VERSION, 4):  {
     QT += declarative
 }
 equals(QT_MAJOR_VERSION, 5):  {
-    QT += quick
+    QT += qml
 }
 SOURCES += \
     connectionagentplugin_plugin.cpp \
@@ -25,8 +25,12 @@ HEADERS += \
 
 OTHER_FILES = qmldir
 
-target.path = $$[QT_INSTALL_IMPORTS]/com/jolla/connection
+MODULENAME = com/jolla/connection
+equals(QT_MAJOR_VERSION, 4): TARGETPATH = $$[QT_INSTALL_IMPORTS]/$$MODULENAME
+equals(QT_MAJOR_VERSION, 5): TARGETPATH = $$[QT_INSTALL_QML]/$$MODULENAME
+
+target.path = $$TARGETPATH
 qmldir.files += qmldir
-qmldir.path = $$[QT_INSTALL_IMPORTS]/com/jolla/connection
+qmldir.path = $$TARGETPATH
 
 INSTALLS += target qmldir
