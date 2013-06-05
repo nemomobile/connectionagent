@@ -1,6 +1,6 @@
 Name: connectionagent-qt5
 Summary: User Agent daemon
-Version: 0.6.10
+Version: 0.6.11
 Release: 0
 Group: "Communications/Connectivity Adaptation"
 License: LGPLv2
@@ -20,7 +20,7 @@ PkgConfigBR:
     - connman-qt5
     - Qt5Network
     - Qt5Test
-    - Qt5Quick
+    - Qt5Qml
 
 Configure: none
 Builder: qmake5
@@ -36,7 +36,7 @@ SubPackages:
       Requires:
           - "%{name} = %{version}"
       Files:
-          - "%{_libdir}/qt5/imports/com/jolla/connection/*"
+          - "%{_libdir}/qt5/qml/com/jolla/connection/*"
 
     - Name: test
       Summary: auto test for connection agent.
