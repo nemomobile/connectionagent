@@ -9,7 +9,7 @@ Name:       connectionagent-qt5
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.6.10
+Version:    0.6.11
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -22,7 +22,7 @@ BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(connman-qt5)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Test)
-BuildRequires:  pkgconfig(Qt5Quick)
+BuildRequires:  pkgconfig(Qt5Qml)
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
@@ -83,7 +83,7 @@ rm -rf %{buildroot}
 
 %files declarative
 %defattr(-,root,root,-)
-%{_libdir}/qt5/imports/com/jolla/connection/*
+%{_libdir}/qt5/qml/com/jolla/connection/*
 # >> files declarative
 # << files declarative
 
