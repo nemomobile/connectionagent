@@ -9,7 +9,7 @@ Name:       connectionagent
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.6.10
+Version:    0.6.11
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -76,6 +76,7 @@ rm -rf %{buildroot}
 %{_bindir}/connectionagent
 %{_datadir}/dbus-1/services/com.jolla.Connectiond.service
 %{_libdir}/systemd/user/connectionagent.service
+%{_sysconfdir}/dbus-1/session.d/connectionagent.conf
 # >> files
 # << files
 

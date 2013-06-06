@@ -11,4 +11,7 @@ dbusservice.files = com.jolla.Connectiond.service
 systemdservice.path = $${INSTALL_PREFIX}/usr/lib/systemd/user
 systemdservice.files = connectionagent.service
 
-INSTALLS += dbusservice systemdservice
+dbusconfig.path = /etc/dbus-1/session.d
+dbusconfig.files = connectionagent.conf
+
+INSTALLS += dbusservice systemdservice dbusconfig

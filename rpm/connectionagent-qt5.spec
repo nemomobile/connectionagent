@@ -78,6 +78,7 @@ rm -rf %{buildroot}
 %{_bindir}/connectionagent
 %{_datadir}/dbus-1/services/com.jolla.Connectiond.service
 %{_libdir}/systemd/user/connectionagent.service
+%{_sysconfdir}/dbus-1/session.d/connectionagent.conf
 # >> files
 # << files
 
