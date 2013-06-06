@@ -79,7 +79,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
             this,SLOT(onUserInputRequested(QString,QVariantMap)));
 
     connect(ua,SIGNAL(connectionRequest()),this,SLOT(onConnectionRequest()));
-    connect(ua,SIGNAL(errorReported(QString)),this,SLOT(onErrorReported(QString)));
+    connect(ua,SIGNAL(errorReported(QString, QString)),this,SLOT(onErrorReported(QString, QString)));
     connect(ua,SIGNAL(userInputCanceled()),this,SLOT(onUserInputCanceled()));
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
             this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
@@ -151,11 +151,12 @@ void QConnectionManager::onUserInputCanceled()
 }
 
 // from useragent
-void QConnectionManager::onErrorReported(const QString &error)
+void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
+    Q_UNUSED(servicePath)
     qDebug() << Q_FUNC_INFO;
-    Q_EMIT errorReported(error);
 
+    Q_EMIT errorReported(error);
 }
 
 // from useragent
@@ -228,7 +229,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         service->requestDisconnect();
         service->remove(); //reset this service
         okToConnect = true;
-        Q_EMIT onErrorReported("Connection failure: "+ service->name());
+        Q_EMIT errorReported("Connection failure: "+ service->name());
     }
 
     //auto migrate

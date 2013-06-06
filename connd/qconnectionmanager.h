@@ -60,7 +60,7 @@ public Q_SLOTS:
 
     void onUserInputRequested(const QString &servicePath, const QVariantMap &fields);
     void onUserInputCanceled();
-    void onErrorReported(const QString &error);
+    void onErrorReported(const QString &servicePath, const QString &error);
 
     void onConnectionRequest();
 
