@@ -57,7 +57,8 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     qDebug() << Q_FUNC_INFO << netman->state();
 
     // let me control autoconnect
-    netman->setSessionMode(true);
+    if (netman->state() != "online")
+        netman->setSessionMode(true);
 
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -104,13 +105,14 @@ QConnectionManager::QConnectionManager(QObject *parent) :
         connmanConf.close();
     }
     if (techPreferenceList.isEmpty())
-        techPreferenceList << "wifi" << "bluetooth" << "cellular";
+        techPreferenceList << "ethernet" << "wifi" << "bluetooth" << "cellular";
 
     updateServicesMap();
 
     QSettings confFile;
     confFile.beginGroup("Connectionagent");
-    if (confFile.value("connected").toBool()) {
+    if (confFile.value("connected", true).toBool()
+            && netman->state() != "online") {
         autoConnect();
     }
 
@@ -226,6 +228,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         service->requestDisconnect();
         service->remove(); //reset this service
         okToConnect = true;
+        Q_EMIT onErrorReported("Connection failure: "+ service->name());
     }
 
     //auto migrate
