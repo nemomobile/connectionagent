@@ -82,8 +82,8 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
     connect(connManagerInterface,SIGNAL(userInputCanceled()),
             this,SIGNAL(userInputCanceled()));
 
-    connect(connManagerInterface,SIGNAL(errorReported(QString)),
-                     this,SLOT(onErrorReported(QString)));
+    connect(connManagerInterface, SIGNAL(errorReported(QString, QString)),
+            this, SLOT(onErrorReported(QString, QString)));
 
     connect(connManagerInterface,SIGNAL(connectionState(QString, QString)),
                      this,SLOT(onConnectionState(QString, QString)));

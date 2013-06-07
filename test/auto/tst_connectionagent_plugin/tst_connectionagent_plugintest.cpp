@@ -102,12 +102,12 @@ void Tst_connectionagent_pluginTest::testRequestConnection()
 
 void Tst_connectionagent_pluginTest::testErrorReported()
 {
-    QSignalSpy spy(plugin, SIGNAL(errorReported(QString)));
+    QSignalSpy spy(plugin, SIGNAL(errorReported(QString, QString)));
     plugin->connectToType("test");
     QTest::qWait(2000);
     QCOMPARE(spy.count(),1);
     QList<QVariant> arguments = spy.takeFirst();
-    QCOMPARE(arguments.at(0).toString(), QString("Type not valid"));
+    QCOMPARE(arguments.at(1).toString(), QString("Type not valid"));
 }
 
 void Tst_connectionagent_pluginTest::testUserInputRequested_data()
