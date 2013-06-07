@@ -51,7 +51,7 @@ Q_SIGNALS:
 
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
     void userInputCanceled();
-    void errorReported(const QString &error);
+    void errorReported(const QString &servicePath, const QString &error);
     void connectionRequest();
     void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);

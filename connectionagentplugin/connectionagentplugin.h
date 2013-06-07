@@ -42,7 +42,7 @@ public slots:
 signals:
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
     void userInputCanceled();
-    void errorReported(const QString &error);
+    void errorReported(const QString &servicePath, const QString &error);
     void connectionRequest();
     void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
@@ -52,7 +52,7 @@ private:
     QDBusServiceWatcher *connectiondWatcher;
 
 private slots:
-    void onErrorReported(const QString &error);
+    void onErrorReported(const QString &servicePath, const QString &error);
     void onRequestBrowser(const QString &url);
     void onUserInputRequested(const QString &service, const QVariantMap &fields);
     void onConnectionRequested();
