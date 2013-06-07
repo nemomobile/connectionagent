@@ -152,10 +152,9 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
-    Q_UNUSED(servicePath)
     qDebug() << Q_FUNC_INFO;
 
-    Q_EMIT errorReported(error);
+    Q_EMIT errorReported(servicePath, error);
 }
 
 // from useragent
@@ -212,7 +211,8 @@ void QConnectionManager::onServiceRemoved(const QString &/*servicePath*/)
 
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
-    Q_EMIT errorReported(error);
+    NetworkService *service = qobject_cast<NetworkService *>(sender());
+    Q_EMIT errorReported(service->path(),error);
 }
 
 void QConnectionManager::serviceStateChanged(const QString &state)
@@ -228,7 +228,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         service->requestDisconnect();
         service->remove(); //reset this service
         okToConnect = true;
-        Q_EMIT errorReported("Connection failure: "+ service->name());
+        Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
     }
 
     //auto migrate
@@ -328,7 +328,7 @@ void QConnectionManager::connectToType(const QString &type)
     qDebug() << Q_FUNC_INFO << techPath;
 
     if (techPath.isEmpty()) {
-        Q_EMIT errorReported("Type not valid");
+        Q_EMIT errorReported("","Type not valid");
         return;
     }
 
