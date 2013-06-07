@@ -57,8 +57,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     qDebug() << Q_FUNC_INFO << netman->state();
 
     // let me control autoconnect
-    if (netman->state() != "online")
-        netman->setSessionMode(true);
+    netman->setSessionMode(true);
 
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -271,6 +270,24 @@ bool QConnectionManager::autoConnect()
 
     Q_FOREACH (const QString &servicePath, servicesMap.keys()) {
 
+        if(servicesMap.value(servicePath)->state() == "configuration") {
+            break;
+        }
+        //explicitly activate first ethernet service
+        if(servicesMap.value(servicePath)->type() == "ethernet"
+                && servicesMap.value(servicePath)->state() != "online") {
+
+            if (servicesMap.value(servicePath)->state() != "ready") {
+                servicesMap.value(servicePath)->requestDisconnect();
+                if (!netman->sessionMode())
+                    netman->setSessionMode(true);
+            }
+
+            selectedService = servicePath;
+            currentType = servicesMap.value(servicePath)->type();
+            break;
+        }
+
         bool isCellRoaming = false;
         if (servicesMap.value(servicePath)->type() == "cellular"
                 && servicesMap.value(servicePath)->roaming()) {
@@ -363,8 +380,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
     qDebug() << Q_FUNC_INFO << servicePath;
 
     serviceConnect = true;
-    NetworkTechnology *tech = netman->getTechnology(servicesMap.value(servicePath)->type());
-    tech->setIdleTimeout(120);
 
     if (servicesMap.contains(servicePath))
         servicesMap.value(servicePath)->requestConnect();
