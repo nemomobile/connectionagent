@@ -57,8 +57,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     qDebug() << Q_FUNC_INFO << netman->state();
 
     // let me control autoconnect
-    if (netman->state() != "online")
-        netman->setSessionMode(true);
+    netman->setSessionMode(true);
 
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -153,10 +152,9 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
-    Q_UNUSED(servicePath)
     qDebug() << Q_FUNC_INFO;
 
-    Q_EMIT errorReported(error);
+    Q_EMIT errorReported(servicePath, error);
 }
 
 // from useragent
@@ -213,7 +211,8 @@ void QConnectionManager::onServiceRemoved(const QString &/*servicePath*/)
 
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
-    Q_EMIT errorReported(error);
+    NetworkService *service = qobject_cast<NetworkService *>(sender());
+    Q_EMIT errorReported(service->path(),error);
 }
 
 void QConnectionManager::serviceStateChanged(const QString &state)
@@ -229,7 +228,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         service->requestDisconnect();
         service->remove(); //reset this service
         okToConnect = true;
-        Q_EMIT errorReported("Connection failure: "+ service->name());
+        Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
     }
 
     //auto migrate
@@ -271,6 +270,24 @@ bool QConnectionManager::autoConnect()
 
     Q_FOREACH (const QString &servicePath, servicesMap.keys()) {
 
+        if(servicesMap.value(servicePath)->state() == "configuration") {
+            break;
+        }
+        //explicitly activate first ethernet service
+        if(servicesMap.value(servicePath)->type() == "ethernet"
+                && servicesMap.value(servicePath)->state() != "online") {
+
+            if (servicesMap.value(servicePath)->state() != "ready") {
+                servicesMap.value(servicePath)->requestDisconnect();
+                if (!netman->sessionMode())
+                    netman->setSessionMode(true);
+            }
+
+            selectedService = servicePath;
+            currentType = servicesMap.value(servicePath)->type();
+            break;
+        }
+
         bool isCellRoaming = false;
         if (servicesMap.value(servicePath)->type() == "cellular"
                 && servicesMap.value(servicePath)->roaming()) {
@@ -311,7 +328,7 @@ void QConnectionManager::connectToType(const QString &type)
     qDebug() << Q_FUNC_INFO << techPath;
 
     if (techPath.isEmpty()) {
-        Q_EMIT errorReported("Type not valid");
+        Q_EMIT errorReported("","Type not valid");
         return;
     }
 
@@ -363,8 +380,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
     qDebug() << Q_FUNC_INFO << servicePath;
 
     serviceConnect = true;
-    NetworkTechnology *tech = netman->getTechnology(servicesMap.value(servicePath)->type());
-    tech->setIdleTimeout(120);
 
     if (servicesMap.contains(servicePath))
         servicesMap.value(servicePath)->requestConnect();

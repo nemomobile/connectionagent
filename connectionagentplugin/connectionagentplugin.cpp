@@ -96,23 +96,23 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
 }
 
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
-{
+{    
     if (!connManagerInterface || !connManagerInterface->isValid()) {
-        Q_EMIT errorReported("ConnectionAgent not available");
+        Q_EMIT errorReported("","ConnectionAgent not available");
         return;
     }
     QDBusPendingReply<> reply = connManagerInterface->sendUserReply(input);
     reply.waitForFinished();
     if (reply.isError()) {
         qDebug() << Q_FUNC_INFO << reply.error().message();
-        Q_EMIT errorReported(reply.error().message());
+        Q_EMIT errorReported("",reply.error().message());
     }
 }
 
 void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int timeout)
 {
     if (!connManagerInterface || !connManagerInterface->isValid()) {
-        Q_EMIT errorReported("ConnectionAgent not available");
+        Q_EMIT errorReported("","ConnectionAgent not available");
         return;
     }
     connManagerInterface->sendConnectReply(replyMessage,timeout);
@@ -121,16 +121,16 @@ void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int ti
 void ConnectionAgentPlugin::connectToType(const QString &type)
 {
     if (!connManagerInterface || !connManagerInterface->isValid()) {
-        Q_EMIT errorReported("ConnectionAgent not available");
+        Q_EMIT errorReported("","ConnectionAgent not available");
         return;
     }
 
     connManagerInterface->connectToType(type);
 }
 
-void ConnectionAgentPlugin::onErrorReported(const QString &error)
+void ConnectionAgentPlugin::onErrorReported(const QString &servicePath, const QString &error)
 {
-    Q_EMIT errorReported(error);
+    Q_EMIT errorReported(servicePath, error);
 }
 
 void ConnectionAgentPlugin::onRequestBrowser(const QString &url)
