@@ -67,7 +67,7 @@ Q_SIGNALS: // SIGNALS
     void configurationNeeded(const QString &type);
     void connectionRequest();
     void connectionState(const QString &state, const QString &type);
-    void errorReported(const QString &error);
+    void errorReported(const QString &servicePath, const QString &error);
     void requestBrowser(const QString &url);
     void roamingAskChanged(bool askRoaming);
     void userInputCanceled();

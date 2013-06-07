@@ -9,6 +9,7 @@
       <arg name="type" type="s" direction="out"/>
     </signal>
     <signal name="errorReported">
+      <arg name="servicePath" type="s" direction="out"/>
       <arg name="error" type="s" direction="out"/>
     </signal>
     <signal name="requestBrowser">
