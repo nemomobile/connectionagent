@@ -37,6 +37,7 @@ class ConnAdaptor: public QDBusAbstractAdaptor
 "      <arg direction=\"out\" type=\"s\" name=\"type\"/>\n"
 "    </signal>\n"
 "    <signal name=\"errorReported\">\n"
+"      <arg direction=\"out\" type=\"s\" name=\"servicePath\"/>\n"
 "      <arg direction=\"out\" type=\"s\" name=\"error\"/>\n"
 "    </signal>\n"
 "    <signal name=\"requestBrowser\">\n"
@@ -84,7 +85,7 @@ Q_SIGNALS: // SIGNALS
     void configurationNeeded(const QString &type);
     void connectionRequest();
     void connectionState(const QString &state, const QString &type);
-    void errorReported(const QString &error);
+    void errorReported(const QString &servicePath, const QString &error);
     void requestBrowser(const QString &url);
     void roamingAskChanged(bool askRoaming);
     void userInputCanceled();
