@@ -94,6 +94,7 @@ private:
     QList <QString> connectedServices;
     QStringList techPreferenceList;
     bool askForRoaming;
+    bool isEthernet;
 
 private slots:
     void onScanFinished();

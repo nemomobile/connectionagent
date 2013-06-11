@@ -52,10 +52,14 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      currentType(QString()),
      serviceConnect(0),
      currentNotification(0),
-     askForRoaming(0)
+     askForRoaming(0),
+     isEthernet(0)
 {
     qDebug() << Q_FUNC_INFO << netman->state();
 
+    NetworkService *defaultService = netman->defaultRoute();
+    if (defaultService->type() == "ethernet")
+        isEthernet = true;
     // let me control autoconnect
     netman->setSessionMode(true);
 
@@ -108,9 +112,10 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
     updateServicesMap();
 
+    qDebug() << Q_FUNC_INFO << netman->state();
     QSettings confFile;
     confFile.beginGroup("Connectionagent");
-    if (confFile.value("connected", true).toBool()
+    if (confFile.value("connected").toString() == "online"
             && netman->state() != "online") {
         autoConnect();
     }
@@ -240,6 +245,9 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     //auto migrate
     if (state == "idle") {
         connectedServices.removeOne(service->path());
+        if (isEthernet) { //keep this alive
+         autoConnect();
+        }
     }
 
     if (!(currentNetworkState == "online" && state == "association"))
