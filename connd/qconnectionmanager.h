@@ -95,6 +95,8 @@ private:
     QStringList techPreferenceList;
     bool askForRoaming;
     bool isEthernet;
+    bool hasPendingReply;
+    bool isConnecting;
 
 private slots:
     void onScanFinished();

@@ -53,13 +53,10 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      serviceConnect(0),
      currentNotification(0),
      askForRoaming(0),
-     isEthernet(0)
+     isEthernet(0),
+     hasPendingReply(0),
+     isConnecting(0)
 {
-    qDebug() << Q_FUNC_INFO << netman->state();
-
-    NetworkService *defaultService = netman->defaultRoute();
-    if (defaultService->type() == "ethernet")
-        isEthernet = true;
     // let me control autoconnect
     netman->setSessionMode(true);
 
@@ -108,19 +105,11 @@ QConnectionManager::QConnectionManager(QObject *parent) :
         connmanConf.close();
     }
     if (techPreferenceList.isEmpty())
+        //ethernet,bluetooth,cellular,wifi is default
         techPreferenceList << "ethernet" << "wifi" << "bluetooth" << "cellular";
 
-    updateServicesMap();
+    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
 
-    qDebug() << Q_FUNC_INFO << netman->state();
-    QSettings confFile;
-    confFile.beginGroup("Connectionagent");
-    if (confFile.value("connected").toString() == "online"
-            && netman->state() != "online") {
-        autoConnect();
-    }
-
-    currentNetworkState = netman->state();
 }
 
 QConnectionManager::~QConnectionManager()
@@ -165,9 +154,10 @@ void QConnectionManager::onErrorReported(const QString &servicePath, const QStri
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
-    qDebug() << Q_FUNC_INFO << autoConnect();
     sendConnectReply("Suppress", 15);
-    if (!autoConnect()) {
+    bool ok = autoConnect();
+    qDebug() << Q_FUNC_INFO << ok;
+    if (!ok) {
         Q_EMIT connectionRequest();
     }
 }
@@ -230,14 +220,19 @@ void QConnectionManager::serviceStateChanged(const QString &state)
       ua->sendConnectReply("Clear");
     }
     if (state == "failure") {
-        service->requestDisconnect();
-        service->remove(); //reset this service
+            service->requestDisconnect();
+            if (isConnecting) {
+                service->remove(); //reset this service
+                isConnecting = false;
+            }
         okToConnect = true;
         Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
+        qDebug() << Q_FUNC_INFO << "Connection failure:"<< service->name();
     }
 
     //auto migrate
     if (state == "online" || state == "ready") {
+        isConnecting = false;
        if(!connectedServices.contains(service->path()))
            connectedServices.prepend(service->path());
          okToConnect = true;
@@ -389,8 +384,10 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 
     serviceConnect = true;
 
-    if (servicesMap.contains(servicePath))
+    if (servicesMap.contains(servicePath)) {
         servicesMap.value(servicePath)->requestConnect();
+        isConnecting = true;
+    }
 
     okToConnect = false;
 }
@@ -494,4 +491,20 @@ void QConnectionManager::setAskRoaming(bool value)
 
 void QConnectionManager::connmanAvailabilityChanged(bool b)
 {
+    if (b) {
+        NetworkService *defaultService = netman->defaultRoute();
+        if (defaultService->type() == "ethernet")
+            isEthernet = true;
+
+        updateServicesMap();
+
+        qDebug() << Q_FUNC_INFO << netman->state();
+        QSettings confFile;
+        confFile.beginGroup("Connectionagent");
+        if (confFile.value("connected").toString() == "online"
+                && netman->state() != "online") {
+            autoConnect();
+        }
+    }
+    currentNetworkState = netman->state();
 }
