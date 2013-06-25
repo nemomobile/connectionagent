@@ -1,7 +1,5 @@
 TEMPLATE = subdirs
 
-TEMPLATE += ordered
-
 SUBDIRS += connectionagentplugin
 SUBDIRS += test
 
