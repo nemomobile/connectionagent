@@ -20,6 +20,7 @@
 
 #include <QString>
 #include <QtTest>
+#include <QProcess>
 
 #include "../../../connd/qconnectionmanager.h"
 
@@ -36,10 +37,15 @@ public:
     Tst_connectionagent();
     
 private Q_SLOTS:
-    void testCase1();
+    void tst_networkInstance();
+    void tst_restartconnman();
 };
 
 Tst_connectionagent::Tst_connectionagent()
+{
+}
+
+void Tst_connectionagent::tst_networkInstance()
 {
     NetworkManager *netman = NetworkManagerFactory::createInstance();
     QString currentState = netman->state();
@@ -47,9 +53,8 @@ Tst_connectionagent::Tst_connectionagent()
     QVERIFY(currentState == netman->state());
 }
 
-void Tst_connectionagent::testCase1()
+void Tst_connectionagent::tst_restartconnman()
 {
-    QVERIFY2(true, "Failure");
 }
 
 QTEST_APPLESS_MAIN(Tst_connectionagent)

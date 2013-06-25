@@ -109,7 +109,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
         techPreferenceList << "ethernet" << "wifi" << "bluetooth" << "cellular";
 
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
-
+    connmanAvailabilityChanged(netman->isAvailable());
 }
 
 QConnectionManager::~QConnectionManager()
@@ -491,6 +491,8 @@ void QConnectionManager::setAskRoaming(bool value)
 
 void QConnectionManager::connmanAvailabilityChanged(bool b)
 {
+    qDebug() << Q_FUNC_INFO << b;
+
     if (b) {
         NetworkService *defaultService = netman->defaultRoute();
         if (defaultService->type() == "ethernet")
@@ -501,8 +503,8 @@ void QConnectionManager::connmanAvailabilityChanged(bool b)
         qDebug() << Q_FUNC_INFO << netman->state();
         QSettings confFile;
         confFile.beginGroup("Connectionagent");
-        if (confFile.value("connected").toString() == "online"
-                && netman->state() != "online") {
+        if (isEthernet || (confFile.value("connected").toString() == "online"
+                && netman->state() != "online")) {
             autoConnect();
         }
     }
