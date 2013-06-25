@@ -13,7 +13,10 @@ Sources:
     - "%{name}-%{version}.tar.bz2"
 Requires:
     - connman-qt5-declarative
-    
+Provides:
+    - connectionagent > 0.7.6
+Obsoletes:
+    - connectionagent <= 0.7.6
 PkgConfigBR:
     - Qt5Core
     - Qt5DBus
