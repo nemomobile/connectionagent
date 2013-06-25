@@ -1,6 +1,6 @@
 Name: connectionagent-qt5
 Summary: User Agent daemon
-Version: 0.7.6
+Version: 0.7.7
 Release: 0
 Group: "Communications/Connectivity Adaptation"
 License: LGPLv2
@@ -13,7 +13,13 @@ Sources:
     - "%{name}-%{version}.tar.bz2"
 Requires:
     - connman-qt5-declarative
-    
+Obsoletes:
+    - connectionagent <= 0.7.6
+    - connectionagent-declarative <= 0.7.6
+Provides:
+    - connectionagent > 0.7.6
+    - connectionagent-declarative > 0.7.6
+
 PkgConfigBR:
     - Qt5Core
     - Qt5DBus
