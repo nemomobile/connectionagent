@@ -1,9 +1,5 @@
 TEMPLATE = subdirs
 
-TEMPLATE += ordered
-
-SUBDIRS += config
-SUBDIRS += connd
 SUBDIRS += connectionagentplugin
 SUBDIRS += test
 
@@ -14,6 +10,9 @@ equals(QT_MAJOR_VERSION, 4):  {
 }
 
 equals(QT_MAJOR_VERSION, 5):  {
+    SUBDIRS += config
+    SUBDIRS += connd
+
     OTHER_FILES += rpm/connectionagent-qt5.spec \
                    rpm/connectionagent-qt5.yaml
 }
