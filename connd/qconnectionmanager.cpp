@@ -50,7 +50,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      okToConnect(0),
      currentNetworkState(QString()),
      currentType(QString()),
-     serviceConnect(0),
      currentNotification(0),
      askForRoaming(0),
      isEthernet(0),
@@ -58,7 +57,11 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      isConnecting(0)
 {
     // let me control autoconnect
-    netman->setSessionMode(true);
+    qDebug() << Q_FUNC_INFO << "Session mode" << netman->sessionMode()
+             << netman->state();
+
+    if (!netman->sessionMode())
+        netman->setSessionMode(true);
 
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -114,6 +117,9 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
 QConnectionManager::~QConnectionManager()
 {
+    QSettings confFile;
+    confFile.beginGroup("Connectionagent");
+    confFile.setValue("connected",netman->state());
     delete self;
 }
 
@@ -186,7 +192,6 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
             connectToNetworkService(servicePath);
         } else {
             Q_EMIT configurationNeeded(servicesMap.value(servicePath)->type());
-            serviceConnect = false;
         }
     }
     //automigrate
@@ -212,22 +217,20 @@ void QConnectionManager::serviceErrorChanged(const QString &error)
 
 void QConnectionManager::serviceStateChanged(const QString &state)
 {
-    qDebug() << Q_FUNC_INFO << state;
-
     NetworkService *service = qobject_cast<NetworkService *>(sender());
+    qDebug() << Q_FUNC_INFO << service->name() << state
+             << service->path();
 
     if (currentNetworkState == "disconnect") {
       ua->sendConnectReply("Clear");
     }
     if (state == "failure") {
-            service->requestDisconnect();
-            if (isConnecting) {
-                service->remove(); //reset this service
-                isConnecting = false;
-            }
+        service->requestDisconnect();
+        isConnecting = false;
         okToConnect = true;
         Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
-        qDebug() << Q_FUNC_INFO << "Connection failure:"<< service->name();
+        qDebug() << Q_FUNC_INFO << "Connection failure:"<< service->name()
+                 << service->path();
     }
 
     //auto migrate
@@ -240,8 +243,12 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     //auto migrate
     if (state == "idle") {
         connectedServices.removeOne(service->path());
-        if (isEthernet) { //keep this alive
-         autoConnect();
+        if (service->type() == "ethernet") { //keep this alive
+            qDebug() << Q_FUNC_INFO << "requesting connection to" << service->name()
+                        << service->path();
+         service->requestConnect();
+        } else {
+            autoConnect();
         }
     }
 
@@ -252,11 +259,10 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     // if state == idle && service exists
     // do not autoconnect, user probably wanted to disconnect
         if (currentNetworkState == "disconnect" && state == "idle"
-            && servicesMap.contains(service->path())) {
+            && servicesMap.contains(service->path())
+                && service->type() != "ethernet") {
             okToConnect = false;
-        }/* else {
-            okToConnect = true;
-        }*/
+        }
 
         currentNetworkState = state;
         QSettings confFile;
@@ -266,61 +272,60 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
 bool QConnectionManager::autoConnect()
 {
-    qDebug() << Q_FUNC_INFO;
     QString selectedService;
     uint strength = 0;
     QString currentType;
+    qDebug() << Q_FUNC_INFO
+                << servicesMap.keys().count();
 
     Q_FOREACH (const QString &servicePath, servicesMap.keys()) {
 
-        if(servicesMap.value(servicePath)->state() == "configuration") {
+        qDebug() << "loop"
+                 << servicesMap.value(servicePath)->name()
+                 << servicesMap.value(servicePath)->state()
+                 << servicesMap.value(servicePath)->path();
+
+        if(servicesMap.value(servicePath)->state() == "configuration"
+                || servicesMap.value(servicePath)->state() == "association") {
             break;
         }
-        //explicitly activate first ethernet service
+        //explicitly activate ethernet service
         if(servicesMap.value(servicePath)->type() == "ethernet"
-                && servicesMap.value(servicePath)->state() != "online") {
-
-            if (servicesMap.value(servicePath)->state() != "ready") {
-                servicesMap.value(servicePath)->requestDisconnect();
-                if (!netman->sessionMode())
-                    netman->setSessionMode(true);
-            }
-
-            selectedService = servicePath;
+                && servicesMap.value(servicePath)->state() == "idle") {
+            connectToNetworkService(servicePath);
             currentType = servicesMap.value(servicePath)->type();
             break;
-        }
+        } else {
 
-        bool isCellRoaming = false;
-        if (servicesMap.value(servicePath)->type() == "cellular"
-                && servicesMap.value(servicePath)->roaming()) {
-            isCellRoaming = askForRoaming;
-        }
-
-        if(servicesMap.value(servicePath)->autoConnect()
-                && servicesMap.value(servicePath)->favorite()
-                && !isCellRoaming) {
-
-            if (!selectedService.isEmpty()
-                    && (!currentType.isEmpty()
-                        && servicesMap.value(servicePath)->type() != currentType)) {
-                break;
+            bool isCellRoaming = false;
+            if (servicesMap.value(servicePath)->type() == "cellular"
+                    && servicesMap.value(servicePath)->roaming()) {
+                isCellRoaming = askForRoaming;
             }
-            if ((servicesMap.value(servicePath)->strength() > strength)) {
 
-                selectedService = servicePath;
-                strength = servicesMap.value(servicePath)->strength();
+            if(servicesMap.value(servicePath)->autoConnect()
+                    && servicesMap.value(servicePath)->favorite()
+                    && !isCellRoaming) {
+
+                if (!selectedService.isEmpty()
+                        && (!currentType.isEmpty()
+                            && servicesMap.value(servicePath)->type() != currentType)) {
+                    break;
+                }
+                if ((servicesMap.value(servicePath)->strength() > strength)) {
+
+                    selectedService = servicePath;
+                    strength = servicesMap.value(servicePath)->strength();
+                }
+                currentType = servicesMap.value(servicePath)->type();
             }
-            currentType = servicesMap.value(servicePath)->type();
         }
-    }
 
-    if (!selectedService.isEmpty()) {
-        serviceConnect = true;
-        connectToNetworkService(selectedService);
-        return true;
-    }
-
+        if (!selectedService.isEmpty()) {
+            connectToNetworkService(selectedService);
+            return true;
+        }
+    } // end loop
     return false;
 }
 
@@ -373,7 +378,6 @@ void QConnectionManager::connectToType(const QString &type)
     }
     if (needConfig) {
         Q_EMIT configurationNeeded(type);
-        serviceConnect = false;
         okToConnect = false;
     }
 }
@@ -382,14 +386,15 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
     qDebug() << Q_FUNC_INFO << servicePath;
 
-    serviceConnect = true;
-
-    if (servicesMap.contains(servicePath)) {
+    if (servicesMap.contains(servicePath)
+            && (servicesMap.value(servicePath)->state() != "online"
+                || servicesMap.value(servicePath)->state() != "ready")) {
+        qDebug() << Q_FUNC_INFO << "requesting connection to " << servicesMap.value(servicePath)->name();
         servicesMap.value(servicePath)->requestConnect();
         isConnecting = true;
     }
-
-    okToConnect = false;
+    if(!servicePath.contains("cable"))
+        okToConnect = false;
 }
 
 void QConnectionManager::onScanFinished()
@@ -404,7 +409,7 @@ void QConnectionManager::updateServicesMap()
     Q_FOREACH (const QString &tech,techPreferenceList) {
 
         QVector<NetworkService*> services = netman->getServices(tech);
-
+        qDebug() << Q_FUNC_INFO << services.count() << tech;
         Q_FOREACH (NetworkService *serv, services) {
 
             servicesMap.insert(serv->path(), serv);
@@ -423,7 +428,6 @@ void QConnectionManager::updateServicesMap()
                              this,SLOT(onServiceStrengthChanged(uint)), Qt::UniqueConnection);
         }
     }
-
 }
 
 QString QConnectionManager::findBestConnectableService()
@@ -448,8 +452,10 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
         qDebug() << Q_FUNC_INFO;
     if (newService.isEmpty())
         return;
-    if (servicesMap.contains(oldService))
+    if (servicesMap.contains(oldService)) {
+        qDebug() << Q_FUNC_INFO << "requesting disconnection to" << servicesMap.value(oldService)->name();
         servicesMap.value(oldService)->requestDisconnect();
+    }
 
     if (servicesMap.contains(newService) && servicesMap.value(newService)->autoConnect())
         connectToNetworkService(newService);
@@ -461,7 +467,7 @@ void QConnectionManager::networkStateChanged(const QString &state)
     qDebug() << Q_FUNC_INFO << state;
     if (state == "idle" && okToConnect) {
         //automigrate
-        QString bestService =  findBestConnectableService();
+        QString bestService = findBestConnectableService();
 
         connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0),
                           bestService);
@@ -494,8 +500,7 @@ void QConnectionManager::connmanAvailabilityChanged(bool b)
     qDebug() << Q_FUNC_INFO << b;
 
     if (b) {
-        NetworkService *defaultService = netman->defaultRoute();
-        if (defaultService->type() == "ethernet")
+        if (netman->servicesList("ethernet").count() > 0)
             isEthernet = true;
 
         updateServicesMap();
@@ -503,7 +508,7 @@ void QConnectionManager::connmanAvailabilityChanged(bool b)
         qDebug() << Q_FUNC_INFO << netman->state();
         QSettings confFile;
         confFile.beginGroup("Connectionagent");
-        if (isEthernet || (confFile.value("connected").toString() == "online"
+        if (isEthernet || (confFile.value("connected", "online").toString() == "online"
                 && netman->state() != "online")) {
             autoConnect();
         }
