@@ -11,9 +11,6 @@ Description: |
 
 Sources:
     - "%{name}-%{version}.tar.bz2"
-Requires:
-    - connman-qt-declarative
-    
 PkgConfigBR:
     - QtCore
     - QtDBus
@@ -21,19 +18,14 @@ PkgConfigBR:
     - QtNetwork
 Configure: none
 Builder: qmake
-Files:
-    - "%{_bindir}/connectionagent"
-    - "%{_datadir}/dbus-1/services/com.jolla.Connectiond.service"
-    - "%{_libdir}/systemd/user/connectionagent.service"
-    - "%{_sysconfdir}/dbus-1/session.d/connectionagent.conf"
-
+NoFiles: true
 SubPackages:
     - Name: declarative
       Summary: Declarative plugin for connection agent.
       Group: Development/Tools
       Description: This package contains the declarative plugin for connection agent.
       Requires:
-          - "%{name} = %{version}"
+          - connectionagent-qt5
       Files:
           - "%{_libdir}/qt4/imports/com/jolla/connection/*"
 
@@ -42,7 +34,7 @@ SubPackages:
       Group: Development/Tools
       Description: This package contains the tests for connection agent.
       Requires:
-          - "%{name} = %{version}"
+          - connectionagent-qt5
       Files:
         - "/opt/sdk/bin/testqml"
         - "/opt/sdk/share/applications/testqml.desktop"

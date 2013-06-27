@@ -16,7 +16,6 @@ License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  connectionagent.yaml
-Requires:   connman-qt-declarative
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
 BuildRequires:  pkgconfig(connman-qt4)
@@ -30,8 +29,7 @@ It also provides autoconnecting features.
 %package declarative
 Summary:    Declarative plugin for connection agent.
 Group:      Development/Tools
-Requires:   %{name} = %{version}-%{release}
-Requires:   %{name} = %{version}
+Requires:   connectionagent-qt5
 
 %description declarative
 This package contains the declarative plugin for connection agent.
@@ -39,8 +37,7 @@ This package contains the declarative plugin for connection agent.
 %package test
 Summary:    Tests for connection agent.
 Group:      Development/Tools
-Requires:   %{name} = %{version}-%{release}
-Requires:   %{name} = %{version}
+Requires:   connectionagent-qt5
 
 %description test
 This package contains the tests for connection agent.
@@ -71,14 +68,6 @@ rm -rf %{buildroot}
 # >> install post
 # << install post
 
-%files
-%defattr(-,root,root,-)
-%{_bindir}/connectionagent
-%{_datadir}/dbus-1/services/com.jolla.Connectiond.service
-%{_libdir}/systemd/user/connectionagent.service
-%{_sysconfdir}/dbus-1/session.d/connectionagent.conf
-# >> files
-# << files
 
 %files declarative
 %defattr(-,root,root,-)

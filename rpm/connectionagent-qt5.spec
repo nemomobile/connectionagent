@@ -23,6 +23,8 @@ BuildRequires:  pkgconfig(connman-qt5)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Test)
 BuildRequires:  pkgconfig(Qt5Qml)
+Provides:   connectionagent > 0.7.6
+Obsoletes:   connectionagent <= 0.7.6
 
 %description
 Connection Agent provides multi user access to connman's User Agent.
