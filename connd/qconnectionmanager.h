@@ -46,8 +46,8 @@ public:
     void setAskRoaming(bool value);
 
 Q_SIGNALS:
-   void connectionChanged(const QString &, bool); // ?
-   void connected(); // ?
+//   void connectionChanged(const QString &, bool); // ?
+//   void connected(); // ?
 
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
     void userInputCanceled();
@@ -68,7 +68,9 @@ public Q_SLOTS:
     void sendUserReply(const QVariantMap &input);
 
     void connectToType(const QString &type);
-
+protected:
+    void connectNotify(const QMetaMethod &signal);
+    void disconnectNotify(const QMetaMethod &signal);
 private:
     explicit QConnectionManager(QObject *parent = 0);
     static QConnectionManager *self;
@@ -97,6 +99,7 @@ private:
     bool isEthernet;
     bool hasPendingReply;
     bool isConnecting;
+    bool connmanPropertiesAvailable;
 
 private slots:
     void onScanFinished();
@@ -110,6 +113,7 @@ private slots:
     void onServiceStrengthChanged(uint);
 
     void connmanAvailabilityChanged(bool b);
+    void setup();
 
 };
 

@@ -54,14 +54,11 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      askForRoaming(0),
      isEthernet(0),
      hasPendingReply(0),
-     isConnecting(0)
+     isConnecting(0),
+     connmanPropertiesAvailable(0)
 {
-    // let me control autoconnect
-    qDebug() << Q_FUNC_INFO << "Session mode" << netman->sessionMode()
-             << netman->state();
-
-    if (!netman->sessionMode())
-        netman->setSessionMode(true);
+    qDebug() << Q_FUNC_INFO;
+    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
 
     connectionAdaptor = new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -87,12 +84,10 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
             this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
 
-    ua->sendConnectReply("Clear");
-
     connect(netman,SIGNAL(serviceAdded(QString)),this,SLOT(onServiceAdded(QString)));
     connect(netman,SIGNAL(serviceRemoved(QString)),this,SLOT(onServiceRemoved(QString)));
-
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
+    connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
 
 
     QFile connmanConf("/etc/connman/main.conf");
@@ -110,16 +105,17 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     if (techPreferenceList.isEmpty())
         //ethernet,bluetooth,cellular,wifi is default
         techPreferenceList << "ethernet" << "wifi" << "bluetooth" << "cellular";
-
-    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
-    connmanAvailabilityChanged(netman->isAvailable());
 }
 
 QConnectionManager::~QConnectionManager()
 {
+    qDebug() << Q_FUNC_INFO <<netman->state();
     QSettings confFile;
     confFile.beginGroup("Connectionagent");
-    confFile.setValue("connected",netman->state());
+    if (netman->state() != "online")
+        confFile.setValue("connected","offline");
+    else
+        confFile.setValue("connected","online");
     delete self;
 }
 
@@ -218,8 +214,11 @@ void QConnectionManager::serviceErrorChanged(const QString &error)
 void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = qobject_cast<NetworkService *>(sender());
-    qDebug() << Q_FUNC_INFO << service->name() << state
-             << service->path();
+    qDebug() << Q_FUNC_INFO
+             << service->name()
+             << state
+             << service->path()
+             << service->ethernet()["Interface"].toString();
 
     if (currentNetworkState == "disconnect") {
       ua->sendConnectReply("Clear");
@@ -275,15 +274,8 @@ bool QConnectionManager::autoConnect()
     QString selectedService;
     uint strength = 0;
     QString currentType;
-    qDebug() << Q_FUNC_INFO
-                << servicesMap.keys().count();
 
     Q_FOREACH (const QString &servicePath, servicesMap.keys()) {
-
-        qDebug() << "loop"
-                 << servicesMap.value(servicePath)->name()
-                 << servicesMap.value(servicePath)->state()
-                 << servicesMap.value(servicePath)->path();
 
         if(servicesMap.value(servicePath)->state() == "configuration"
                 || servicesMap.value(servicePath)->state() == "association") {
@@ -409,7 +401,6 @@ void QConnectionManager::updateServicesMap()
     Q_FOREACH (const QString &tech,techPreferenceList) {
 
         QVector<NetworkService*> services = netman->getServices(tech);
-        qDebug() << Q_FUNC_INFO << services.count() << tech;
         Q_FOREACH (NetworkService *serv, services) {
 
             servicesMap.insert(serv->path(), serv);
@@ -498,20 +489,47 @@ void QConnectionManager::setAskRoaming(bool value)
 void QConnectionManager::connmanAvailabilityChanged(bool b)
 {
     qDebug() << Q_FUNC_INFO << b;
+    connmanPropertiesAvailable = b;
+    if (!b) {
+        connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
+    }
+    currentNetworkState = netman->state();
+}
 
-    if (b) {
+void QConnectionManager::setup()
+{
+    if (!connmanPropertiesAvailable) {
+        connmanPropertiesAvailable = true;
+        qDebug() << Q_FUNC_INFO
+                 << "Session mode"
+                 << netman->sessionMode()
+                 << netman->state();
+
+        // let me control autoconnect
+        if (!netman->sessionMode())
+            netman->setSessionMode(true);
+
         if (netman->servicesList("ethernet").count() > 0)
             isEthernet = true;
 
         updateServicesMap();
 
-        qDebug() << Q_FUNC_INFO << netman->state();
         QSettings confFile;
         confFile.beginGroup("Connectionagent");
-        if (isEthernet || (confFile.value("connected", "online").toString() == "online"
-                && netman->state() != "online")) {
+
+
+        if (netman->state() != "online"
+                && (!isEthernet || confFile.value("connected", "online").toString() == "online")) {
             autoConnect();
         }
+        disconnect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
     }
-    currentNetworkState = netman->state();
+}
+
+void QConnectionManager::connectNotify(const QMetaMethod &/*signal*/)
+{
+}
+
+void QConnectionManager::disconnectNotify(const QMetaMethod &/*signal*/)
+{
 }
