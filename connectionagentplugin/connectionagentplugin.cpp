@@ -54,6 +54,8 @@ ConnectionAgentPlugin::~ConnectionAgentPlugin()
 
 void ConnectionAgentPlugin::connectToConnectiond(QString)
 {
+    qDebug() << Q_FUNC_INFO;
+
     if (connManagerInterface) {
         delete connManagerInterface;
         connManagerInterface = 0;
@@ -170,6 +172,7 @@ void ConnectionAgentPlugin::connectiondUnregistered(QString)
 
 void ConnectionAgentPlugin::onConnectionState(const QString &state, const QString &type)
 {
+    qDebug() << Q_FUNC_INFO << state;
     Q_EMIT connectionState(state, type);
 }
 
@@ -182,3 +185,4 @@ void ConnectionAgentPlugin::setAskRoaming(bool value)
 {
     connManagerInterface->setAskRoaming(value);
 }
+

@@ -4,6 +4,8 @@ SUBDIRS += connectionagentplugin
 SUBDIRS += test
 
 equals(QT_MAJOR_VERSION, 4):  {
+    SUBDIRS += config
+    SUBDIRS += connd
     SUBDIRS += test/testqml
     OTHER_FILES += rpm/connectionagent.spec \
                    rpm/connectionagent.yaml
