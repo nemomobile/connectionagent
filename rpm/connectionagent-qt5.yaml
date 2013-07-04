@@ -13,6 +13,8 @@ Sources:
     - "%{name}-%{version}.tar.bz2"
 Requires:
     - connman-qt5-declarative
+    - systemd
+    - systemd-user-session-targets
 Provides:
     - connectionagent > 0.7.6
 Obsoletes:
