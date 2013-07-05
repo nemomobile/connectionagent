@@ -17,6 +17,8 @@ URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  connectionagent-qt5.yaml
 Requires:   connman-qt5-declarative
+Requires:   systemd
+Requires:   systemd-user-session-targets
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(connman-qt5)
@@ -73,7 +75,25 @@ rm -rf %{buildroot}
 %qmake_install
 
 # >> install post
+mkdir -p %{buildroot}%{_libdir}/systemd/user/user-session.target.wants
+ln -s ../connectionagent.service %{buildroot}%{_libdir}/systemd/user/user-session.target.wants/
 # << install post
+
+%post
+# >> post
+if [ "$1" -ge 1 ]; then
+systemctl-user daemon-reload || :
+systemctl-user restart connectionagent.service || :
+fi
+# << post
+
+%postun
+# >> postun
+if [ "$1" -eq 0 ]; then
+systemctl-user stop connectionagent.service || :
+systemctl-user daemon-reload || :
+fi
+# << postun
 
 %files
 %defattr(-,root,root,-)
@@ -82,6 +102,7 @@ rm -rf %{buildroot}
 %{_libdir}/systemd/user/connectionagent.service
 %{_sysconfdir}/dbus-1/session.d/connectionagent.conf
 # >> files
+%{_libdir}/systemd/user/user-session.target.wants/connectionagent.service
 # << files
 
 %files declarative
