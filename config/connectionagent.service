@@ -1,6 +1,7 @@
 [Unit]
 Description=Connection Agent
 Requires=dbus.service
+After=pre-user-session.target
 
 [Service]
 ExecStart=/usr/bin/connectionagent
@@ -8,5 +9,5 @@ Type=dbus
 BusName=com.jolla.Connectiond
 Restart=always
 
- [Install]
- WantedBy=jolla-middleware.target
+[Install]
+WantedBy=user-session.target
