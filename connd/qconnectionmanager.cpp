@@ -54,7 +54,8 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      currentNotification(0),
      askForRoaming(0),
      isEthernet(0),
-     connmanPropertiesAvailable(0)
+     connmanPropertiesAvailable(0),
+     handoverInProgress(0)
 {
     qDebug() << Q_FUNC_INFO;
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
@@ -319,6 +320,7 @@ bool QConnectionManager::autoConnect()
             connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0)
                                                              ,selectedService);
         } else {
+            handoverInProgress = true;
             connectToNetworkService(selectedService);
             currentType = servicesMap.value(selectedService)->type();
         }
