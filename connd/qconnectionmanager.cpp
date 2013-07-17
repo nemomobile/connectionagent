@@ -539,7 +539,7 @@ void QConnectionManager::networkStateChanged(const QString &state)
         //automigrate
         QString bestService = findBestConnectableService();
 
-        if (servicesMap.value(bestService)->type() != "ethernet") {
+        if (!bestService.isEmpty() && servicesMap.value(bestService)->type() != "ethernet") {
             connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0),
                                bestService);
         }
