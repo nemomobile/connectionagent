@@ -130,8 +130,6 @@ QConnectionManager & QConnectionManager::instance()
 // from useragent
 void QConnectionManager::onUserInputRequested(const QString &servicePath, const QVariantMap &fields)
 {
-    qDebug() << Q_FUNC_INFO;
-
     // gets called when a connman service gets called to connect and needs more configurations.
     Q_EMIT userInputRequested(servicePath, fields);
 }
@@ -139,16 +137,12 @@ void QConnectionManager::onUserInputRequested(const QString &servicePath, const 
 // from useragent
 void QConnectionManager::onUserInputCanceled()
 {
-    qDebug() << Q_FUNC_INFO;
-
     Q_EMIT userInputCanceled();
 }
 
 // from useragent
 void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
-    qDebug() << Q_FUNC_INFO;
-
     Q_EMIT errorReported(servicePath, error);
 }
 
@@ -157,7 +151,6 @@ void QConnectionManager::onConnectionRequest()
 {
     sendConnectReply("Suppress", 15);
     bool ok = autoConnect();
-    qDebug() << Q_FUNC_INFO << ok;
     if (!ok) {
         Q_EMIT connectionRequest();
     }
@@ -178,12 +171,6 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
     if (!servicesMap.contains(servicePath)) {
         updateServicesMap();
     }
-    qDebug() << Q_FUNC_INFO
-             << servicePath
-             << servicesMap.value(servicePath)->state()
-             << okToConnect
-             << currentType.isEmpty()
-             << connectedServices.count();
 
     if (okToConnect && !currentType.isEmpty() && servicesMap.contains(servicePath)) {
 
@@ -213,8 +200,6 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
 
 void QConnectionManager::onServiceRemoved(const QString &servicePath)
 {
-    qDebug() << Q_FUNC_INFO << servicePath
-                << netman->state();
     updateServicesMap();
     if (!handoverInProgress)
         autoConnect();
@@ -229,12 +214,6 @@ void QConnectionManager::serviceErrorChanged(const QString &error)
 void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = qobject_cast<NetworkService *>(sender());
-    qDebug() << Q_FUNC_INFO
-             << service->name()
-             << state
-             << service->path()
-             << service->ethernet()["Interface"].toString()
-             << netman->getTechnology(service->type())->powered();
 
     if (currentNetworkState == "disconnect") {
         ua->sendConnectReply("Clear");
@@ -291,7 +270,6 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
 bool QConnectionManager::autoConnect()
 {
-    qDebug() << Q_FUNC_INFO;
     QString selectedService;
     QString currentType;
     if (handoverInProgress)
@@ -333,7 +311,6 @@ void QConnectionManager::connectToType(const QString &type)
 {
     currentType = type;
     QString techPath = netman->technologyPathForType(type);
-    qDebug() << Q_FUNC_INFO << techPath;
 
     if (techPath.isEmpty()) {
         Q_EMIT errorReported("","Type not valid");
@@ -387,12 +364,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
     NetworkTechnology technology;
     technology.setPath(netman->technologyPathForType(servicesMap.value(servicePath)->type()));
 
-    qDebug() << Q_FUNC_INFO
-             << servicePath
-             << servicesMap.value(servicePath)->state()
-             << "powered:" << netman->getTechnology(servicesMap.value(servicePath)->type())->powered()
-             << "powered:" << technology.powered();
-
     if (technology.powered() && handoverInProgress && servicesMap.contains(servicePath)
             &&  servicesMap.value(servicePath)->state() == "idle") {
         qDebug() << Q_FUNC_INFO << "requesting connection to " << servicesMap.value(servicePath)->name();
@@ -407,7 +378,6 @@ void QConnectionManager::onScanFinished()
 
 void QConnectionManager::updateServicesMap()
 {
-    qDebug() << Q_FUNC_INFO;
     servicesMap.clear();
     connectedServices.clear();
     orderedServicesList.clear();
@@ -429,7 +399,6 @@ void QConnectionManager::updateServicesMap()
                     connectedServices.prepend(serv->path());
 
                 if (netman->state() != "online") {
-                    qDebug() << Q_FUNC_INFO << "emit connectionState";
                     Q_EMIT connectionState(serv->state(), serv->type());
                 }
             }
@@ -453,14 +422,9 @@ void QConnectionManager::servicesError(const QString &errorMessage)
 QString QConnectionManager::findBestConnectableService()
 {
 
-    qDebug() << Q_FUNC_INFO << techPreferenceList << orderedServicesList;
-
     for (int i = 0; i < orderedServicesList.count(); i++) {
 
         QString path = orderedServicesList.at(i);
-        qDebug() << Q_FUNC_INFO
-                 << path
-                 << servicesMap.value(path)->state();
 
         NetworkService *service = servicesMap.value(path);
         if (service->state() != "idle")
@@ -496,10 +460,6 @@ QString QConnectionManager::findBestConnectableService()
 
 void QConnectionManager::connectionHandover(const QString &oldService, const QString &newService)
 {
-    qDebug() << Q_FUNC_INFO
-             << oldService
-             << servicesMap.value(oldService)->state()
-             << newService;
 
     bool isOnline = false;
     bool ok = true;
@@ -531,9 +491,6 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
 
 void QConnectionManager::networkStateChanged(const QString &state)
 {
-    qDebug() << Q_FUNC_INFO
-             << state
-             << handoverInProgress;
 
     if (state == "idle" && !handoverInProgress) {
         //automigrate
@@ -579,12 +536,13 @@ void QConnectionManager::setAskRoaming(bool value)
 
 void QConnectionManager::connmanAvailabilityChanged(bool b)
 {
-    qDebug() << Q_FUNC_INFO << b;
     connmanPropertiesAvailable = b;
-    if (!b) {
+    if (b) {
         connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
+        currentNetworkState = netman->state();
+    } else {
+        currentNetworkState = "error";
     }
-    currentNetworkState = netman->state();
 }
 
 void QConnectionManager::emitConnectionState()
@@ -595,7 +553,6 @@ void QConnectionManager::emitConnectionState()
 
 void QConnectionManager::setup()
 {
-    qDebug() << Q_FUNC_INFO << connmanPropertiesAvailable;
 
     if (!connmanPropertiesAvailable) {
         connmanPropertiesAvailable = true;
@@ -627,5 +584,5 @@ void QConnectionManager::setup()
 void QConnectionManager::technologyPowerChanged(bool b)
 {
     NetworkTechnology *tech = qobject_cast<NetworkTechnology *>(sender());
-    qDebug() << Q_FUNC_INFO << b << tech->name();
+    qDebug()<< b << tech->name();
 }
