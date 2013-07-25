@@ -466,15 +466,17 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
     if (!oldService.isEmpty() || newService.isEmpty())
         return;
 
-    if (servicesMap.value(oldService)->state() == "online"
-            || servicesMap.value(oldService)->state() == "ready") {
-        isOnline = true;
+    if (servicesMap.contains(oldService))
+        if (servicesMap.value(oldService)->state() == "online"
+                || servicesMap.value(oldService)->state() == "ready") {
+            isOnline = true;
 
-        if (techPreferenceList.indexOf(servicesMap.value(newService)->type()) >
-                techPreferenceList.indexOf(servicesMap.value(oldService)->type())) {
-            ok = false;
+            if (servicesMap.contains(newService)
+                    && (techPreferenceList.indexOf(servicesMap.value(newService)->type()) >
+                    techPreferenceList.indexOf(servicesMap.value(oldService)->type()))) {
+                ok = false;
+            }
         }
-    }
 
     if (newService.isEmpty())
         return;
