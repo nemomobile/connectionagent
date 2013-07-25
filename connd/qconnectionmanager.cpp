@@ -463,6 +463,8 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
 
     bool isOnline = false;
     bool ok = true;
+    if (!oldService.isEmpty() || newService.isEmpty())
+        return;
 
     if (servicesMap.value(oldService)->state() == "online"
             || servicesMap.value(oldService)->state() == "ready") {
