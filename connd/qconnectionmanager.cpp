@@ -361,8 +361,14 @@ void QConnectionManager::connectToType(const QString &type)
 
 void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
+    if (!servicesMap.contains(servicePath))
+        return;
+
     NetworkTechnology technology;
-    technology.setPath(netman->technologyPathForType(servicesMap.value(servicePath)->type()));
+    QString type = servicesMap.value(servicePath)->type();
+    if (type.isEmpty())
+        return;
+    technology.setPath(netman->technologyPathForType(type));
 
     if (technology.powered() && handoverInProgress && servicesMap.contains(servicePath)
             &&  servicesMap.value(servicePath)->state() == "idle") {
@@ -545,6 +551,7 @@ void QConnectionManager::connmanAvailabilityChanged(bool b)
         connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
         currentNetworkState = netman->state();
     } else {
+        servicesMap.clear();
         currentNetworkState = "error";
     }
 }
