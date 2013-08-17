@@ -191,11 +191,11 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
             connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0)
                                                              ,findBestConnectableService());
         }
-    }
 
-    if (servicesMap.value(servicePath)->state() == "online"
-            || servicesMap.value(servicePath)->state() == "ready")
-        Q_EMIT connectionState("online", servicesMap.value(servicePath)->type());
+        if (servicesMap.value(servicePath)->state() == "online"
+                || servicesMap.value(servicePath)->state() == "ready")
+            Q_EMIT connectionState("online", servicesMap.value(servicePath)->type());
+    }
 }
 
 void QConnectionManager::onServiceRemoved(const QString &servicePath)
