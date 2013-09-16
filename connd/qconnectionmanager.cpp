@@ -75,10 +75,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
     ua = new UserAgent(this);
 
-//    sessionAgent = new SessionAgent("/ConnectionSession",this);
-//    sessionAgent->setAllowedBearers(QStringList() << "wifi" << "cellular");
-//    connect(sessionAgent,SIGNAL(settingsUpdated(QVariantMap)),this,SLOT(sessionSettingsUpdated(QVariantMap)));
-
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
             this,SLOT(onUserInputRequested(QString,QVariantMap)));
 
@@ -110,7 +106,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     }
     if (techPreferenceList.isEmpty())
         //ethernet,bluetooth,cellular,wifi is default
-        techPreferenceList << "ethernet" << "wifi" << "bluetooth" << "cellular";
+        techPreferenceList << "bluetooth" << "wifi" << "cellular" << "ethernet" ;
 
     setup();
 }
@@ -185,19 +181,8 @@ void QConnectionManager::onServiceAdded(const QString &servicePath)
         }
     }
     //automigrate
-    // is network is connected, is this a better one?1
-    if (servicesMap.contains(servicePath)) {
-        if (servicesMap.value(servicePath)->autoConnect()
-                && servicesMap.value(servicePath)->type() != "ethernet") {
-
-            connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0)
-                                                             ,findBestConnectableService());
-        }
-
-        if (servicesMap.value(servicePath)->state() == "online"
-                || servicesMap.value(servicePath)->state() == "ready")
-            Q_EMIT connectionState("online", servicesMap.value(servicePath)->type());
-    }
+    // is network is connected, is this a better one?
+    autoConnect();
 }
 
 void QConnectionManager::onServiceRemoved(const QString &servicePath)
@@ -273,26 +258,25 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 bool QConnectionManager::autoConnect()
 {
     QString selectedService;
-    QString currentType;
     if (handoverInProgress)
         return false;
-    Q_FOREACH (const QString &servicePath, servicesMap.keys()) {
 
+    Q_FOREACH (const QString &servicePath, orderedServicesList) {
         if(servicesMap.value(servicePath)->state() == "configuration"
                 || servicesMap.value(servicePath)->state() == "association") {
             break;
         }
-        //explicitly activate ethernet service
-        if(servicesMap.value(servicePath)->type() == "ethernet"
-                && servicesMap.value(servicePath)->state() == "idle") {
-            connectToNetworkService(servicePath);
-            currentType = servicesMap.value(servicePath)->type();
-            return true;
-        }
+//        //explicitly activate ethernet service
+//        if(servicesMap.value(servicePath)->type() == "ethernet"
+//                && servicesMap.value(servicePath)->state() == "idle") {
+//            connectToNetworkService(servicePath);
+//            currentType = servicesMap.value(servicePath)->type();
+//            return true;
+//        }
     }
+
     if (selectedService.isEmpty()) {
-        QString bestService = findBestConnectableService();
-        selectedService = bestService;
+        selectedService = findBestConnectableService();
     }
 
     if (!selectedService.isEmpty()) {
@@ -376,7 +360,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
             &&  servicesMap.value(servicePath)->state() == "idle") {
         qDebug() << Q_FUNC_INFO << "requesting connection to " << servicesMap.value(servicePath)->name();
         servicesMap.value(servicePath)->requestConnect();
-  //      sessionAgent->requestConnect();
     }
 }
 
@@ -396,11 +379,8 @@ void QConnectionManager::updateServicesMap()
 
         Q_FOREACH (NetworkService *serv, services) {
 
-            if (!netman->getTechnology(serv->type())->powered())
-                continue;
             servicesMap.insert(serv->path(), serv);
             orderedServicesList << serv->path();
-//auto migrate
             if (serv->state() == "online") {
 
                 if(!connectedServices.contains(serv->path()))
@@ -436,13 +416,9 @@ QString QConnectionManager::findBestConnectableService()
 
         NetworkService *service = servicesMap.value(path);
         if (service->state() != "idle")
-            continue;
-
+            return QString();
         NetworkTechnology technology;
         technology.setPath(netman->technologyPathForType(servicesMap.value(path)->type()));
-
-        if (!technology.powered())
-            continue;
 
         if (service->state() == "online") //nothing better, so bail
             return QString();
@@ -468,10 +444,9 @@ QString QConnectionManager::findBestConnectableService()
 
 void QConnectionManager::connectionHandover(const QString &oldService, const QString &newService)
 {
-
     bool isOnline = false;
     bool ok = true;
-    if (!oldService.isEmpty() || newService.isEmpty())
+    if (newService.isEmpty())
         return;
 
     if (servicesMap.contains(oldService))
