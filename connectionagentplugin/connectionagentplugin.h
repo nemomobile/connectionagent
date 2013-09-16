@@ -46,6 +46,7 @@ signals:
     void connectionRequest();
     void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
+    void browserRequested(const QString &url);
 
 private:
     com::jolla::Connectiond *connManagerInterface;

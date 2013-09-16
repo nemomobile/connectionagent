@@ -138,6 +138,7 @@ void ConnectionAgentPlugin::onErrorReported(const QString &servicePath, const QS
 void ConnectionAgentPlugin::onRequestBrowser(const QString &url)
 {
     qDebug() << Q_FUNC_INFO <<url;
+    Q_EMIT browserRequested(url);
 }
 
 void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const QVariantMap &fields)
