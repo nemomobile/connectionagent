@@ -55,8 +55,10 @@ Q_SIGNALS:
     void connectionRequest();
     void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
-///
     void connectNow(const QString &path);
+
+    void requestBrowser(/*const QString &path,*/ const QString &url);
+
 public Q_SLOTS:
 
     void onUserInputRequested(const QString &servicePath, const QVariantMap &fields);
@@ -116,6 +118,7 @@ private slots:
     void emitConnectionState();
     void servicesError(const QString &);
     void technologyPowerChanged(bool);
+    void browserRequest(const QString &servicePath, const QString &url);
 
 };
 

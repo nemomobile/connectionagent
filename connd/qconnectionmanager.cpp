@@ -87,6 +87,8 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(ua,SIGNAL(userInputCanceled()),this,SLOT(onUserInputCanceled()));
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
             this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
+    connect(ua,SIGNAL(browserRequested(QString,QString)),
+            this,SLOT(browserRequest(QString,QString)), Qt::UniqueConnection);
 
     connect(netman,SIGNAL(serviceAdded(QString)),this,SLOT(onServiceAdded(QString)));
     connect(netman,SIGNAL(serviceRemoved(QString)),this,SLOT(onServiceRemoved(QString)));
@@ -596,4 +598,10 @@ void QConnectionManager::technologyPowerChanged(bool b)
 {
     NetworkTechnology *tech = qobject_cast<NetworkTechnology *>(sender());
     qDebug()<< b << tech->name();
+}
+
+void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
+{
+    qDebug() << Q_FUNC_INFO << servicePath << url;
+    Q_EMIT requestBrowser(url);
 }
