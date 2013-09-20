@@ -98,8 +98,9 @@ private:
     QStringList techPreferenceList;
     bool askForRoaming;
     bool isEthernet;
-    bool connmanPropertiesAvailable;
+    bool connmanAvailable;
     bool handoverInProgress;
+    QString lastConnectedService;
 
 
 private slots:

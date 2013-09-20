@@ -54,7 +54,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      currentNotification(0),
      askForRoaming(0),
      isEthernet(0),
-     connmanPropertiesAvailable(0),
+     connmanAvailable(0),
      handoverInProgress(0)
 {
     qDebug() << Q_FUNC_INFO;
@@ -108,7 +108,9 @@ QConnectionManager::QConnectionManager(QObject *parent) :
         //ethernet,bluetooth,cellular,wifi is default
         techPreferenceList << "bluetooth" << "wifi" << "cellular" << "ethernet" ;
 
-    setup();
+    connmanAvailable = QDBusConnection::systemBus().interface()->isServiceRegistered("net.connman");
+    if (connmanAvailable)
+        setup();
 }
 
 QConnectionManager::~QConnectionManager()
@@ -202,8 +204,11 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = qobject_cast<NetworkService *>(sender());
 
+    qDebug() << Q_FUNC_INFO << state;
+
     if (currentNetworkState == "disconnect") {
         ua->sendConnectReply("Clear");
+        lastConnectedService = service->path();
     }
     if (state == "failure") {
         service->requestDisconnect();
@@ -257,6 +262,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
 bool QConnectionManager::autoConnect()
 {
+    qDebug() << Q_FUNC_INFO << "handoverInProgress" << handoverInProgress;
+
     QString selectedService;
     if (handoverInProgress)
         return false;
@@ -347,6 +354,8 @@ void QConnectionManager::connectToType(const QString &type)
 
 void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
+    qDebug() << Q_FUNC_INFO;
+
     if (!servicesMap.contains(servicePath))
         return;
 
@@ -409,7 +418,7 @@ void QConnectionManager::servicesError(const QString &errorMessage)
 
 QString QConnectionManager::findBestConnectableService()
 {
-
+qDebug() << Q_FUNC_INFO;
     for (int i = 0; i < orderedServicesList.count(); i++) {
 
         QString path = orderedServicesList.at(i);
@@ -444,6 +453,7 @@ QString QConnectionManager::findBestConnectableService()
 
 void QConnectionManager::connectionHandover(const QString &oldService, const QString &newService)
 {
+    qDebug() << Q_FUNC_INFO;
     bool isOnline = false;
     bool ok = true;
     if (newService.isEmpty())
@@ -523,8 +533,9 @@ void QConnectionManager::setAskRoaming(bool value)
 
 void QConnectionManager::connmanAvailabilityChanged(bool b)
 {
-    connmanPropertiesAvailable = b;
+    connmanAvailable = b;
     if (b) {
+        setup();
         connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
         currentNetworkState = netman->state();
     } else {
@@ -541,13 +552,9 @@ void QConnectionManager::emitConnectionState()
 
 void QConnectionManager::setup()
 {
+    qDebug() << Q_FUNC_INFO;
 
-    if (!connmanPropertiesAvailable) {
-        connmanPropertiesAvailable = true;
-
-        // let me control autoconnect
-       // if (!netman->sessionMode())
-//        netman->setSessionMode(true);
+    if (connmanAvailable) {
 
         if (netman->servicesList("ethernet").count() > 0)
             isEthernet = true;
