@@ -82,7 +82,6 @@ private:
     NetworkManager *netman;
     SessionAgent *sessionAgent;
 
-    bool okToConnect;
     QString currentNetworkState;
     QString currentType;
     bool serviceConnect;
