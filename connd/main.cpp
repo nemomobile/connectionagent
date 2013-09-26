@@ -79,9 +79,10 @@ static void daemonize(void)
 int main(int argc, char *argv[])
 {
     if (argc > 1)
-       if (strcmp(argv[1],"-d") == 0) {
+        if (strcmp(argv[1],"-n") == 0) { //nodaemon
             daemonize();
-       }
+        } else if (strcmp(argv[1],"-d") == 0) { //debug
+        }
 
     QCoreApplication::setOrganizationName("Jolla");
     QCoreApplication::setOrganizationDomain("com.jollamobile");
