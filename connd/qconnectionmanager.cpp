@@ -546,6 +546,8 @@ void QConnectionManager::setup()
 void QConnectionManager::technologyPowerChanged(bool b)
 {
     NetworkTechnology *tech = qobject_cast<NetworkTechnology *>(sender());
+    if (b && tech->type() == "wifi" || tech->type() == "cellular")
+            tech->scan();
 }
 
 void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
