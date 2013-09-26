@@ -309,9 +309,11 @@ void QConnectionManager::connectToType(const QString &type)
         Q_FOREACH (const QString path, servicesList) {
             // try harder with cell. a favorite is one that has been connected
             // if there is a context configured but not yet connected, try to connect anyway
+
             if (servicesMap.contains(path) &&
                     (servicesMap.value(path)->favorite()
                      || servicesMap.value(path)->type() == "cellular")) {
+                handoverInProgress = true;
                 connectToNetworkService(path);
                 needConfig = false;
                 return;
@@ -335,9 +337,10 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
     if (type.isEmpty())
         return;
     technology.setPath(netman->technologyPathForType(type));
+    if (servicesMap.value(servicePath)->state() != "online")
+        servicesMap.value(servicePath)->requestDisconnect();
 
-    if (technology.powered() && handoverInProgress && servicesMap.contains(servicePath)
-            &&  servicesMap.value(servicePath)->state() == "idle") {
+    if (technology.powered() && handoverInProgress) {
 
         servicesMap.value(servicePath)->requestConnect();
     }
