@@ -105,7 +105,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     }
     if (techPreferenceList.isEmpty())
         //ethernet,bluetooth,cellular,wifi is default
-        techPreferenceList << "bluetooth" << "wifi" << "cellular" << "ethernet" ;
+        techPreferenceList << "wifi" << "cellular" << "bluetooth" << "ethernet";
 
     connmanAvailable = QDBusConnection::systemBus().interface()->isServiceRegistered("net.connman");
     if (connmanAvailable)
@@ -198,6 +198,11 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         service->requestDisconnect();
         handoverInProgress = false;
 
+        if (!manuallyConnectedService.isEmpty()/*manualConnected*/) {
+            manuallyConnectedService.clear();
+            manualConnected = false;
+        }
+
         Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
     }
 
@@ -212,10 +217,15 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     //auto migrate
     if (state == "idle") {
         connectedServices.removeOne(service->path());
+        if (/*manualConnected*/!manuallyConnectedService.isEmpty()) {
+            manuallyConnectedService.clear();
+            manualConnected = false;
+        }
         if (service->type() == "ethernet") { //keep this alive
             NetworkTechnology tech;
             tech.setPath(netman->technologyPathForService(service->path()));
             if (tech.powered()) {
+               qDebug() << Q_FUNC_INFO << "requesting connection";
                 service->requestConnect();
             }
         } else {
@@ -243,6 +253,9 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
 bool QConnectionManager::autoConnect()
 {
+    if (!manuallyConnectedService.isEmpty()/*!manualConnected*/)
+        return false;
+
     QString selectedService;
 
     Q_FOREACH (const QString &servicePath, orderedServicesList) {
@@ -329,6 +342,8 @@ void QConnectionManager::connectToType(const QString &type)
 
 void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
+    qDebug() << Q_FUNC_INFO << servicePath << !manuallyConnectedService.isEmpty() <<handoverInProgress;
+
     if (!servicesMap.contains(servicePath))
         return;
 
@@ -340,7 +355,8 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
     if (servicesMap.value(servicePath)->state() != "online")
         servicesMap.value(servicePath)->requestDisconnect();
 
-    if (technology.powered() && handoverInProgress) {
+    if (manuallyConnectedService.isEmpty() && technology.powered() && handoverInProgress) {
+        qDebug() << Q_FUNC_INFO << "requesting connection";
 
         servicesMap.value(servicePath)->requestConnect();
     }
@@ -372,6 +388,18 @@ void QConnectionManager::updateServicesMap()
                     Q_EMIT connectionState(serv->state(), serv->type());
                 }
             }
+            QObject::disconnect(serv, SIGNAL(stateChanged(QString)),
+                             this,SLOT(serviceStateChanged(QString)));
+            QObject::disconnect(serv, SIGNAL(connectRequestFailed(QString)),
+                             this,SLOT(serviceErrorChanged(QString)));
+
+            QObject::disconnect(serv, SIGNAL(errorChanged(QString)),
+                             this,SLOT(servicesError(QString)));
+            QObject::disconnect(serv, SIGNAL(strengthChanged(uint)),
+                             this,SLOT(onServiceStrengthChanged(uint)));
+            QObject::disconnect(serv, SIGNAL(serviceConnectionStarted()),
+                             this,SLOT(onServiceConnectionStarted()));
+
 
             QObject::connect(serv, SIGNAL(stateChanged(QString)),
                              this,SLOT(serviceStateChanged(QString)), Qt::UniqueConnection);
@@ -382,6 +410,9 @@ void QConnectionManager::updateServicesMap()
                              this,SLOT(servicesError(QString)), Qt::UniqueConnection);
             QObject::connect(serv, SIGNAL(strengthChanged(uint)),
                              this,SLOT(onServiceStrengthChanged(uint)), Qt::UniqueConnection);
+            QObject::connect(serv, SIGNAL(serviceConnectionStarted()),
+                             this,SLOT(onServiceConnectionStarted()));
+
 
         }
     }
@@ -557,4 +588,14 @@ void QConnectionManager::technologyPowerChanged(bool b)
 void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
 {
     Q_EMIT requestBrowser(url);
+}
+
+void QConnectionManager::onServiceConnectionStarted()
+{
+    NetworkService *serv = qobject_cast<NetworkService *>(sender());
+    manuallyConnectedService = serv->path();
+    manualConnected = true;
+    if (netman->defaultRoute()->path() != serv->path())
+        netman->defaultRoute()->requestDisconnect();
+    qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
 }

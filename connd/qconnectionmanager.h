@@ -100,6 +100,8 @@ private:
     bool connmanAvailable;
     bool handoverInProgress;
     QString lastConnectedService;
+    bool manualConnected;
+    QString manuallyConnectedService;
 
 
 private slots:
@@ -119,7 +121,7 @@ private slots:
     void servicesError(const QString &);
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
-
+    void onServiceConnectionStarted();
 };
 
 #endif // QCONNECTIONMANAGER_H
