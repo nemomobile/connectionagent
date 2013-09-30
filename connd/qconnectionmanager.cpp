@@ -521,14 +521,15 @@ void QConnectionManager::emitConnectionState()
 void QConnectionManager::setup()
 {
     if (connmanAvailable) {
-        if (netman->defaultRoute()->type() == "ethernet")
-            isEthernet = true;
 
         updateServicesMap();
         if (netman->state() == "online"
                 || netman->state() == "ready") {
             lastConnectedService = netman->defaultRoute()->path();
             connectedServices.append(lastConnectedService);
+
+        if (netman->defaultRoute()->type() == "ethernet")
+            isEthernet = true;
         }
 
         QSettings confFile;
