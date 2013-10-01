@@ -9,7 +9,7 @@ Name:       connectionagent-qt5
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.7.24
+Version:    0.7.25
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -22,6 +22,7 @@ Requires:   systemd-user-session-targets
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(connman-qt5)
+BuildRequires:  pkgconfig(qofono-qt5)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Test)
 BuildRequires:  pkgconfig(Qt5Qml)

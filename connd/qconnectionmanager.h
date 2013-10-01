@@ -46,8 +46,6 @@ public:
     void setAskRoaming(bool value);
 
 Q_SIGNALS:
-//   void connectionChanged(const QString &, bool); // ?
-//   void connected(); // ?
 
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
     void userInputCanceled();
@@ -85,7 +83,6 @@ private:
     QString currentNetworkState;
     QString currentType;
     bool serviceConnect;
-    void connectToNetworkService(const QString &service);
     uint currentNotification;
 
     QMap<QString,NetworkService *> servicesMap;
@@ -102,6 +99,7 @@ private:
     QString lastConnectedService;
     bool manualConnected;
     QString manuallyConnectedService;
+    QString serviceInProgress;
 
 
 private slots:
@@ -114,6 +112,7 @@ private slots:
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);
     void onServiceStrengthChanged(uint);
+    void connectToNetworkService(const QString &service);
 
     void connmanAvailabilityChanged(bool b);
     void setup();

@@ -21,13 +21,13 @@ INCLUDEPATH += ../../../connd
 
 equals(QT_MAJOR_VERSION, 4):  {
     PKGCONFIG += connman-qt4
-    LIBS += -lconnman-qt4
+    LIBS += -lconnman-qt4  -lqofono-qt
     INCLUDEPATH += /usr/include/connman-qt
 }
 
 equals(QT_MAJOR_VERSION, 5):  {
     PKGCONFIG += connman-qt5
-    LIBS += -lconnman-qt5
+    LIBS += -lconnman-qt5 -lqofono-qt5
     INCLUDEPATH += /usr/include/connman-qt5
 }
 

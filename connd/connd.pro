@@ -4,12 +4,12 @@ QT -= gui
 
 equals(QT_MAJOR_VERSION, 4):  {
     TARGET = connectionagent
-    PKGCONFIG += connman-qt4
+    PKGCONFIG += connman-qt4 qofono-qt
 
 }
 equals(QT_MAJOR_VERSION, 5):  {
     TARGET = connectionagent
-    PKGCONFIG += connman-qt5
+    PKGCONFIG += connman-qt5 qofono-qt5
 }
 
 CONFIG   += console link_pkgconfig 

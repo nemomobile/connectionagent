@@ -9,7 +9,7 @@ Name:       connectionagent
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.7.24
+Version:    0.7.25
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -19,6 +19,7 @@ Source100:  connectionagent.yaml
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
 BuildRequires:  pkgconfig(connman-qt4)
+BuildRequires:  pkgconfig(qofono-qt)
 BuildRequires:  pkgconfig(QtNetwork)
 
 %description
