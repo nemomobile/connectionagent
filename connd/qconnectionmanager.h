@@ -106,8 +106,7 @@ private slots:
     void onScanFinished();
     void updateServicesMap();
 
-    void onServiceAdded(const QString &servicePath);
-    void onServiceRemoved(const QString &servicePath);
+    void onServicesChanged();
     void serviceErrorChanged(const QString &error);
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);

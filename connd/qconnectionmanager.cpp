@@ -92,8 +92,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(ua,SIGNAL(browserRequested(QString,QString)),
             this,SLOT(browserRequest(QString,QString)), Qt::UniqueConnection);
 
-    connect(netman,SIGNAL(serviceAdded(QString)),this,SLOT(onServiceAdded(QString)));
-    connect(netman,SIGNAL(serviceRemoved(QString)),this,SLOT(onServiceRemoved(QString)));
+    connect(netman,SIGNAL(servicesChanged()),this,SLOT(onServicesChanged()));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
     connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
 
@@ -181,21 +180,8 @@ void QConnectionManager::sendUserReply(const QVariantMap &input)
     ua->sendUserReply(input);
 }
 
-void QConnectionManager::onServiceAdded(const QString &servicePath)
+void QConnectionManager::onServicesChanged()
 {
-    qDebug() << Q_FUNC_INFO << servicePath;
-    if (!servicesMap.contains(servicePath)) {
-        updateServicesMap();
-    }
-    //automigrate
-    // is network is connected, is this a better one?
-    if (servicesMap.value(servicePath)->autoConnect())
-            autoConnect();
-}
-
-void QConnectionManager::onServiceRemoved(const QString &servicePath)
-{
-    qDebug() << Q_FUNC_INFO << servicePath;
     updateServicesMap();
     if (!handoverInProgress)
         autoConnect();
