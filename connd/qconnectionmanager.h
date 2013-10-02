@@ -126,6 +126,7 @@ private slots:
     void browserRequest(const QString &servicePath, const QString &url);
     void onServiceConnectionStarted();
 
+    void onServiceDisconnectionStarted();
 
 };
 

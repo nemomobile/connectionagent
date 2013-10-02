@@ -633,6 +633,10 @@ void QConnectionManager::onServiceConnectionStarted()
     serviceInProgress = serv->path();
 }
 
+void QConnectionManager::onServiceDisconnectionStarted()
+{
+}
+
 bool QConnectionManager::isBestService(const QString &servicePath)
 {
     qDebug() << Q_FUNC_INFO;
