@@ -100,9 +100,12 @@ private:
     bool manualConnected;
     QString manuallyConnectedService;
     QString serviceInProgress;
+    QString autoDisconnectService;
 
     bool isBestService(const QString &servicePath);
     bool isStateOnline(const QString &state);
+    void requestDisconnect(const QString &service);
+    void requestConnect(const QString &service);
 
 private slots:
     void onScanFinished();

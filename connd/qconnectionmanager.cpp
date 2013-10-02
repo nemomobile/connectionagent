@@ -240,9 +240,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
             NetworkTechnology tech;
             tech.setPath(netman->technologyPathForService(service->path()));
             if (tech.powered()) {
-               qDebug() << Q_FUNC_INFO << "requesting connection";
-               handoverInProgress = true;
-               service->requestConnect();
+               requestConnect(service->path());
             }
         } else {
             updateServicesMap();
@@ -376,7 +374,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
         return;
     technology.setPath(netman->technologyPathForType(type));
     if (servicesMap.value(servicePath)->state() != "online")
-        servicesMap.value(servicePath)->requestDisconnect();
+        requestDisconnect(servicePath);
 
     if (manuallyConnectedService.isEmpty() && technology.powered() && !handoverInProgress) {
         if (servicePath.contains("cellular")) {
@@ -399,9 +397,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
             }
 
         } else {
-            qDebug() << Q_FUNC_INFO << "requesting connection";
-            handoverInProgress = true;
-            servicesMap.value(servicePath)->requestConnect();
+            requestConnect(servicePath);
         }
     }
 }
@@ -517,7 +513,7 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
 
     if (ok) {
         if (isOnline) {
-            servicesMap.value(oldService)->requestDisconnect();
+            requestDisconnect(oldService);
         }
     }
 }
@@ -652,5 +648,21 @@ bool QConnectionManager::isStateOnline(const QString &state)
     if (state == "online" || state == "ready")
         return true;
     return false;
+}
+void QConnectionManager::requestDisconnect(const QString &service)
+{
+    if (servicesMap.contains(service)) {
+        qDebug() << Q_FUNC_INFO << service;
+        servicesMap.value(service)->requestDisconnect();
+        autoDisconnectService = service;
+    }
+}
+
+void QConnectionManager::requestConnect(const QString &service)
+{
+    if (servicesMap.contains(service)) {
+        handoverInProgress = true;
+        servicesMap.value(service)->requestConnect();
+    }
 }
 
