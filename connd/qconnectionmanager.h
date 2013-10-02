@@ -101,6 +101,7 @@ private:
     QString manuallyConnectedService;
     QString serviceInProgress;
     QString autoDisconnectService;
+    bool manuallyDisconnected;
 
     bool isBestService(const QString &servicePath);
     bool isStateOnline(const QString &state);
@@ -127,7 +128,9 @@ private slots:
     void onServiceConnectionStarted();
 
     void onServiceDisconnectionStarted();
+    void serviceRemoved(const QString &servicePath);
 
+    void timeout();
 };
 
 #endif // QCONNECTIONMANAGER_H

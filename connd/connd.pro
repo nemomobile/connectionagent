@@ -26,12 +26,14 @@ OTHER_FILES += com.jolla.Connectiond.xml
 
 SOURCES += main.cpp \
     qconnectionmanager.cpp \
-    connadaptor.cpp
+    connadaptor.cpp \
+    logger.cpp
 
 
 HEADERS+= \
     qconnectionmanager.h \
-    connadaptor.h
+    connadaptor.h \
+    logger.h
 
 target.path = /usr/bin
 INSTALLS += target

@@ -42,6 +42,8 @@
 
 #include <QObject>
 #include <QSettings>
+#include <QTimer>
+
 
 
 QConnectionManager* QConnectionManager::self = NULL;
@@ -96,6 +98,8 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
     connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
 
+    connect(netman, SIGNAL(serviceRemoved(QString)),
+            this,SLOT(serviceRemoved(QString)), Qt::UniqueConnection);
 
     QFile connmanConf("/etc/connman/main.conf");
     if (connmanConf.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -182,8 +186,10 @@ void QConnectionManager::sendUserReply(const QVariantMap &input)
 
 void QConnectionManager::onServicesChanged()
 {
+//    int oldServicesCount = servicesMap.count();
     updateServicesMap();
-    if (!handoverInProgress)
+    qDebug() << Q_FUNC_INFO <</* oldServicesCount << servicesMap.count() <<*/ handoverInProgress;
+    if (!handoverInProgress /*&& oldServicesCount != servicesMap.count()*/)
         autoConnect();
 }
 
@@ -219,7 +225,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     if (service->path() == serviceInProgress
             && state == "online") {
         serviceInProgress.clear();
-        handoverInProgress = false;
+      //  handoverInProgress = false;
     }
 
     if (isStateOnline(state)) {
@@ -230,7 +236,11 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     }
     //auto migrate
     if (state == "idle") {
-        handoverInProgress = false;
+    //    handoverInProgress = false;
+        if (!handoverInProgress) {
+            qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<" << "manual disconnect";
+//            manuallyDisconnected = true;
+        }
 
         connectedServices.removeOne(service->path());
         if (!manuallyConnectedService.isEmpty()) {
@@ -296,13 +306,15 @@ bool QConnectionManager::autoConnect()
         selectedService = findBestConnectableService();
     }
     if (!selectedService.isEmpty()) {
-        if (isStateOnline(netman->state())) {
-            connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0)
-                                                             ,selectedService);
-        } else {
+//        if (isStateOnline(netman->state()) &&
+//                selectedService != netman->defaultRoute()->path()) {
+//            if (connectedServices.count() > 0)
+//                connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0)
+//                                                                 ,selectedService);
+//        } else {
             connectToNetworkService(selectedService);
             currentType = servicesMap.value(selectedService)->type();
-        }
+//        }
         return true;
     }
     return false;
@@ -392,6 +404,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
                     QOfonoConnectionContext oContext;
                     oContext.setContextPath(contextPath);
                     oContext.setActive(true);
+                    QTimer::singleShot(10 * 1000,this,SLOT(timeout()));
                     return;
                 }
             }
@@ -408,17 +421,19 @@ void QConnectionManager::onScanFinished()
 
 void QConnectionManager::updateServicesMap()
 {
-    qDebug() << Q_FUNC_INFO;
     int numbServices = servicesMap.count();
     qDebug() << Q_FUNC_INFO << numbServices << netman->getServices().count();
     if (numbServices == netman->getServices().count())
         return;
+    orderedServicesList.clear();
 
     Q_FOREACH (const QString &tech,techPreferenceList) {
         QVector<NetworkService*> services = netman->getServices(tech);
         Q_FOREACH (NetworkService *serv, services) {
-            if (serv->strength() == 0)
-                continue;
+            qDebug() << serv->name() << serv->strength();
+
+//            if (serv->strength() == 0)
+//                continue;
 
             servicesMap.insert(serv->path(), serv);
             orderedServicesList << serv->path();
@@ -443,12 +458,13 @@ void QConnectionManager::updateServicesMap()
             QObject::connect(serv, SIGNAL(strengthChanged(uint)),
                              this,SLOT(onServiceStrengthChanged(uint)), Qt::UniqueConnection);
             QObject::connect(serv, SIGNAL(serviceConnectionStarted()),
-                             this,SLOT(onServiceConnectionStarted()));
+                             this,SLOT(onServiceConnectionStarted()), Qt::UniqueConnection);
             QObject::connect(serv, SIGNAL(serviceDisconnectionStarted()),
                              this,SLOT(onServiceDisconnectionStarted()), Qt::UniqueConnection);
 
         }
     }
+    qDebug() << Q_FUNC_INFO << orderedServicesList;
 }
 
 void QConnectionManager::servicesError(const QString &errorMessage)
@@ -456,22 +472,37 @@ void QConnectionManager::servicesError(const QString &errorMessage)
     NetworkService *serv = qobject_cast<NetworkService *>(sender());
     qDebug() << Q_FUNC_INFO << serv->name() << errorMessage;
     Q_EMIT onErrorReported(serv->path(), errorMessage);
+    handoverInProgress = false;
 }
 
 QString QConnectionManager::findBestConnectableService()
 {    
-    qDebug() << Q_FUNC_INFO;
+    qDebug() << Q_FUNC_INFO <<orderedServicesList.count();
 
     for (int i = 0; i < orderedServicesList.count(); i++) {
 
         QString path = orderedServicesList.at(i);
 
         NetworkService *service = servicesMap.value(path);
+        qDebug() << Q_FUNC_INFO << "looking at" << service->name();
+        if (!service->autoConnect()) {
+            continue;
+        }
+        bool online = isStateOnline(netman->defaultRoute()->state());
+        qDebug() << Q_FUNC_INFO << lastConnectedService << service->path();
 
-        if (lastConnectedService == service->path()) {
+        if (!online && lastConnectedService == service->path()) {
             continue;
         }
 
+        qDebug() <<Q_FUNC_INFO<< "continued"
+                << online
+                << (netman->defaultRoute()->path() == service->path());
+
+        if (online && netman->defaultRoute()->path() == service->path())
+            return QString();//best already connected
+
+//        if (!service->autoConnect())
         bool isCellRoaming = false;
         if (service->type() == "cellular"
                 && service->roaming()) {
@@ -479,6 +510,7 @@ QString QConnectionManager::findBestConnectableService()
         }
 
         if (isBestService(service->path())
+//                && service->autoConnect()
                 && service->favorite()
                 && !isCellRoaming) {
             qDebug() << Q_FUNC_INFO << path;
@@ -520,9 +552,6 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
 void QConnectionManager::networkStateChanged(const QString &state)
 {
     qDebug() << Q_FUNC_INFO << state;
-    if (state == "online") {
-        handoverInProgress = false;
-    }
 
     QSettings confFile;
     confFile.beginGroup("Connectionagent");
@@ -632,13 +661,16 @@ void QConnectionManager::onServiceConnectionStarted()
 
 void QConnectionManager::onServiceDisconnectionStarted()
 {
+    qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" ;
 }
 
 bool QConnectionManager::isBestService(const QString &servicePath)
 {
-    qDebug() << Q_FUNC_INFO;
+    qDebug() << Q_FUNC_INFO << servicePath
+                << servicesMap.contains(servicePath)
+                   << servicesMap.value(servicePath)->strength() ;
     if (servicePath == autoDisconnectService) return false;
-    if (servicesMap.contains(servicePath) && servicesMap.value(servicePath)->strength() == 0) return false;
+//    if (servicesMap.contains(servicePath) && servicesMap.value(servicePath)->strength() == 0) return false;
 //    if (connectedServices.contains(servicePath)) return false;
     if (netman->defaultRoute()->path().contains(servicePath)) return false;
     if (netman->defaultRoute()->state() != "online") return true;
@@ -657,7 +689,7 @@ bool QConnectionManager::isStateOnline(const QString &state)
 void QConnectionManager::requestDisconnect(const QString &service)
 {
     if (servicesMap.contains(service)) {
-        qDebug() << Q_FUNC_INFO << service;
+        qDebug() << Q_FUNC_INFO << service << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
         servicesMap.value(service)->requestDisconnect();
         autoDisconnectService = service;
     }
@@ -669,6 +701,17 @@ void QConnectionManager::requestConnect(const QString &service)
         qDebug() << Q_FUNC_INFO << service;
         handoverInProgress = true;
         servicesMap.value(service)->requestConnect();
+        QTimer::singleShot(10 * 1000,this,SLOT(timeout()));
     }
 }
 
+void QConnectionManager::serviceRemoved(const QString &servicePath)
+{
+    qDebug() << Q_FUNC_INFO << servicePath;
+}
+
+void QConnectionManager::timeout()
+{
+    qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
+    handoverInProgress = false;
+}
