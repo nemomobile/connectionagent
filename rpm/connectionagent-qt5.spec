@@ -9,7 +9,7 @@ Name:       connectionagent-qt5
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.7.25
+Version:    0.7.26
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
@@ -64,7 +64,7 @@ This package contains the auto tests for connection agent.
 
 %qmake5 
 
-make %{?jobs:-j%jobs}
+make %{?_smp_mflags}
 
 # >> build post
 # << build post
