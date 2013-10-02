@@ -409,18 +409,20 @@ void QConnectionManager::onScanFinished()
 void QConnectionManager::updateServicesMap()
 {
     qDebug() << Q_FUNC_INFO;
-    servicesMap.clear();
-    connectedServices.clear();
-    orderedServicesList.clear();
+    int numbServices = servicesMap.count();
+    qDebug() << Q_FUNC_INFO << numbServices << netman->getServices().count();
+    if (numbServices == netman->getServices().count())
+        return;
 
     Q_FOREACH (const QString &tech,techPreferenceList) {
-
         QVector<NetworkService*> services = netman->getServices(tech);
-
         Q_FOREACH (NetworkService *serv, services) {
+            if (serv->strength() == 0)
+                continue;
 
             servicesMap.insert(serv->path(), serv);
-
+            orderedServicesList << serv->path();
+ 
            // if (serv->autoConnect())
                 orderedServicesList << serv->path();
 
@@ -445,6 +447,8 @@ void QConnectionManager::updateServicesMap()
                              this,SLOT(onServiceStrengthChanged(uint)), Qt::UniqueConnection);
             QObject::connect(serv, SIGNAL(serviceConnectionStarted()),
                              this,SLOT(onServiceConnectionStarted()));
+            QObject::connect(serv, SIGNAL(serviceDisconnectionStarted()),
+                             this,SLOT(onServiceDisconnectionStarted()), Qt::UniqueConnection);
 
         }
     }
@@ -477,10 +481,7 @@ QString QConnectionManager::findBestConnectableService()
             isCellRoaming = askForRoaming;
         }
 
-        if (!connectedServices.contains(path)
-                && servicesMap.contains(path)
-                // && (servicesMap.value(path)->strength() > servicesMap.value(connectedServices.at(0))->strength())
-                && service->autoConnect()
+        if (isBestService(service->path())
                 && service->favorite()
                 && !isCellRoaming) {
             qDebug() << Q_FUNC_INFO << path;
@@ -634,8 +635,11 @@ void QConnectionManager::onServiceConnectionStarted()
 
 bool QConnectionManager::isBestService(const QString &servicePath)
 {
+    qDebug() << Q_FUNC_INFO;
+    if (servicePath == autoDisconnectService) return false;
     if (servicesMap.contains(servicePath) && servicesMap.value(servicePath)->strength() == 0) return false;
-    if (connectedServices.contains(servicePath)) return false;
+//    if (connectedServices.contains(servicePath)) return false;
+    if (netman->defaultRoute()->path().contains(servicePath)) return false;
     if (netman->defaultRoute()->state() != "online") return true;
     int dfIndex = orderedServicesList.indexOf(netman->defaultRoute()->path());
     if (dfIndex == -1) return true;
@@ -661,6 +665,7 @@ void QConnectionManager::requestDisconnect(const QString &service)
 void QConnectionManager::requestConnect(const QString &service)
 {
     if (servicesMap.contains(service)) {
+        qDebug() << Q_FUNC_INFO << service;
         handoverInProgress = true;
         servicesMap.value(service)->requestConnect();
     }
