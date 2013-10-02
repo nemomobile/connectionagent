@@ -222,7 +222,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         handoverInProgress = false;
     }
 
-    if (state == "online" || state == "ready") {
+    if (isStateOnline(state)) {
         lastConnectedService = service->path();
 
         if(!connectedServices.contains(service->path()))
@@ -298,7 +298,7 @@ bool QConnectionManager::autoConnect()
         selectedService = findBestConnectableService();
     }
     if (!selectedService.isEmpty()) {
-        if (netman->state() == "online" || netman->state() == "ready") {
+        if (isStateOnline(netman->state())) {
             connectionHandover(connectedServices.isEmpty() ? QString() : connectedServices.at(0)
                                                              ,selectedService);
         } else {
@@ -428,8 +428,7 @@ void QConnectionManager::updateServicesMap()
            // if (serv->autoConnect())
                 orderedServicesList << serv->path();
 
-            if (serv->state() == "online"
-                    || serv->state() == "ready") {
+            if (isStateOnline(serv->state())) {
 
                 if(!connectedServices.contains(serv->path()))
                     connectedServices.insert(0,serv->path());
@@ -503,8 +502,7 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
         return;
 
     if (servicesMap.contains(oldService))
-        if (servicesMap.value(oldService)->state() == "online"
-                || servicesMap.value(oldService)->state() == "ready") {
+        if (isStateOnline(servicesMap.value(oldService)->state())) {
 
             isOnline = true;
 
@@ -593,8 +591,7 @@ void QConnectionManager::setup()
     if (connmanAvailable) {
 
         updateServicesMap();
-        if (netman->state() == "online"
-                || netman->state() == "ready") {
+        if (isStateOnline(netman->state())) {
             lastConnectedService = netman->defaultRoute()->path();
             connectedServices.append(lastConnectedService);
             handoverInProgress = false;
@@ -637,5 +634,23 @@ void QConnectionManager::onServiceConnectionStarted()
     manuallyConnectedService = serv->path();
     handoverInProgress = true;
     serviceInProgress = serv->path();
+}
+
+bool QConnectionManager::isBestService(const QString &servicePath)
+{
+    if (servicesMap.contains(servicePath) && servicesMap.value(servicePath)->strength() == 0) return false;
+    if (connectedServices.contains(servicePath)) return false;
+    if (netman->defaultRoute()->state() != "online") return true;
+    int dfIndex = orderedServicesList.indexOf(netman->defaultRoute()->path());
+    if (dfIndex == -1) return true;
+    if (orderedServicesList.indexOf(servicePath) < dfIndex) return true;
+    return false;
+}
+
+bool QConnectionManager::isStateOnline(const QString &state)
+{
+    if (state == "online" || state == "ready")
+        return true;
+    return false;
 }
 

@@ -101,6 +101,8 @@ private:
     QString manuallyConnectedService;
     QString serviceInProgress;
 
+    bool isBestService(const QString &servicePath);
+    bool isStateOnline(const QString &state);
 
 private slots:
     void onScanFinished();
@@ -120,6 +122,8 @@ private slots:
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
     void onServiceConnectionStarted();
+
+
 };
 
 #endif // QCONNECTIONMANAGER_H
