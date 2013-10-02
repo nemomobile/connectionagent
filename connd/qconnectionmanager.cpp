@@ -423,9 +423,6 @@ void QConnectionManager::updateServicesMap()
             servicesMap.insert(serv->path(), serv);
             orderedServicesList << serv->path();
  
-           // if (serv->autoConnect())
-                orderedServicesList << serv->path();
-
             if (isStateOnline(serv->state())) {
 
                 if(!connectedServices.contains(serv->path()))
