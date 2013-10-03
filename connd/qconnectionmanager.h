@@ -33,6 +33,7 @@ class ConnAdaptor;
 class NetworkManager;
 class NetworkService;
 
+
 class QConnectionManager : public QObject
 {
     Q_OBJECT
@@ -100,7 +101,13 @@ private:
     bool manualConnected;
     QString manuallyConnectedService;
     QString serviceInProgress;
+    QString autoConnectService;
+    QString manuallyDisconnectedService;
 
+    bool isBestService(const QString &servicePath);
+    bool isStateOnline(const QString &state);
+    void requestDisconnect(const QString &service);
+    void requestConnect(const QString &service);
 
 private slots:
     void onScanFinished();
@@ -120,6 +127,8 @@ private slots:
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
     void onServiceConnectionStarted();
+
+    void onServiceDisconnectionStarted();
 };
 
 #endif // QCONNECTIONMANAGER_H

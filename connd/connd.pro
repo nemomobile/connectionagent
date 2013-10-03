@@ -28,7 +28,6 @@ SOURCES += main.cpp \
     qconnectionmanager.cpp \
     connadaptor.cpp
 
-
 HEADERS+= \
     qconnectionmanager.h \
     connadaptor.h
