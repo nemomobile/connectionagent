@@ -42,9 +42,6 @@
 
 #include <QObject>
 #include <QSettings>
-#include <QTimer>
-
-
 
 QConnectionManager* QConnectionManager::self = NULL;
 
@@ -385,7 +382,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
                     QOfonoConnectionContext oContext;
                     oContext.setContextPath(contextPath);
                     oContext.setActive(true);
-                    QTimer::singleShot(10 * 1000,this,SLOT(timeout()));
                     return;
                 }
             }
@@ -535,6 +531,8 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
 void QConnectionManager::networkStateChanged(const QString &state)
 {
     qDebug() << Q_FUNC_INFO << state;
+    if (state == "online")
+        handoverInProgress = false;
 
     QSettings confFile;
     confFile.beginGroup("Connectionagent");
@@ -679,7 +677,6 @@ void QConnectionManager::requestDisconnect(const QString &servicePath)
                                "net.connman.Service", QDBusConnection::systemBus());
         QDBusMessage reply = service.call(QDBus::NoBlock, QStringLiteral("Disconnect"));
         manuallyDisconnectedService.clear();
-        QTimer::singleShot(10 * 1000,this,SLOT(timeout()));
     }
 }
 
@@ -695,12 +692,5 @@ void QConnectionManager::requestConnect(const QString &servicePath)
         manualConnected = false;
         autoConnectService = servicePath;
         manuallyConnectedService.clear();
-        QTimer::singleShot(10 * 1000,this,SLOT(timeout()));
     }
-}
-
-void QConnectionManager::timeout()
-{
-    qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
-    handoverInProgress = false;
 }

@@ -129,8 +129,6 @@ private slots:
     void onServiceConnectionStarted();
 
     void onServiceDisconnectionStarted();
-
-    void timeout();
 };
 
 #endif // QCONNECTIONMANAGER_H
