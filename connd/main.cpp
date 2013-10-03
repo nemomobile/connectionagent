@@ -16,6 +16,7 @@
 
 #include <QtCore/QCoreApplication>
 #include <QTimer>
+#include <QtGlobal>
 #include <QDebug>
 #include <QDBusConnection>
 #include <signal.h>
@@ -76,14 +77,26 @@ static void daemonize(void)
     umask(027);
 }
 
+static QtMessageHandler previousMessageHandler;
+bool toggleDebug;
+
+void messageOutput(QtMsgType type, const QMessageLogContext &context, const QString &str)
+ {
+    if (toggleDebug)
+        previousMessageHandler(type,context,str);
+ }
+
 int main(int argc, char *argv[])
 {
-    if (argc > 1)
+    previousMessageHandler = qInstallMessageHandler(messageOutput);
+
+    if (argc > 1) {
         if (strcmp(argv[1],"-n") == 0) { //nodaemon
             daemonize();
         } else if (strcmp(argv[1],"-d") == 0) { //debug
+            toggleDebug = true;
         }
-
+    }
     QCoreApplication::setOrganizationName("Jolla");
     QCoreApplication::setOrganizationDomain("com.jollamobile");
     QCoreApplication::setApplicationName("connectionagent");
