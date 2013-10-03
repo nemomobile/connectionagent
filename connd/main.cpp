@@ -26,7 +26,6 @@
 
 #include "qconnectionmanager.h"
 #include "connadaptor.h"
-#include "logger.h"
 
 static void signal_handler(int signum)
 {
@@ -77,37 +76,25 @@ static void daemonize(void)
 
     umask(027);
 }
-Q_GLOBAL_STATIC(Logger, loggerStatic)
 
+static QtMessageHandler previousMessageHandler;
+bool toggleDebug;
 
-void messageOutput(QtMsgType type, const QMessageLogContext &, const QString &str)
+void messageOutput(QtMsgType type, const QMessageLogContext &context, const QString &str)
  {
-    const char * msg = str.toStdString().c_str();
-     switch (type) {
-     case QtDebugMsg:
-         loggerStatic()->logDebug(msg);
-         break;
-     case QtWarningMsg:
-         loggerStatic()->logWarning(msg);
-         break;
-     case QtCriticalMsg:
-         loggerStatic()->logCritical(msg);
-         break;
-     case QtFatalMsg:
-         fprintf(stderr, "%s\n", msg);
-         abort();
-     }
+    if (toggleDebug)
+        previousMessageHandler(type,context,str);
  }
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(messageOutput);
+    previousMessageHandler = qInstallMessageHandler(messageOutput);
 
     if (argc > 1) {
         if (strcmp(argv[1],"-n") == 0) { //nodaemon
             daemonize();
         } else if (strcmp(argv[1],"-d") == 0) { //debug
-            loggerStatic->toggleDebug(true);
+            toggleDebug = true;
         }
     }
     QCoreApplication::setOrganizationName("Jolla");
