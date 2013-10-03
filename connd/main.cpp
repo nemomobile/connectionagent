@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
         if (strcmp(argv[1],"-n") == 0) { //nodaemon
             daemonize();
         } else if (strcmp(argv[1],"-d") == 0) { //debug
-            loggerStatic   ->toggleDebug(true);
+            loggerStatic->toggleDebug(true);
         }
     }
     QCoreApplication::setOrganizationName("Jolla");

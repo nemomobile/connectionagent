@@ -33,6 +33,7 @@ class ConnAdaptor;
 class NetworkManager;
 class NetworkService;
 
+
 class QConnectionManager : public QObject
 {
     Q_OBJECT
@@ -100,8 +101,8 @@ private:
     bool manualConnected;
     QString manuallyConnectedService;
     QString serviceInProgress;
-    QString autoDisconnectService;
-    bool manuallyDisconnected;
+    QString autoConnectService;
+    QString manuallyDisconnectedService;
 
     bool isBestService(const QString &servicePath);
     bool isStateOnline(const QString &state);
@@ -128,7 +129,6 @@ private slots:
     void onServiceConnectionStarted();
 
     void onServiceDisconnectionStarted();
-    void serviceRemoved(const QString &servicePath);
 
     void timeout();
 };
