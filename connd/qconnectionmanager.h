@@ -32,7 +32,7 @@ class SessionAgent;
 class ConnAdaptor;
 class NetworkManager;
 class NetworkService;
-
+class QOfonoConnectionContext;
 
 class QConnectionManager : public QObject
 {
@@ -108,6 +108,7 @@ private:
     bool isStateOnline(const QString &state);
     void requestDisconnect(const QString &service);
     void requestConnect(const QString &service);
+    QOfonoConnectionContext *oContext;
 
 private slots:
     void onScanFinished();
@@ -124,6 +125,7 @@ private slots:
     void setup();
     void emitConnectionState();
     void servicesError(const QString &);
+    void ofonoServicesError(const QString &);
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
     void onServiceConnectionStarted();
