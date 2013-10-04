@@ -189,13 +189,13 @@ void QConnectionManager::onServicesChanged()
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
     qDebug() << Q_FUNC_INFO << error;
-    NetworkService *service = qobject_cast<NetworkService *>(sender());
+    NetworkService *service = static_cast<NetworkService *>(sender());
     Q_EMIT errorReported(service->path(),error);
 }
 
 void QConnectionManager::serviceStateChanged(const QString &state)
 {
-    NetworkService *service = qobject_cast<NetworkService *>(sender());
+    NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << Q_FUNC_INFO << state << service->name();
 
     if (currentNetworkState == "disconnect") {
@@ -368,8 +368,6 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 
     if (manuallyConnectedService.isEmpty() && technology.powered() && !handoverInProgress) {
         if (servicePath.contains("cellular")) {
-            //            requestConnect(servicePath);
-            // ofono active seems to work better in our case
             QOfonoManager oManager;
             if (!oManager.available()) {
                 qDebug() << Q_FUNC_INFO << "ofono not available.";
@@ -394,26 +392,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
             }
 
             if (ok)
-                Q_FOREACH (const QString &contextPath, oConnManager.contexts()) {
-
-                    if (contextPath.contains(servicePath.section("_",2,2))) {
-                        serviceInProgress = servicePath;
-                        autoConnectService = servicePath;
-                        manualConnected = false;
-                        handoverInProgress = true;
-                        if (!oContext) {
-                            oContext = new QOfonoConnectionContext(this);
-                        }
-                        oContext->setContextPath(contextPath);
-                        if (oContext->type() != "internet")
-                            continue;
-                        qDebug() << Q_FUNC_INFO << "requesting cell connection";
-                        connect(oContext,SIGNAL(reportError(QString)),
-                                this,SLOT(ofonoServicesError(QString)),Qt::UniqueConnection);
-                        oContext->setActive(true);
-                        return;
-                    }
-                }
+                connectToContext(servicePath);
         } else {
             requestConnect(servicePath);
         }
@@ -477,7 +456,7 @@ void QConnectionManager::updateServicesMap()
 
 void QConnectionManager::servicesError(const QString &errorMessage)
 {
-    NetworkService *serv = qobject_cast<NetworkService *>(sender());
+    NetworkService *serv = static_cast<NetworkService *>(sender());
     qDebug() << Q_FUNC_INFO << serv->name() << errorMessage;
     Q_EMIT onErrorReported(serv->path(), errorMessage);
     handoverInProgress = false;
@@ -485,7 +464,7 @@ void QConnectionManager::servicesError(const QString &errorMessage)
 
 void QConnectionManager::ofonoServicesError(const QString &errorMessage)
 {
-    QOfonoConnectionContext *context = qobject_cast<QOfonoConnectionContext *>(sender());
+    QOfonoConnectionContext *context = static_cast<QOfonoConnectionContext *>(sender());
     QVector<NetworkService*> services = netman->getServices("cellular");
     Q_FOREACH (NetworkService *serv, services) {
         if (context->contextPath().contains(serv->path().section("_",2,2))) {
@@ -495,6 +474,7 @@ void QConnectionManager::ofonoServicesError(const QString &errorMessage)
             return;
         }
     }
+    qWarning() << "ofono error but could not discover connman service";
 }
 
 QString QConnectionManager::findBestConnectableService()
@@ -586,7 +566,7 @@ void QConnectionManager::networkStateChanged(const QString &state)
 
 void QConnectionManager::onServiceStrengthChanged(uint /*level*/)
 {
-// NetworkService *service = qobject_cast<NetworkService *>(sender());
+// NetworkService *service = static_cast<NetworkService *>(sender());
 }
 
 bool QConnectionManager::askRoaming() const
@@ -661,7 +641,7 @@ void QConnectionManager::setup()
 
 void QConnectionManager::technologyPowerChanged(bool b)
 {
-    NetworkTechnology *tech = qobject_cast<NetworkTechnology *>(sender());
+    NetworkTechnology *tech = static_cast<NetworkTechnology *>(sender());
     if (b && (tech->type() == "wifi" || tech->type() == "cellular"))
             tech->scan();
 }
@@ -674,7 +654,7 @@ void QConnectionManager::browserRequest(const QString &servicePath, const QStrin
 void QConnectionManager::onServiceConnectionStarted()
 {
     qDebug() << Q_FUNC_INFO;
-    NetworkService *serv = qobject_cast<NetworkService *>(sender());
+    NetworkService *serv = static_cast<NetworkService *>(sender());
     manuallyConnectedService = serv->path();
     handoverInProgress = true;
     serviceInProgress = serv->path();
@@ -683,7 +663,7 @@ void QConnectionManager::onServiceConnectionStarted()
 
 void QConnectionManager::onServiceDisconnectionStarted()
 {
-    NetworkService *serv = qobject_cast<NetworkService *>(sender());
+    NetworkService *serv = static_cast<NetworkService *>(sender());
     qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" ;
     manuallyDisconnectedService = serv->path();
 }
@@ -736,3 +716,40 @@ void QConnectionManager::requestConnect(const QString &servicePath)
         manuallyConnectedService.clear();
     }
 }
+
+void QConnectionManager::connectToContext(const QString &servicePath)
+{
+    // requestConnect(servicePath);
+    // ofono active seems to work better in our case
+    QOfonoManager oManager;
+    if (!oManager.available()) {
+        qDebug() << Q_FUNC_INFO << "ofono not available.";
+        return;
+    }
+
+    QOfonoConnectionManager oConnManager;
+    oConnManager.setModemPath(oManager.modems().at(0));
+
+    Q_FOREACH (const QString &contextPath, oConnManager.contexts()) {
+
+        if (contextPath.contains(servicePath.section("_",2,2))) {
+            serviceInProgress = servicePath;
+            autoConnectService = servicePath;
+            manualConnected = false;
+            handoverInProgress = true;
+            if (!oContext) {
+                oContext = new QOfonoConnectionContext(this);
+            }
+            oContext->setContextPath(contextPath);
+            if (oContext->type() != "internet")
+                continue;
+            qDebug() << Q_FUNC_INFO << "requesting cell connection";
+            connect(oContext,SIGNAL(reportError(QString)),
+                    this,SLOT(ofonoServicesError(QString)),Qt::UniqueConnection);
+            oContext->setActive(true);
+            return;
+        }
+    }
+    qWarning() << "Could not find service path for ofono context";
+}
+

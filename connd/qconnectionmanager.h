@@ -131,6 +131,7 @@ private slots:
     void onServiceConnectionStarted();
 
     void onServiceDisconnectionStarted();
+    void connectToContext(const QString &servicePath);
 };
 
 #endif // QCONNECTIONMANAGER_H
