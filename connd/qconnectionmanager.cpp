@@ -61,7 +61,8 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      isEthernet(0),
      connmanAvailable(0),
      handoverInProgress(0),
-     oContext(0)
+     oContext(0),
+     tetheringWifiTech(0)
 {
     qDebug() << Q_FUNC_INFO;
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
@@ -286,6 +287,9 @@ bool QConnectionManager::autoConnect()
 //        }
 //    }
 
+    if (tetheringEnabled)
+        return false;
+
     if (selectedService.isEmpty()) {
         selectedService = findBestConnectableService();
     }
@@ -411,6 +415,7 @@ void QConnectionManager::updateServicesMap()
 
     Q_FOREACH (const QString &tech,techPreferenceList) {
         QVector<NetworkService*> services = netman->getServices(tech);
+
         Q_FOREACH (NetworkService *serv, services) {
 
             servicesMap.insert(serv->path(), serv);
@@ -448,6 +453,7 @@ void QConnectionManager::updateServicesMap()
                              this,SLOT(onServiceConnectionStarted()), Qt::UniqueConnection);
             QObject::connect(serv, SIGNAL(serviceDisconnectionStarted()),
                              this,SLOT(onServiceDisconnectionStarted()), Qt::UniqueConnection);
+
 
         }
     }
@@ -636,6 +642,12 @@ void QConnectionManager::setup()
         Q_FOREACH(const NetworkTechnology *technology,netman->getTechnologies()) {
             connect(technology,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
         }
+            if (!tetheringWifiTech) {
+                tetheringWifiTech = netman->getTechnology("wifi");
+            }
+            QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
+                             this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
+
     }
 }
 
@@ -673,9 +685,10 @@ bool QConnectionManager::isBestService(const QString &servicePath)
     qDebug() << Q_FUNC_INFO
              << servicePath
              << manuallyDisconnectedService;
+    if (tetheringEnabled) return false;
     if (!manuallyDisconnectedService.isEmpty() && manuallyDisconnectedService == servicePath) return false;
     if (netman->defaultRoute()->path().contains(servicePath)) return false;
-    if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
+   // if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
     if (netman->defaultRoute()->state() != "online") return true;
     int dfIndex = orderedServicesList.indexOf(netman->defaultRoute()->path());
     if (dfIndex == -1) return true;
@@ -753,3 +766,8 @@ void QConnectionManager::connectToContext(const QString &servicePath)
     qWarning() << "Could not find service path for ofono context";
 }
 
+void QConnectionManager::techTetheringChanged(bool b)
+{
+    qDebug() << Q_FUNC_INFO << b;
+    tetheringEnabled = b;
+}
