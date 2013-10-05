@@ -136,7 +136,7 @@ QConnectionManager & QConnectionManager::instance()
 // from useragent
 void QConnectionManager::onUserInputRequested(const QString &servicePath, const QVariantMap &fields)
 {
-    qDebug() << Q_FUNC_INFO << servicePath;
+    qDebug() << servicePath;
     // gets called when a connman service gets called to connect and needs more configurations.
     Q_EMIT userInputRequested(servicePath, fields);
 }
@@ -144,14 +144,14 @@ void QConnectionManager::onUserInputRequested(const QString &servicePath, const 
 // from useragent
 void QConnectionManager::onUserInputCanceled()
 {
-    qDebug() << Q_FUNC_INFO ;
+    qDebug() ;
     Q_EMIT userInputCanceled();
 }
 
 // from useragent
 void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
+    qDebug() << error;
     Q_EMIT errorReported(servicePath, error);
     handoverInProgress = false;
 }
@@ -159,10 +159,10 @@ void QConnectionManager::onErrorReported(const QString &servicePath, const QStri
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
-    qDebug() << Q_FUNC_INFO << "from usergent" << handoverInProgress;
+    qDebug() << "from usergent" << handoverInProgress;
     sendConnectReply("Suppress", 15);
     bool ok = autoConnect();
-    qDebug() << Q_FUNC_INFO ;
+    qDebug() ;
     if (!ok) {
         Q_EMIT connectionRequest();
     }
@@ -182,14 +182,14 @@ void QConnectionManager::sendUserReply(const QVariantMap &input)
 void QConnectionManager::onServicesChanged()
 {
     updateServicesMap();
-    qDebug() << Q_FUNC_INFO << handoverInProgress;
+    qDebug() << handoverInProgress;
     if (!handoverInProgress )
         autoConnect();
 }
 
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
-    qDebug() << Q_FUNC_INFO << error;
+    qDebug() << error;
     NetworkService *service = static_cast<NetworkService *>(sender());
     Q_EMIT errorReported(service->path(),error);
 }
@@ -197,7 +197,7 @@ void QConnectionManager::serviceErrorChanged(const QString &error)
 void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = static_cast<NetworkService *>(sender());
-    qDebug() << Q_FUNC_INFO << state << service->name();
+    qDebug() << state << service->name();
 
     if (currentNetworkState == "disconnect") {
         ua->sendConnectReply("Clear");
@@ -216,7 +216,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         autoConnect();
     }
 
-//    qDebug() << Q_FUNC_INFO << serviceInProgress << handoverInProgress;
+//    qDebug() << serviceInProgress << handoverInProgress;
     //auto migrate
     if (service->path() == serviceInProgress
             && state == "online") {
@@ -250,6 +250,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
             }
         } else {
             updateServicesMap();
+            qDebug() <<"serviceInProgress"<< serviceInProgress;
             if (!serviceInProgress.isEmpty())
                 autoConnect();
         }
@@ -267,11 +268,11 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 bool QConnectionManager::autoConnect()
 {
     QString selectedService;
-    qDebug() << Q_FUNC_INFO
-                 << "handoverInProgress"
+    qDebug() << "handoverInProgress"
                  << handoverInProgress
                  << orderedServicesList.count()
-                 << netman->state();
+                 << netman->state()
+                    << tetheringEnabled;
 //    Q_FOREACH (const QString &servicePath, orderedServicesList) {
 //        if(servicesMap.contains(servicePath)
 //                && servicesMap.value(servicePath)->state() == "configuration"
@@ -303,7 +304,7 @@ bool QConnectionManager::autoConnect()
 
 void QConnectionManager::connectToType(const QString &type)
 {
-    qDebug() << Q_FUNC_INFO;
+    qDebug() << type;
     currentType = type;
     QString techPath = netman->technologyPathForType(type);
 
@@ -354,7 +355,7 @@ void QConnectionManager::connectToType(const QString &type)
 
 void QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
-    qDebug() << Q_FUNC_INFO << servicePath
+    qDebug() << servicePath
              << handoverInProgress
              << netman->state();
 
@@ -374,7 +375,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
         if (servicePath.contains("cellular")) {
             QOfonoManager oManager;
             if (!oManager.available()) {
-                qDebug() << Q_FUNC_INFO << "ofono not available.";
+                qDebug() << "ofono not available.";
                 return;
             }
 
@@ -390,7 +391,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
                     }
                 } else {
                     //roaming and user doesnt want connection while roaming
-                    qDebug() << Q_FUNC_INFO << "roaming not allowed";
+                    qDebug() << "roaming not allowed";
                     return;
                 }
             }
@@ -423,7 +424,7 @@ void QConnectionManager::updateServicesMap()
 
             if (!oldServices.contains(serv->path())) {
                 //new!
-                qDebug() << Q_FUNC_INFO <<"new service"
+                qDebug() <<"new service"
                          << serv->path()
                          << (manuallyDisconnectedService == serv->path());
 
@@ -457,13 +458,13 @@ void QConnectionManager::updateServicesMap()
 
         }
     }
-    qDebug() << Q_FUNC_INFO << orderedServicesList;
+    qDebug() << orderedServicesList;
 }
 
 void QConnectionManager::servicesError(const QString &errorMessage)
 {
     NetworkService *serv = static_cast<NetworkService *>(sender());
-    qDebug() << Q_FUNC_INFO << serv->name() << errorMessage;
+    qDebug() << serv->name() << errorMessage;
     Q_EMIT onErrorReported(serv->path(), errorMessage);
     handoverInProgress = false;
 }
@@ -476,7 +477,7 @@ void QConnectionManager::ofonoServicesError(const QString &errorMessage)
         if (context->contextPath().contains(serv->path().section("_",2,2))) {
             Q_EMIT onErrorReported(serv->path(), errorMessage);
             handoverInProgress = false;
-            qDebug() << Q_FUNC_INFO << serv->name() << errorMessage;
+            qDebug() << serv->name() << errorMessage;
             return;
         }
     }
@@ -485,19 +486,19 @@ void QConnectionManager::ofonoServicesError(const QString &errorMessage)
 
 QString QConnectionManager::findBestConnectableService()
 {    
-    qDebug() << Q_FUNC_INFO <<orderedServicesList.count();
+    qDebug() <<orderedServicesList.count();
 
     for (int i = 0; i < orderedServicesList.count(); i++) {
 
         QString path = orderedServicesList.at(i);
 
         NetworkService *service = servicesMap.value(path);
-        qDebug() << Q_FUNC_INFO << "looking at" << service->name();
+        qDebug() << "looking at" << service->name();
         if (!service->autoConnect()) {
             continue;
         }
         bool online = isStateOnline(netman->defaultRoute()->state());
-        qDebug() << Q_FUNC_INFO << lastConnectedService << service->path();
+        qDebug() << lastConnectedService << service->path();
 
         if (!online && lastConnectedService == service->path()) {
             continue;
@@ -519,7 +520,7 @@ QString QConnectionManager::findBestConnectableService()
         if (isBestService(service->path())
                 && service->favorite()
                 && !isCellRoaming) {
-            qDebug() << Q_FUNC_INFO << path;
+            qDebug() << path;
             return path;
         }
     }
@@ -557,7 +558,7 @@ void QConnectionManager::connectionHandover(const QString &oldService, const QSt
 
 void QConnectionManager::networkStateChanged(const QString &state)
 {
-    qDebug() << Q_FUNC_INFO << state;
+    qDebug() << state;
     if (state == "online")
         handoverInProgress = false;
 
@@ -626,13 +627,13 @@ void QConnectionManager::setup()
             connectedServices.append(lastConnectedService);
             handoverInProgress = false;
 
-        if (netman->defaultRoute()->type() == "ethernet")
-            isEthernet = true;
+            if (netman->defaultRoute()->type() == "ethernet")
+                isEthernet = true;
         }
 
         QSettings confFile;
         confFile.beginGroup("Connectionagent");
-        qDebug() << Q_FUNC_INFO << "config file says" << confFile.value("connected", "online").toString();
+        qDebug() << "config file says" << confFile.value("connected", "online").toString();
         if (netman->state() != "online"
                 && (!isEthernet && confFile.value("connected", "online").toString() == "online")) {
             autoConnect();
@@ -642,11 +643,12 @@ void QConnectionManager::setup()
         Q_FOREACH(const NetworkTechnology *technology,netman->getTechnologies()) {
             connect(technology,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
         }
-            if (!tetheringWifiTech) {
-                tetheringWifiTech = netman->getTechnology("wifi");
-            }
-            QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
-                             this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
+        if (!tetheringWifiTech) {
+            tetheringWifiTech = netman->getTechnology("wifi");
+        }
+        tetheringEnabled = tetheringWifiTech->tethering();
+        QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
+                         this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
 
     }
 }
@@ -676,7 +678,7 @@ void QConnectionManager::onServiceConnectionStarted()
 void QConnectionManager::onServiceDisconnectionStarted()
 {
     NetworkService *serv = static_cast<NetworkService *>(sender());
-    qDebug() << Q_FUNC_INFO << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" ;
+    qDebug() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" ;
     manuallyDisconnectedService = serv->path();
 }
 
@@ -706,7 +708,7 @@ bool QConnectionManager::isStateOnline(const QString &state)
 void QConnectionManager::requestDisconnect(const QString &servicePath)
 {
     if (servicesMap.contains(servicePath)) {
-        qDebug() << Q_FUNC_INFO << servicePath << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
+        qDebug() << servicePath << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<";
 
         QDBusInterface service("net.connman", servicePath.toLocal8Bit(),
                                "net.connman.Service", QDBusConnection::systemBus());
@@ -718,7 +720,7 @@ void QConnectionManager::requestDisconnect(const QString &servicePath)
 void QConnectionManager::requestConnect(const QString &servicePath)
 {
     if (servicesMap.contains(servicePath)) {
-        qDebug() << Q_FUNC_INFO << servicePath;
+        qDebug() << servicePath;
         handoverInProgress = true;
 
         QDBusInterface service("net.connman", servicePath.toLocal8Bit(),
@@ -736,7 +738,7 @@ void QConnectionManager::connectToContext(const QString &servicePath)
     // ofono active seems to work better in our case
     QOfonoManager oManager;
     if (!oManager.available()) {
-        qDebug() << Q_FUNC_INFO << "ofono not available.";
+        qDebug() << "ofono not available.";
         return;
     }
 
@@ -756,7 +758,7 @@ void QConnectionManager::connectToContext(const QString &servicePath)
             oContext->setContextPath(contextPath);
             if (oContext->type() != "internet")
                 continue;
-            qDebug() << Q_FUNC_INFO << "requesting cell connection";
+            qDebug() << "requesting cell connection";
             connect(oContext,SIGNAL(reportError(QString)),
                     this,SLOT(ofonoServicesError(QString)),Qt::UniqueConnection);
             oContext->setActive(true);
@@ -768,6 +770,6 @@ void QConnectionManager::connectToContext(const QString &servicePath)
 
 void QConnectionManager::techTetheringChanged(bool b)
 {
-    qDebug() << Q_FUNC_INFO << b;
+    qDebug() << b;
     tetheringEnabled = b;
 }
