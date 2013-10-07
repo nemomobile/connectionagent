@@ -643,12 +643,12 @@ void QConnectionManager::setup()
         Q_FOREACH(const NetworkTechnology *technology,netman->getTechnologies()) {
             connect(technology,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
         }
+        tetheringWifiTech = netman->getTechnology("wifi");
         if (!tetheringWifiTech) {
-            tetheringWifiTech = netman->getTechnology("wifi");
+            tetheringEnabled = tetheringWifiTech->tethering();
+            QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
+                             this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
         }
-        tetheringEnabled = tetheringWifiTech->tethering();
-        QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
-                         this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
 
     }
 }
@@ -690,7 +690,7 @@ bool QConnectionManager::isBestService(const QString &servicePath)
     if (tetheringEnabled) return false;
     if (!manuallyDisconnectedService.isEmpty() && manuallyDisconnectedService == servicePath) return false;
     if (netman->defaultRoute()->path().contains(servicePath)) return false;
-   // if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
+    if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
     if (netman->defaultRoute()->state() != "online") return true;
     int dfIndex = orderedServicesList.indexOf(netman->defaultRoute()->path());
     if (dfIndex == -1) return true;
