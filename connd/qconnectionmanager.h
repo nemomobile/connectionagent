@@ -33,6 +33,7 @@ class ConnAdaptor;
 class NetworkManager;
 class NetworkService;
 class QOfonoConnectionContext;
+class NetworkTechnology;
 
 class QConnectionManager : public QObject
 {
@@ -109,6 +110,8 @@ private:
     void requestDisconnect(const QString &service);
     void requestConnect(const QString &service);
     QOfonoConnectionContext *oContext;
+    bool tetheringEnabled;
+    NetworkTechnology *tetheringWifiTech;
 
 private slots:
     void onScanFinished();
@@ -132,6 +135,7 @@ private slots:
 
     void onServiceDisconnectionStarted();
     void connectToContext(const QString &servicePath);
+    void techTetheringChanged(bool);
 };
 
 #endif // QCONNECTIONMANAGER_H
