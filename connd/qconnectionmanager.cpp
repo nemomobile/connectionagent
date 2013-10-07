@@ -644,7 +644,7 @@ void QConnectionManager::setup()
             connect(technology,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
         }
         tetheringWifiTech = netman->getTechnology("wifi");
-        if (!tetheringWifiTech) {
+        if (tetheringWifiTech) {
             tetheringEnabled = tetheringWifiTech->tethering();
             QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
                              this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
