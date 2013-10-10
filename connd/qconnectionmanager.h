@@ -122,7 +122,7 @@ private slots:
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);
     void onServiceStrengthChanged(uint);
-    void connectToNetworkService(const QString &service);
+    bool connectToNetworkService(const QString &service);
 
     void connmanAvailabilityChanged(bool b);
     void setup();
