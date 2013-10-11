@@ -297,7 +297,8 @@ bool QConnectionManager::autoConnect()
     }
     if (!selectedService.isEmpty()) {
             bool ok = connectToNetworkService(selectedService);
-            currentType = servicesMap.value(selectedService)->type();
+            if (ok)
+                currentType = servicesMap.value(selectedService)->type();
         return  ok;
     }
     return false;
