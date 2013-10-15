@@ -388,7 +388,7 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
             QOfonoNetworkRegistration ofonoReg;
             ofonoReg.setModemPath(oManager.modems().at(0));
             if (ofonoReg.status() != "registered"
-                    ||  ofonoReg.status() == "roaming") { //not on any cell network so bail
+                    ||  ofonoReg.status() != "roaming") { //not on any cell network so bail
                 qDebug() << "ofono is not registered yet";
                 return false;
             }
