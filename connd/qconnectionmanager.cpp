@@ -25,6 +25,7 @@
 #include <connman-qt5/sessionagent.h>
 #include <qofono-qt5/qofonoconnectioncontext.h>
 #include <qofono-qt5/qofonoconnectionmanager.h>
+#include <qofono-qt5/qofononetworkregistration.h>
 #include <qofono-qt5/qofonomanager.h>
 
 #else
@@ -295,9 +296,10 @@ bool QConnectionManager::autoConnect()
         selectedService = findBestConnectableService();
     }
     if (!selectedService.isEmpty()) {
-            connectToNetworkService(selectedService);
-            currentType = servicesMap.value(selectedService)->type();
-        return true;
+            bool ok = connectToNetworkService(selectedService);
+            if (ok)
+                currentType = servicesMap.value(selectedService)->type();
+        return  ok;
     }
     return false;
 }
@@ -353,19 +355,19 @@ void QConnectionManager::connectToType(const QString &type)
     }
 }
 
-void QConnectionManager::connectToNetworkService(const QString &servicePath)
+bool QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
     qDebug() << servicePath
              << handoverInProgress
              << netman->state();
 
     if (!servicesMap.contains(servicePath) || !serviceInProgress.isEmpty())
-        return;
+        return false;
 
     NetworkTechnology technology;
     QString type = servicesMap.value(servicePath)->type();
     if (type.isEmpty())
-        return;
+        return false;
     technology.setPath(netman->technologyPathForType(type));
 
     if (manuallyDisconnectedService.isEmpty() && servicesMap.value(servicePath)->state() != "online")
@@ -373,15 +375,23 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
 
     if (manuallyConnectedService.isEmpty() && technology.powered() && !handoverInProgress) {
         if (servicePath.contains("cellular")) {
+
             QOfonoManager oManager;
             if (!oManager.available()) {
                 qDebug() << "ofono not available.";
-                return;
+                return false;
             }
 
             QOfonoConnectionManager oConnManager;
             oConnManager.setModemPath(oManager.modems().at(0));
 
+            QOfonoNetworkRegistration ofonoReg;
+            ofonoReg.setModemPath(oManager.modems().at(0));
+            if (ofonoReg.status() != "registered"
+                    &&  ofonoReg.status() != "roaming") { //not on any cell network so bail
+                qDebug() << "ofono is not registered yet";
+                return false;
+            }
             //isCellRoaming
             bool ok = true;
             if (servicesMap.value(servicePath)->roaming()) {
@@ -392,7 +402,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
                 } else {
                     //roaming and user doesnt want connection while roaming
                     qDebug() << "roaming not allowed";
-                    return;
+                    return false;
                 }
             }
 
@@ -402,6 +412,7 @@ void QConnectionManager::connectToNetworkService(const QString &servicePath)
             requestConnect(servicePath);
         }
     }
+    return true;
 }
 
 void QConnectionManager::onScanFinished()
@@ -514,7 +525,7 @@ QString QConnectionManager::findBestConnectableService()
         bool isCellRoaming = false;
         if (service->type() == "cellular"
                 && service->roaming()) {
-            isCellRoaming = askForRoaming;
+                    isCellRoaming = askForRoaming;
         }
 
         if (isBestService(service->path())
@@ -736,11 +747,8 @@ void QConnectionManager::connectToContext(const QString &servicePath)
 {
     // requestConnect(servicePath);
     // ofono active seems to work better in our case
+
     QOfonoManager oManager;
-    if (!oManager.available()) {
-        qDebug() << "ofono not available.";
-        return;
-    }
 
     QOfonoConnectionManager oConnManager;
     oConnManager.setModemPath(oManager.modems().at(0));
