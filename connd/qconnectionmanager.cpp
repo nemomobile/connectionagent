@@ -155,6 +155,7 @@ void QConnectionManager::onErrorReported(const QString &servicePath, const QStri
     qDebug() << error;
     Q_EMIT errorReported(servicePath, error);
     handoverInProgress = false;
+    serviceInProgress.clear();
 }
 
 // from useragent
@@ -208,7 +209,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     }
     if (state == "failure") {
         handoverInProgress = false;
-
+        serviceInProgress.clear();
         if (!manuallyConnectedService.isEmpty() && service->path() == manuallyDisconnectedService) {
             manuallyConnectedService.clear();
         }
