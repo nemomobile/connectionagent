@@ -56,13 +56,14 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      currentNetworkState(QString()),
      currentType(QString()),
      currentNotification(0),
-     askForRoaming(0),
-     isEthernet(0),
-     connmanAvailable(0),
-     handoverInProgress(0),
+     askForRoaming(false),
+     isEthernet(false),
+     connmanAvailable(false),
+     handoverInProgress(false),
      oContext(0),
      tetheringWifiTech(0),
-     tetheringEnabled(0)
+     tetheringEnabled(false),
+     flightModeSuppression(false)
 {
     qDebug() << Q_FUNC_INFO;
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
@@ -96,6 +97,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
     connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
+    connect(netman,SIGNAL(offlineModeChanged(bool)),this,SLOT(offlineModeChanged(bool)));
 
     QFile connmanConf("/etc/connman/main.conf");
     if (connmanConf.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -161,8 +163,8 @@ void QConnectionManager::onConnectionRequest()
 {
     sendConnectReply("Suppress", 15);
     bool ok = autoConnect();
-    qDebug() << serviceInProgress <<ok;
-    if (!ok && serviceInProgress.isEmpty()) {
+    qDebug() << serviceInProgress << ok << flightModeSuppression;
+    if (!ok && serviceInProgress.isEmpty() && !flightModeSuppression) {
         Q_EMIT connectionRequest();
     }
 }
@@ -269,7 +271,7 @@ bool QConnectionManager::autoConnect()
              << netman->state()
              << tetheringEnabled;
 
-    if (tetheringEnabled || !serviceInProgress.isEmpty())
+    if (tetheringEnabled || !serviceInProgress.isEmpty() || netman->offlineMode())
         return false;
 
     if (selectedService.isEmpty()) {
@@ -585,6 +587,7 @@ void QConnectionManager::setup()
 
         connect(netman,SIGNAL(technologiesChanged()),this,SLOT(techChanged()));
         updateServicesMap();
+        offlineModeChanged(netman->offlineMode());
 
         if (isStateOnline(netman->state())) {
             previousConnectedService = netman->defaultRoute()->path();
@@ -697,4 +700,19 @@ void QConnectionManager::techTetheringChanged(bool b)
 {
     qDebug() << b;
     tetheringEnabled = b;
+}
+
+void QConnectionManager::offlineModeChanged(bool b)
+{
+    flightModeSuppression = b;
+    if (b) {
+        previousConnectedService.clear();
+        QTimer::singleShot(5 * 1000 * 60,this,SLOT(flightModeDialogSuppressionTimeout())); //5 minutes
+    }
+}
+
+void QConnectionManager::flightModeDialogSuppressionTimeout()
+{
+    if (flightModeSuppression)
+        flightModeSuppression = false;
 }
