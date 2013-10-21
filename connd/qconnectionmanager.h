@@ -91,33 +91,28 @@ private:
     QStringList orderedServicesList;
 
     QString findBestConnectableService();
-    void connectionHandover(const QString &oldService, const QString &newService);
-    QList <QString> connectedServices;
     QStringList techPreferenceList;
     bool askForRoaming;
     bool isEthernet;
     bool connmanAvailable;
     bool handoverInProgress;
-    QString lastConnectedService;
+    QString previousConnectedService;
     bool manualConnected;
-    QString manuallyConnectedService;
     QString serviceInProgress;
     QString autoConnectService;
-    QString manuallyDisconnectedService;
 
     bool isBestService(const QString &servicePath);
     bool isStateOnline(const QString &state);
     void requestDisconnect(const QString &service);
     void requestConnect(const QString &service);
     QOfonoConnectionContext *oContext;
-    bool tetheringEnabled;
     NetworkTechnology *tetheringWifiTech;
+    bool tetheringEnabled;
 
 private slots:
     void onScanFinished();
     void updateServicesMap();
 
-    void onServicesChanged();
     void serviceErrorChanged(const QString &error);
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);
@@ -134,8 +129,12 @@ private slots:
     void onServiceConnectionStarted();
 
     void onServiceDisconnectionStarted();
-    void connectToContext(const QString &servicePath);
     void techTetheringChanged(bool);
+    void techChanged();
+
+    void serviceRemoved(const QString &);
+    void serviceAdded(const QString &);
+    void servicesListChanged(const QStringList &);
 };
 
 #endif // QCONNECTIONMANAGER_H
