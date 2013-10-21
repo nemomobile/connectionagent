@@ -96,7 +96,6 @@ private:
     bool isEthernet;
     bool connmanAvailable;
     bool handoverInProgress;
-    QString previousConnectedService;
     bool manualConnected;
     QString serviceInProgress;
     QString autoConnectService;
