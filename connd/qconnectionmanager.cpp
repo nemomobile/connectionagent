@@ -62,7 +62,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      handoverInProgress(0),
      oContext(0),
      tetheringWifiTech(0),
-     tetheringEnabled(false)
+     tetheringEnabled(0)
 {
     qDebug() << Q_FUNC_INFO;
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
@@ -235,6 +235,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         if (serviceInProgress == service->path())
             serviceInProgress.clear();
 
+        previousConnectedService = service->path();
         if (service->type() == "ethernet") { //keep this alive
             NetworkTechnology tech;
             tech.setPath(netman->technologyPathForService(service->path()));
@@ -465,16 +466,18 @@ QString QConnectionManager::findBestConnectableService()
         QString path = orderedServicesList.at(i);
 
         NetworkService *service = servicesMap.value(path);
+        qDebug() << "looking at" << service->name() << service->autoConnect();
 
         bool online = isStateOnline(netman->defaultRoute()->state());
-        qDebug() << "looking at" << service->name() << service->autoConnect() << online;
-
-        if (online && netman->defaultRoute()->path() == service->path()) {
-            qDebug() << "best already connected";
+        if (online && netman->defaultRoute()->path() == service->path())
             return QString();//best already connected
-        }
 
         if (!service->autoConnect()) {
+            continue;
+        }
+        qDebug() << previousConnectedService << service->path();
+
+        if (!online && previousConnectedService == service->path()) {
             continue;
         }
 
@@ -491,7 +494,7 @@ QString QConnectionManager::findBestConnectableService()
         if (isBestService(service->path())
                 && service->favorite()
                 && !isCellRoaming) {
-            qDebug() <<"best connectable is"<< path;
+            qDebug() << path;
             return path;
         }
     }
@@ -584,6 +587,7 @@ void QConnectionManager::setup()
         updateServicesMap();
 
         if (isStateOnline(netman->state())) {
+            previousConnectedService = netman->defaultRoute()->path();
 
             if (netman->defaultRoute()->type() == "ethernet")
                 isEthernet = true;
@@ -606,14 +610,12 @@ void QConnectionManager::setup()
 void QConnectionManager::technologyPowerChanged(bool b)
 {
     NetworkTechnology *tech = static_cast<NetworkTechnology *>(sender());
-    qDebug() << tech->type();
     if (b && (tech->type() == "wifi" || tech->type() == "cellular"))
             tech->scan();
 }
 
 void QConnectionManager::techChanged()
 {
-    qDebug() << Q_FUNC_INFO;
     Q_FOREACH(const NetworkTechnology *technology,netman->getTechnologies()) {
         connect(technology,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
     }
