@@ -108,6 +108,7 @@ private:
     QOfonoConnectionContext *oContext;
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
+    bool flightModeSuppression;
 
 private slots:
     void onScanFinished();
@@ -135,6 +136,8 @@ private slots:
     void serviceRemoved(const QString &);
     void serviceAdded(const QString &);
     void servicesListChanged(const QStringList &);
+    void offlineModeChanged(bool);
+    void flightModeDialogSuppressionTimeout();
 };
 
 #endif // QCONNECTIONMANAGER_H
