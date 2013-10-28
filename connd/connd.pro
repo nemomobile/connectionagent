@@ -26,11 +26,13 @@ OTHER_FILES += com.jolla.Connectiond.xml
 
 SOURCES += main.cpp \
     qconnectionmanager.cpp \
-    connadaptor.cpp
+    connadaptor.cpp \
+    wakeupwatcher.cpp
 
 HEADERS+= \
     qconnectionmanager.h \
-    connadaptor.h
+    connadaptor.h \
+    wakeupwatcher.h
 
 target.path = /usr/bin
 INSTALLS += target
