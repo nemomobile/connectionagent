@@ -35,6 +35,8 @@ class NetworkService;
 class QOfonoConnectionContext;
 class NetworkTechnology;
 class WakeupWatcher;
+class QTimer;
+
 class QConnectionManager : public QObject
 {
     Q_OBJECT
@@ -110,6 +112,7 @@ private:
     bool tetheringEnabled;
     bool flightModeSuppression;
 WakeupWatcher *mceWatch;
+QTimer *goodConnectTimer;
 private slots:
     void onScanFinished();
     void updateServicesMap();
@@ -141,6 +144,8 @@ private slots:
 
     void displayStateChanged(const QString &);
     void sleepStateChanged(bool);
+
+    void connectionTimeout();
 
 };
 

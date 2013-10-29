@@ -123,6 +123,11 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connmanAvailable = QDBusConnection::systemBus().interface()->isServiceRegistered("net.connman");
     if (connmanAvailable)
         setup();
+    goodConnectTimer = new QTimer(this);
+    goodConnectTimer->setSingleShot(true);
+    goodConnectTimer->setInterval(12 * 1000);
+    connect(goodConnectTimer,SIGNAL(timeout()),this,SLOT(connectionTimeout()));
+
 }
 
 QConnectionManager::~QConnectionManager()
@@ -230,7 +235,9 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
         autoConnect();
     }
-
+    if (state == "ready") {
+        goodConnectTimer->start();
+    }
     //auto migrate
     if (service->path() == serviceInProgress
             && state == "online") {
@@ -736,4 +743,12 @@ void QConnectionManager::displayStateChanged(const QString &state)
 
 void QConnectionManager::sleepStateChanged(bool on)
 {
+}
+
+void QConnectionManager::connectionTimeout()
+{
+    if (netman->state() != "online") {
+//bad
+        errorReported(serviceInProgress,"limited connection");
+    }
 }
