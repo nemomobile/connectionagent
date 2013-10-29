@@ -34,7 +34,7 @@ class NetworkManager;
 class NetworkService;
 class QOfonoConnectionContext;
 class NetworkTechnology;
-
+class WakeupWatcher;
 class QConnectionManager : public QObject
 {
     Q_OBJECT
@@ -109,7 +109,7 @@ private:
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
     bool flightModeSuppression;
-
+WakeupWatcher *mceWatch;
 private slots:
     void onScanFinished();
     void updateServicesMap();
@@ -138,6 +138,10 @@ private slots:
     void servicesListChanged(const QStringList &);
     void offlineModeChanged(bool);
     void flightModeDialogSuppressionTimeout();
+
+    void displayStateChanged(const QString &);
+    void sleepStateChanged(bool);
+
 };
 
 #endif // QCONNECTIONMANAGER_H
