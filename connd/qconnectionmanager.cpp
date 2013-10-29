@@ -271,7 +271,7 @@ bool QConnectionManager::autoConnect()
              << netman->state()
              << tetheringEnabled;
 
-    if (tetheringEnabled || !serviceInProgress.isEmpty() || netman->offlineMode())
+    if (tetheringEnabled || !serviceInProgress.isEmpty())
         return false;
 
     if (selectedService.isEmpty()) {
@@ -584,7 +584,7 @@ void QConnectionManager::setup()
         qDebug() << Q_FUNC_INFO
                  << netman->state()
                  << netman->defaultRoute()->type();
-
+        techChanged();
         connect(netman,SIGNAL(technologiesChanged()),this,SLOT(techChanged()));
         updateServicesMap();
         offlineModeChanged(netman->offlineMode());
@@ -614,7 +614,7 @@ void QConnectionManager::technologyPowerChanged(bool b)
 {
     NetworkTechnology *tech = static_cast<NetworkTechnology *>(sender());
     if (b && (tech->type() == "wifi" || tech->type() == "cellular"))
-            tech->scan();
+        tech->scan();
 }
 
 void QConnectionManager::techChanged()
