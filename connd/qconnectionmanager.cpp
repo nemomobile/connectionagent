@@ -166,6 +166,7 @@ void QConnectionManager::onErrorReported(const QString &servicePath, const QStri
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
+    previousConnectedService.clear();
     sendConnectReply("Suppress", 15);
     bool ok = autoConnect();
     qDebug() << serviceInProgress << ok << flightModeSuppression;
