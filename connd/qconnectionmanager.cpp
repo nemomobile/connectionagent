@@ -94,7 +94,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
             this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
     connect(ua,SIGNAL(browserRequested(QString,QString)),
-            this,SLOT(browserReClockModelquest(QString,QString)), Qt::UniqueConnection);
+            this,SLOT(browserRequest(QString,QString)), Qt::UniqueConnection);
 
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
