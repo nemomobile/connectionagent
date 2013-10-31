@@ -758,7 +758,6 @@ void QConnectionManager::connectionTimeout()
 void QConnectionManager::serviceAutoconnectChanged(bool on)
 {
     if (on) {
-        NetworkService *serv = static_cast<NetworkService *>(sender());
         autoConnect();
     }
 }
