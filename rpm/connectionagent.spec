@@ -9,7 +9,7 @@ Name:       connectionagent
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.8.9
+Version:    0.9.0
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
