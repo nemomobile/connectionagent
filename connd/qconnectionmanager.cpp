@@ -24,6 +24,7 @@
 #include <connman-qt5/networktechnology.h>
 #include <connman-qt5/networkservice.h>
 #include <connman-qt5/sessionagent.h>
+#include <connman-qt5/clockmodel.h>
 #include <qofono-qt5/qofonoconnectioncontext.h>
 #include <qofono-qt5/qofonoconnectionmanager.h>
 #include <qofono-qt5/qofononetworkregistration.h>
@@ -93,7 +94,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
             this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
     connect(ua,SIGNAL(browserRequested(QString,QString)),
-            this,SLOT(browserRequest(QString,QString)), Qt::UniqueConnection);
+            this,SLOT(browserReClockModelquest(QString,QString)), Qt::UniqueConnection);
 
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
@@ -597,6 +598,11 @@ void QConnectionManager::setup()
         qDebug() << Q_FUNC_INFO
                  << netman->state()
                  << netman->defaultRoute()->type();
+
+        ClockModel clockModel;
+        clockModel.setTimeUpdates("manual");
+        clockModel.setTimezoneUpdates("manual");
+
         techChanged();
         connect(netman,SIGNAL(technologiesChanged()),this,SLOT(techChanged()));
         updateServicesMap();
