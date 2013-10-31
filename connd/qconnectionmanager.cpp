@@ -453,6 +453,8 @@ void QConnectionManager::updateServicesMap()
 
 void QConnectionManager::servicesError(const QString &errorMessage)
 {
+    if (errorMessage.isEmpty())
+        return;
     NetworkService *serv = static_cast<NetworkService *>(sender());
     qDebug() << serv->name() << errorMessage;
     Q_EMIT onErrorReported(serv->path(), errorMessage);
@@ -750,5 +752,13 @@ void QConnectionManager::connectionTimeout()
     if (netman->state() != "online") {
 //bad
         errorReported(serviceInProgress,"limited connection");
+    }
+}
+
+void QConnectionManager::serviceAutoconnectChanged(bool on)
+{
+    if (on) {
+        NetworkService *serv = static_cast<NetworkService *>(sender());
+        autoConnect();
     }
 }
