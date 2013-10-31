@@ -235,7 +235,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
         autoConnect();
     }
-    if (state == "ready") {
+    if (currentNetworkState == "configuration" && state == "ready"
+            && netman->state() != "online") {
         goodConnectTimer->start();
     }
     //auto migrate
@@ -363,9 +364,6 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
     if (type.isEmpty())
         return false;
     technology.setPath(netman->technologyPathForType(type));
-
-    if (servicesMap.value(servicePath)->state() != "online")
-        requestDisconnect(netman->defaultRoute()->path());
 
     if (technology.powered()) {
         if (servicePath.contains("cellular")) {
