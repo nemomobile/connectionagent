@@ -391,6 +391,10 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
                 if (oConnManager.roamingAllowed()) {
                     if (askRoaming()) {
                         // ask user
+                        if (serviceInProgress.isEmpty() && !flightModeSuppression) {
+                            Q_EMIT connectionRequest();
+                        }
+                        return false;
                     }
                 } else {
                     //roaming and user doesnt want connection while roaming
@@ -444,6 +448,8 @@ void QConnectionManager::updateServicesMap()
                                  this,SLOT(onServiceConnectionStarted()), Qt::UniqueConnection);
                 QObject::connect(serv, SIGNAL(serviceDisconnectionStarted()),
                                  this,SLOT(onServiceDisconnectionStarted()), Qt::UniqueConnection);
+                QObject::connect(serv, SIGNAL(autoConnectChanged(bool)),
+                                 this,SLOT(serviceAutoconnectChanged(bool)), Qt::UniqueConnection);
             }
         }
     }
