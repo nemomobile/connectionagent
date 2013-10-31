@@ -146,6 +146,7 @@ private slots:
     void sleepStateChanged(bool);
 
     void connectionTimeout();
+    void serviceAutoconnectChanged(bool);
 
 };
 
