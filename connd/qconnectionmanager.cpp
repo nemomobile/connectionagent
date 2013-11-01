@@ -386,24 +386,13 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
                 return false;
             }
             //isCellRoaming
-            bool ok = true;
-            if (servicesMap.value(servicePath)->roaming()) {
-                if (oConnManager.roamingAllowed()) {
-                    if (askRoaming()) {
-                        // ask user
-                        if (serviceInProgress.isEmpty() && !flightModeSuppression) {
-                            Q_EMIT connectionRequest();
-                        }
-                        return false;
-                    }
-                } else {
+            if (servicesMap.value(servicePath)->roaming()
+                    && !oConnManager.roamingAllowed()) {
                     //roaming and user doesnt want connection while roaming
                     qDebug() << "roaming not allowed";
                     return false;
                 }
-            }
 
-            if (ok)
                 requestConnect(servicePath);
         } else {
             requestConnect(servicePath);
@@ -497,20 +486,36 @@ QString QConnectionManager::findBestConnectableService()
         if (!service->autoConnect()) {
             continue;
         }
-        qDebug() << previousConnectedService << service->path();
-
-        if (!online && previousConnectedService == service->path()) {
-            continue;
-        }
 
         qDebug() <<Q_FUNC_INFO<< "continued"
                 << online
                 << (netman->defaultRoute()->path() == service->path());
 
         bool isCellRoaming = false;
-        if (service->type() == "cellular"
-                && service->roaming()) {
-                    isCellRoaming = askForRoaming;
+        if (service->type() == "cellular" && service->roaming()) {
+
+            isCellRoaming = askForRoaming;
+
+            QOfonoManager oManager;
+            if (!oManager.available()) {
+                qDebug() << "ofono not available.";
+            }
+
+            QOfonoConnectionManager oConnManager;
+            oConnManager.setModemPath(oManager.modems().at(0));
+
+            if (oConnManager.roamingAllowed()) {
+                if (askRoaming()) {
+                    // ask user
+                    if (serviceInProgress.isEmpty() && !flightModeSuppression) {
+                        Q_EMIT connectionRequest();
+                    }
+                    return QString();
+                }
+            }
+                //roaming and user doesnt want connection while roaming
+                qDebug() << "roaming not allowed";
+                return QString();
         }
 
         if (isBestService(service->path())
@@ -767,6 +772,7 @@ void QConnectionManager::connectionTimeout()
 
 void QConnectionManager::serviceAutoconnectChanged(bool on)
 {
+    qDebug() << on;
     if (on) {
         autoConnect();
     }
