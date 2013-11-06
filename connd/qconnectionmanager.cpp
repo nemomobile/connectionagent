@@ -24,7 +24,6 @@
 #include <connman-qt5/networktechnology.h>
 #include <connman-qt5/networkservice.h>
 #include <connman-qt5/sessionagent.h>
-#include <connman-qt5/clockmodel.h>
 #include <qofono-qt5/qofonoconnectioncontext.h>
 #include <qofono-qt5/qofonoconnectionmanager.h>
 #include <qofono-qt5/qofononetworkregistration.h>
@@ -83,6 +82,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
     askForRoaming = askRoaming();
 
+    connect(&clockModel,SIGNAL(timeUpdatesChanged()),this,SLOT(timeUpdatesChanged()));
     ua = new UserAgent(this);
 
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
@@ -600,6 +600,14 @@ void QConnectionManager::serviceRemoved(const QString &srv)
         serviceInProgress.clear();
 }
 
+void QConnectionManager::timeUpdatesChanged()
+{
+    qDebug();
+    clockModel.setTimeUpdates("manual");
+    clockModel.setTimezoneUpdates("manual");
+    disconnect(&clockModel,SIGNAL(timeUpdatesChanged()),this,SLOT(timeUpdatesChanged()));
+}
+
 void QConnectionManager::setup()
 {
     qDebug() << Q_FUNC_INFO
@@ -610,9 +618,6 @@ void QConnectionManager::setup()
                  << netman->state()
                  << netman->defaultRoute()->type();
 
-        ClockModel clockModel;
-        clockModel.setTimeUpdates("manual");
-        clockModel.setTimezoneUpdates("manual");
 
         techChanged();
         connect(netman,SIGNAL(technologiesChanged()),this,SLOT(techChanged()));

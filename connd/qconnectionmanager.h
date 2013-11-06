@@ -25,6 +25,7 @@
 #include <QDBusObjectPath>
 #include <QQueue>
 #include <QPair>
+#include <connman-qt5/clockmodel.h>
 
 class UserAgent;
 class SessionAgent;
@@ -111,8 +112,10 @@ private:
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
     bool flightModeSuppression;
-WakeupWatcher *mceWatch;
-QTimer *goodConnectTimer;
+    WakeupWatcher *mceWatch;
+    QTimer *goodConnectTimer;
+    ClockModel clockModel;
+
 private slots:
     void onScanFinished();
     void updateServicesMap();
@@ -147,6 +150,7 @@ private slots:
 
     void connectionTimeout();
     void serviceAutoconnectChanged(bool);
+    void timeUpdatesChanged();
 
 };
 
