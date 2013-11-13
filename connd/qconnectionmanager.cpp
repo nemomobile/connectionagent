@@ -756,7 +756,7 @@ void QConnectionManager::displayStateChanged(const QString &state)
 {
     if (state == "on") {
         NetworkTechnology *wifiTech = netman->getTechnology("wifi");
-        if (wifiTech->powered() && !wifiTech->connected()) {
+        if (wifiTech && wifiTech->powered() && !wifiTech->connected()) {
             previousConnectedService.clear();
             wifiTech->scan();
         }
