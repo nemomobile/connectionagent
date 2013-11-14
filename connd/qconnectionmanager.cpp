@@ -401,17 +401,21 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
                 qDebug() << "ofono not available.";
                 return false;
             }
-
-            QOfonoConnectionManager oConnManager;
-            oConnManager.setModemPath(oManager.modems().at(0));
+            if (oManager.modems().count() < 1)
+                return false;
 
             QOfonoNetworkRegistration ofonoReg;
             ofonoReg.setModemPath(oManager.modems().at(0));
+
             if (ofonoReg.status() != "registered"
                     &&  ofonoReg.status() != "roaming") { //not on any cell network so bail
                 qDebug() << "ofono is not registered yet";
                 return false;
             }
+
+            QOfonoConnectionManager oConnManager;
+            oConnManager.setModemPath(oManager.modems().at(0));
+
             //isCellRoaming
             if (servicesMap.value(servicePath)->roaming()
                     && !oConnManager.roamingAllowed()) {
@@ -527,6 +531,8 @@ QString QConnectionManager::findBestConnectableService()
             if (!oManager.available()) {
                 qDebug() << "ofono not available.";
             }
+            if (oManager.modems().count() < 1)
+                return false;
 
             QOfonoConnectionManager oConnManager;
             oConnManager.setModemPath(oManager.modems().at(0));
