@@ -401,6 +401,8 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
                 qDebug() << "ofono not available.";
                 return false;
             }
+            if (oManager.modems().at(0).isEmpty())
+                return false;
 
             QOfonoConnectionManager oConnManager;
             oConnManager.setModemPath(oManager.modems().at(0));
