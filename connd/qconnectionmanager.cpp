@@ -67,6 +67,9 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      flightModeSuppression(false)
 {
     qDebug() << Q_FUNC_INFO;
+
+    manualConnnectionTimer.invalidate();
+
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
 
     connectionAdaptor = new ConnAdaptor(this);
@@ -240,6 +243,14 @@ void QConnectionManager::serviceStateChanged(const QString &state)
             && netman->state() != "online") {
         goodConnectTimer->start();
     }
+
+    //manual connection
+    if ((state == "ready" || state == "online") && service->path() != serviceInProgress) {
+        qDebug() << "manual connection of" << service->path() << "detected, enabling auto connect timeout";
+        lastManuallyConnectedService = service->path();
+        manualConnnectionTimer.start();
+    }
+
     //auto migrate
     if (service->path() == serviceInProgress
             && state == "online") {
@@ -248,6 +259,10 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
     //auto migrate
     if (state == "idle") {
+        if (lastManuallyConnectedService == service->path()) {
+            lastManuallyConnectedService.clear();
+            manualConnnectionTimer.invalidate();
+        }
 
         if (serviceInProgress == service->path())
             serviceInProgress.clear();
@@ -262,8 +277,10 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         } else {
             updateServicesMap();
             qDebug() <<"serviceInProgress"<< serviceInProgress;
-            if (!serviceInProgress.isEmpty())
-                autoConnect();
+            // If a manual connection has recently been detected autoConnect() will do nothing.
+            // Always call autoConnect() here as this state change could be that manual connection
+            // disconnecting.
+            autoConnect();
         }
     }
 
@@ -288,6 +305,16 @@ bool QConnectionManager::autoConnect()
 
     if (tetheringEnabled || !serviceInProgress.isEmpty())
         return false;
+
+    if (manualConnnectionTimer.isValid() && !manualConnnectionTimer.hasExpired(5 * 60 * 1000)) {
+        qDebug() << "skipping auto connect," << (manualConnnectionTimer.elapsed() / 1000)
+                 << "seconds since manual connection.";
+        return false;
+    } else {
+        qDebug() << "clearing manual connected service data";
+        lastManuallyConnectedService.clear();
+        manualConnnectionTimer.invalidate();
+    }
 
     if (selectedService.isEmpty()) {
         selectedService = findBestConnectableService();
@@ -726,7 +753,6 @@ void QConnectionManager::requestConnect(const QString &servicePath)
         QDBusInterface service("net.connman", servicePath.toLocal8Bit(),
                                "net.connman.Service", QDBusConnection::systemBus());
         QDBusMessage reply = service.call(QDBus::NoBlock, QStringLiteral("Connect"));
-        manualConnected = false;
         autoConnectService = servicePath;
     }
 }

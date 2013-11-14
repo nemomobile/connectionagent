@@ -25,6 +25,7 @@
 #include <QDBusObjectPath>
 #include <QQueue>
 #include <QPair>
+#include <QElapsedTimer>
 #include <connman-qt5/clockmodel.h>
 
 class UserAgent;
@@ -100,7 +101,6 @@ private:
     bool connmanAvailable;
     bool handoverInProgress;
     QString previousConnectedService;
-    bool manualConnected;
     QString serviceInProgress;
     QString autoConnectService;
 
@@ -115,6 +115,9 @@ private:
     WakeupWatcher *mceWatch;
     QTimer *goodConnectTimer;
     ClockModel clockModel;
+
+    QElapsedTimer manualConnnectionTimer;
+    QString lastManuallyConnectedService;
 
 private slots:
     void onScanFinished();
