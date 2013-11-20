@@ -97,8 +97,8 @@ int main(int argc, char *argv[])
             toggleDebug = true;
         }
     }
-    QCoreApplication::setOrganizationName("Jolla");
-    QCoreApplication::setOrganizationDomain("com.jollamobile");
+    QCoreApplication::setOrganizationName("nemomobile");
+    QCoreApplication::setOrganizationDomain("org.nemomobile");
     QCoreApplication::setApplicationName("connectionagent");
     QCoreApplication::setApplicationVersion("1.0");
 
