@@ -648,9 +648,7 @@ void QConnectionManager::setup()
 
     if (connmanAvailable) {
         qDebug() << Q_FUNC_INFO
-                 << netman->state()
-                 << netman->defaultRoute()->type();
-
+                 << netman->state();
 
         techChanged();
         connect(netman,SIGNAL(technologiesChanged()),this,SLOT(techChanged()));
@@ -658,6 +656,7 @@ void QConnectionManager::setup()
         offlineModeChanged(netman->offlineMode());
 
         if (isStateOnline(netman->state())) {
+            qDebug() << "default route type:" << netman->defaultRoute()->type();
             previousConnectedService = netman->defaultRoute()->path();
 
             if (netman->defaultRoute()->type() == "ethernet")
