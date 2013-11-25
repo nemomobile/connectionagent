@@ -26,7 +26,6 @@
 #include <QQueue>
 #include <QPair>
 #include <QElapsedTimer>
-#include <connman-qt5/clockmodel.h>
 
 class UserAgent;
 class SessionAgent;
@@ -114,7 +113,6 @@ private:
     bool flightModeSuppression;
     WakeupWatcher *mceWatch;
     QTimer *goodConnectTimer;
-    ClockModel clockModel;
 
     QElapsedTimer manualConnnectionTimer;
     QString lastManuallyConnectedService;
@@ -153,7 +151,6 @@ private slots:
 
     void connectionTimeout();
     void serviceAutoconnectChanged(bool);
-    void timeUpdatesChanged();
 
 };
 

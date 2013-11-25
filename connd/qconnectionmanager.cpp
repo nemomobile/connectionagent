@@ -85,7 +85,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
     askForRoaming = askRoaming();
 
-    connect(&clockModel,SIGNAL(timeUpdatesChanged()),this,SLOT(timeUpdatesChanged()));
     ua = new UserAgent(this);
 
     connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
@@ -631,14 +630,6 @@ void QConnectionManager::serviceRemoved(const QString &srv)
     }
     if (serviceInProgress == srv)
         serviceInProgress.clear();
-}
-
-void QConnectionManager::timeUpdatesChanged()
-{
-    qDebug();
-    clockModel.setTimeUpdates("manual");
-    clockModel.setTimezoneUpdates("manual");
-    disconnect(&clockModel,SIGNAL(timeUpdatesChanged()),this,SLOT(timeUpdatesChanged()));
 }
 
 void QConnectionManager::setup()
