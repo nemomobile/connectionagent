@@ -541,7 +541,7 @@ QString QConnectionManager::findBestConnectableService()
                 qDebug() << "ofono not available.";
             }
             if (oManager.modems().count() < 1)
-                return false;
+                return QString();
 
             QOfonoConnectionManager oConnManager;
             oConnManager.setModemPath(oManager.modems().at(0));
@@ -700,6 +700,8 @@ void QConnectionManager::techChanged()
 
 void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
 {
+    Q_UNUSED(servicePath)
+
     Q_EMIT requestBrowser(url);
 }
 
@@ -793,6 +795,7 @@ void QConnectionManager::displayStateChanged(const QString &state)
 
 void QConnectionManager::sleepStateChanged(bool on)
 {
+    Q_UNUSED(on)
 }
 
 void QConnectionManager::connectionTimeout()
