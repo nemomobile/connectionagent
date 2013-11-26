@@ -99,7 +99,6 @@ private:
     bool isEthernet;
     bool connmanAvailable;
     bool handoverInProgress;
-    QString previousConnectedService;
     QString serviceInProgress;
     QString autoConnectService;
 
@@ -116,6 +115,9 @@ private:
 
     QElapsedTimer manualConnnectionTimer;
     QString lastManuallyConnectedService;
+
+    QElapsedTimer manualDisconnectionTimer;
+    QString lastManuallyDisconnectedService;
 
 private slots:
     void onScanFinished();
