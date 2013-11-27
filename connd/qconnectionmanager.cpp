@@ -69,6 +69,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     qDebug() << Q_FUNC_INFO;
 
     manualConnnectionTimer.invalidate();
+    manualDisconnectionTimer.invalidate();
 
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
 
@@ -174,7 +175,7 @@ void QConnectionManager::onErrorReported(const QString &servicePath, const QStri
 // from useragent
 void QConnectionManager::onConnectionRequest()
 {
-    previousConnectedService.clear();
+    manualDisconnectionTimer.invalidate();
     sendConnectReply("Suppress", 15);
     bool ok = autoConnect();
     qDebug() << serviceInProgress << ok << flightModeSuppression;
@@ -266,7 +267,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         if (serviceInProgress == service->path())
             serviceInProgress.clear();
 
-        previousConnectedService = service->path();
+        lastManuallyDisconnectedService = service->path();
+        manualDisconnectionTimer.start();
         if (service->type() == "ethernet") { //keep this alive
             NetworkTechnology tech;
             tech.setPath(netman->technologyPathForService(service->path()));
@@ -318,6 +320,14 @@ bool QConnectionManager::autoConnect()
     if (selectedService.isEmpty()) {
         selectedService = findBestConnectableService();
     }
+
+    // Don't immediately reconnect if the manual disconnection timer has not expired. This prevents
+    // connectionagent from aborting a manual connection initiated by another process.
+    if (manualDisconnectionTimer.isValid() && !manualDisconnectionTimer.hasExpired(10000) &&
+        lastManuallyDisconnectedService == selectedService) {
+        return false;
+    }
+
     if (!selectedService.isEmpty()) {
         bool ok = connectToNetworkService(selectedService);
         if (ok)
@@ -531,7 +541,7 @@ QString QConnectionManager::findBestConnectableService()
                 qDebug() << "ofono not available.";
             }
             if (oManager.modems().count() < 1)
-                return false;
+                return QString();
 
             QOfonoConnectionManager oConnManager;
             oConnManager.setModemPath(oManager.modems().at(0));
@@ -648,8 +658,6 @@ void QConnectionManager::setup()
 
         if (isStateOnline(netman->state())) {
             qDebug() << "default route type:" << netman->defaultRoute()->type();
-            previousConnectedService = netman->defaultRoute()->path();
-
             if (netman->defaultRoute()->type() == "ethernet")
                 isEthernet = true;
         } else
@@ -692,6 +700,8 @@ void QConnectionManager::techChanged()
 
 void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
 {
+    Q_UNUSED(servicePath)
+
     Q_EMIT requestBrowser(url);
 }
 
@@ -763,7 +773,6 @@ void QConnectionManager::offlineModeChanged(bool b)
 {
     flightModeSuppression = b;
     if (b) {
-        previousConnectedService.clear();
         QTimer::singleShot(5 * 1000 * 60,this,SLOT(flightModeDialogSuppressionTimeout())); //5 minutes
     }
 }
@@ -779,7 +788,6 @@ void QConnectionManager::displayStateChanged(const QString &state)
     if (state == "on") {
         NetworkTechnology *wifiTech = netman->getTechnology("wifi");
         if (wifiTech && wifiTech->powered() && !wifiTech->connected()) {
-            previousConnectedService.clear();
             wifiTech->scan();
         }
     }
@@ -787,6 +795,7 @@ void QConnectionManager::displayStateChanged(const QString &state)
 
 void QConnectionManager::sleepStateChanged(bool on)
 {
+    Q_UNUSED(on)
 }
 
 void QConnectionManager::connectionTimeout()
