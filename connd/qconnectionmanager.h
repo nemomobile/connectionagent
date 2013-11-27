@@ -100,7 +100,6 @@ private:
     bool connmanAvailable;
     bool handoverInProgress;
     QString serviceInProgress;
-    QString autoConnectService;
 
     bool isBestService(const QString &servicePath);
     bool isStateOnline(const QString &state);
@@ -115,6 +114,7 @@ private:
 
     QElapsedTimer manualConnnectionTimer;
     QString lastManuallyConnectedService;
+    uint scanTimeoutInterval;
 
     QElapsedTimer manualDisconnectionTimer;
     QString lastManuallyDisconnectedService;
@@ -153,6 +153,7 @@ private slots:
 
     void connectionTimeout();
     void serviceAutoconnectChanged(bool);
+    void scanTimeout();
 
 };
 
