@@ -256,6 +256,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     //auto migrate
     if (service->path() == serviceInProgress
             && state == "online") {
+        Q_EMIT connectionState(state, service->type());
         serviceInProgress.clear();
     }
     if (state == "online" && service->type() == "cellular") {
@@ -291,8 +292,6 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         }
     }
 
-    if (!(currentNetworkState == "online" && state == "association"))
-        Q_EMIT connectionState(state, service->type());
 
         currentNetworkState = state;
         QSettings confFile;
