@@ -629,12 +629,6 @@ void QConnectionManager::connmanAvailabilityChanged(bool b)
     }
 }
 
-void QConnectionManager::emitConnectionState()
-{
-    Q_EMIT connectionState("idle", "All");
-    Q_EMIT connectionState("online", "All");
-}
-
 void QConnectionManager::serviceAdded(const QString &srv)
 {
     qDebug() << Q_FUNC_INFO << "<<<<"<< srv;
