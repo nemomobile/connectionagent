@@ -224,7 +224,10 @@ void QConnectionManager::serviceErrorChanged(const QString &error)
 {
     qDebug() << error;
     NetworkService *service = static_cast<NetworkService *>(sender());
-    Q_EMIT errorReported(service->path(),error);
+    if (error == "connect-failed")
+        service->requestDisconnect();
+    if (error != "In progress")
+        Q_EMIT errorReported(service->path(),error);
 }
 
 void QConnectionManager::serviceStateChanged(const QString &state)
