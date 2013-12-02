@@ -235,7 +235,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << state << service->name() << service->strength();
 
-    if (currentNetworkState == "disconnect") {
+    if (state == "disconnect") {
         ua->sendConnectReply("Clear");
     }
     if (state == "failure") {
@@ -276,9 +276,10 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
         if (serviceInProgress == service->path())
             serviceInProgress.clear();
-
-        lastManuallyDisconnectedService = service->path();
-        manualDisconnectionTimer.start();
+        if (service->strength() > 0) {
+            lastManuallyDisconnectedService = service->path();
+            manualDisconnectionTimer.start();
+        }
         if (service->type() == "ethernet") { //keep this alive
             NetworkTechnology tech;
             tech.setPath(netman->technologyPathForService(service->path()));
@@ -451,6 +452,12 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
 
 void QConnectionManager::onScanFinished()
 {
+    qDebug() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
+    if (!lastManuallyConnectedService.isEmpty())
+        lastManuallyConnectedService.clear();
+    if (manualConnnectionTimer.isValid())
+        manualConnnectionTimer.invalidate();
+    autoConnect();
 }
 
 void QConnectionManager::updateServicesMap()
@@ -526,7 +533,11 @@ QString QConnectionManager::findBestConnectableService()
         QString path = orderedServicesList.at(i);
 
         NetworkService *service = servicesMap.value(path);
-        qDebug() << "looking at" << service->name() << service->autoConnect();
+
+        qDebug() << "looking at"
+                 << service->name()
+                 << service->autoConnect()
+                 << lastManuallyConnectedService;
 
         bool online = isStateOnline(netman->defaultRoute()->state());
         if (online && netman->defaultRoute()->path() == service->path())
@@ -821,6 +832,7 @@ void QConnectionManager::scanTimeout()
     NetworkTechnology *wifiTech = netman->getTechnology("wifi");
     qDebug() << netman->defaultRoute()->type()  << wifiTech->powered() << wifiTech->connected();
     if (wifiTech && wifiTech->powered() && !wifiTech->connected() && netman->defaultRoute()->type() != "wifi" ) {
+        QObject::connect(wifiTech,SIGNAL(scanFinished()),this,SLOT(onScanFinished()));
         wifiTech->scan();
         if (scanTimeoutInterval != 0)
             QTimer::singleShot(scanTimeoutInterval * 60 * 1000, this,SLOT(scanTimeout()));
