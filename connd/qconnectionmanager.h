@@ -131,7 +131,6 @@ private slots:
 
     void connmanAvailabilityChanged(bool b);
     void setup();
-    void emitConnectionState();
     void servicesError(const QString &);
     void ofonoServicesError(const QString &);
     void technologyPowerChanged(bool);
