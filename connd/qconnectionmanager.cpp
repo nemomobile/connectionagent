@@ -237,6 +237,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 
     if (state == "disconnect") {
         ua->sendConnectReply("Clear");
+        // Stop the good connect timer when a service disconnects.
+        goodConnectTimer->stop();
     }
     if (state == "failure") {
         serviceInProgress.clear();
@@ -823,7 +825,17 @@ void QConnectionManager::connectionTimeout()
 
 void QConnectionManager::serviceAutoconnectChanged(bool on)
 {
-    qDebug() << on;
+    NetworkService *service = qobject_cast<NetworkService *>(sender());
+
+    qDebug() << service->path() << "AutoConnect is" << on;
+
+    if (on && service->path() == lastManuallyDisconnectedService) {
+        // Auto connect has been enabled for the last manually disconnected service, allow it to
+        // be immediately connected.
+        manualDisconnectionTimer.invalidate();
+        lastManuallyDisconnectedService.clear();
+    }
+
     autoConnect();
 }
 
