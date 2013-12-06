@@ -399,6 +399,14 @@ void QConnectionManager::connectToType(const QString &type)
     }
 }
 
+void QConnectionManager::connectToService(const QString &servicePath)
+{
+    if (!servicesMap.contains(servicePath) || !serviceInProgress.isEmpty())
+        return;
+
+    connectToNetworkService(servicePath);
+}
+
 bool QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
     qDebug() << servicePath
@@ -572,7 +580,8 @@ QString QConnectionManager::findBestConnectableService()
                 if (askRoaming()) {
                     // ask user
                     if (serviceInProgress.isEmpty() && !flightModeSuppression) {
-                        Q_EMIT connectionRequest();
+                        openConnectionDialog();
+//                        Q_EMIT connectionRequest();
                     }
                     return QString();
                 }
@@ -848,5 +857,52 @@ void QConnectionManager::scanTimeout()
         wifiTech->scan();
         if (scanTimeoutInterval != 0)
             QTimer::singleShot(scanTimeoutInterval * 60 * 1000, this,SLOT(scanTimeout()));
+    }
+}
+
+////////////////////
+void QConnectionManager::openConnectionDialog()
+{
+    // open Connection Selector
+    QDBusInterface *connSelectorInterface = new QDBusInterface(QStringLiteral("com.jolla.lipstick.ConnectionSelector"),
+                                                               QStringLiteral("/"),
+                                                               QStringLiteral("com.jolla.lipstick.ConnectionSelectorIf"),
+                                                               QDBusConnection::sessionBus(),
+                                                               this);
+
+    connSelectorInterface->connection().connect(QStringLiteral("com.jolla.lipstick.ConnectionSelector"),
+                                                QStringLiteral("/"),
+                                                QStringLiteral("com.jolla.lipstick.ConnectionSelectorIf"),
+                                                QStringLiteral("connectionSelectorClosed"),
+                                                this,
+                                                SLOT(connectionSelectorClosed(bool)));
+
+    QList<QVariant> args;
+    args.append("wlan");
+    QDBusMessage reply = connSelectorInterface->callWithArgumentList(QDBus::NoBlock,
+                                                                     QStringLiteral("openConnection"), args);
+
+    if (reply.type() != QDBusMessage::ReplyMessage) {
+        qWarning() << reply.errorMessage();
+        serviceErrorChanged(reply.errorMessage());
+    }
+}
+
+void QConnectionManager::connectionSelectorClosed(bool b)
+{
+    if (b) {
+        //selected
+        connect(netman->defaultRoute(),SIGNAL(connectedChanged(bool)),this,SLOT(defaultSessionConnectedChanged(bool)));
+    } else {
+        //canceled
+        Q_EMIT networkConnectivityUnavailable();
+    }
+}
+
+void QConnectionManager::defaultSessionConnectedChanged(bool b)
+{
+    if (b) {
+     //   m_detectingNetworkConnection = false;
+        Q_EMIT networkConnectivityEstablished();
     }
 }

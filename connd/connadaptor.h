@@ -58,6 +58,9 @@ class ConnAdaptor: public QDBusAbstractAdaptor
 "    <method name=\"connectToType\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"in0\"/>\n"
 "    </method>\n"
+"    <method name=\"connectToService\">\n"
+"      <arg direction=\"in\" servicePath=\"s\" name=\"in0\"/>\n"
+"    </method>\n"
 "    <method name=\"sendConnectReply\">\n"
 "      <arg direction=\"in\" type=\"s\" name=\"in0\"/>\n"
 "      <arg direction=\"in\" type=\"i\" name=\"in1\"/>\n"
@@ -66,6 +69,8 @@ class ConnAdaptor: public QDBusAbstractAdaptor
 "      <arg direction=\"in\" type=\"a{sv}\" name=\"input\"/>\n"
 "      <annotation value=\"QVariantMap\" name=\"org.qtproject.QtDBus.QtTypeName.In0\"/>\n"
 "    </method>\n"
+"    <signal name=\"networkConnectivityUnavailable\"/>\n"
+"    <signal name=\"networkConnectivityEstablished\"/>\n"
 "  </interface>\n"
         "")
 public:
@@ -79,6 +84,7 @@ public: // PROPERTIES
 
 public Q_SLOTS: // METHODS
     void connectToType(const QString &in0);
+    void connectToService(const QString &in0);
     void sendConnectReply(const QString &in0, int in1);
     void sendUserReply(const QVariantMap &input);
 Q_SIGNALS: // SIGNALS
@@ -90,6 +96,9 @@ Q_SIGNALS: // SIGNALS
     void roamingAskChanged(bool askRoaming);
     void userInputCanceled();
     void userInputRequested(const QString &service, const QVariantMap &fields);
+    void networkConnectivityUnavailable();
+    void networkConnectivityEstablished();
+
 };
 
 #endif

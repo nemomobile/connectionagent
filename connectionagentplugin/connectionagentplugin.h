@@ -33,11 +33,14 @@ public:
     ~ConnectionAgentPlugin();
     bool askRoaming() const;
     void setAskRoaming(bool value);
+    Q_INVOKABLE bool haveNetworkConnectivity() const;
+    Q_INVOKABLE void attemptToConnectNetwork();
 
 public slots:
     void sendUserReply(const QVariantMap &input);
     void sendConnectReply(const QString &replyMessage, int timeout = 120);
     void connectToType(const QString &type);
+    void connectToService(const QString &servicePath);
 
 signals:
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
@@ -47,6 +50,8 @@ signals:
     void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
     void browserRequested(const QString &url);
+    void networkConnectivityUnavailable();
+    void networkConnectivityEstablished();
 
 private:
     com::jolla::Connectiond *connManagerInterface;

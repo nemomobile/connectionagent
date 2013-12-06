@@ -49,6 +49,13 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("connectToType"), argumentList);
     }
 
+    inline QDBusPendingReply<> connectToService(const QString &in0)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(in0);
+        return asyncCallWithArgumentList(QLatin1String("connectToService"), argumentList);
+    }
+
     inline QDBusPendingReply<> sendConnectReply(const QString &in0, int in1)
     {
         QList<QVariant> argumentList;
@@ -72,6 +79,9 @@ Q_SIGNALS: // SIGNALS
     void roamingAskChanged(bool askRoaming);
     void userInputCanceled();
     void userInputRequested(const QString &service, const QVariantMap &fields);
+    void networkConnectivityUnavailable();
+    void networkConnectivityEstablished();
+
 };
 
 namespace com {

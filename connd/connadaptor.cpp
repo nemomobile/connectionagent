@@ -51,6 +51,12 @@ void ConnAdaptor::connectToType(const QString &in0)
     QMetaObject::invokeMethod(parent(), "connectToType", Q_ARG(QString, in0));
 }
 
+void ConnAdaptor::connectToService(const QString &in0)
+{
+    // handle method call com.jolla.Connectiond.connectToService
+    QMetaObject::invokeMethod(parent(), "connectToService", Q_ARG(QString, in0));
+}
+
 void ConnAdaptor::sendConnectReply(const QString &in0, int in1)
 {
     // handle method call com.jolla.Connectiond.sendConnectReply

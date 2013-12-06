@@ -84,6 +84,11 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
     connect(connManagerInterface,SIGNAL(userInputCanceled()),
             this,SIGNAL(userInputCanceled()));
 
+    connect(connManagerInterface,SIGNAL(networkConnectivityUnavailable()),
+            this,SIGNAL(networkConnectivityUnavailable()));
+    connect(connManagerInterface,SIGNAL(networkConnectivityEstablished()),
+            this,SIGNAL(networkConnectivityEstablished()));
+
     connect(connManagerInterface, SIGNAL(errorReported(QString, QString)),
             this, SLOT(onErrorReported(QString, QString)));
 
@@ -128,6 +133,16 @@ void ConnectionAgentPlugin::connectToType(const QString &type)
     }
 
     connManagerInterface->connectToType(type);
+}
+
+void ConnectionAgentPlugin::connectToService(const QString &servicePath)
+{
+    if (!connManagerInterface || !connManagerInterface->isValid()) {
+        Q_EMIT errorReported("","ConnectionAgent not available");
+        return;
+    }
+
+    connManagerInterface->connectToService(servicePath);
 }
 
 void ConnectionAgentPlugin::onErrorReported(const QString &servicePath, const QString &error)
