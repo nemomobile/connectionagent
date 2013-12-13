@@ -119,6 +119,15 @@ private:
     QElapsedTimer manualDisconnectionTimer;
     QString lastManuallyDisconnectedService;
 
+    QString delayedConnectService;
+    void delayedConnect();
+    int numberOfRetries;
+    QTimer *scanTimer;
+
+    QMap <QString, QList <uint> > wifiStrengths;
+    uint averageSignalStrength(const QString &servicePath);
+    QStringList knownTechnologies;
+
 private slots:
     void onScanFinished();
     void updateServicesMap();
@@ -150,7 +159,7 @@ private slots:
     void displayStateChanged(const QString &);
     void sleepStateChanged(bool);
 
-    void connectionTimeout();
+    void goodConnectionTimeout();
     void serviceAutoconnectChanged(bool);
     void scanTimeout();
 
