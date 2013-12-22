@@ -251,8 +251,6 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     }
     if (state == "failure") {
         serviceInProgress.clear();
-
-        Q_EMIT errorReported(service->path(), "Connection failure: "+ service->name());
         service->requestDisconnect();
     }
     if (currentNetworkState == "idle" && state == "association") {
@@ -567,6 +565,9 @@ QString QConnectionManager::findBestConnectableService()
         if ((netman->defaultRoute()->type() == "wifi" && service->type() == "wifi")
                 &&  netman->defaultRoute()->strength() > service->strength())
             return QString(); //better quality already connected
+
+        if (netman->defaultRoute()->type() == "wifi" && service->type() != "wifi")
+            return QString(); // prefer connected wifi
 
         bool isCellRoaming = false;
         if (service->type() == "cellular" && service->roaming()) {
@@ -915,14 +916,12 @@ void QConnectionManager::serviceAutoconnectChanged(bool on)
     NetworkService *service = qobject_cast<NetworkService *>(sender());
 
     qDebug() << service->path() << "AutoConnect is" << on
-                << lastManuallyDisconnectedService;
+             << lastManuallyDisconnectedService;
 
-    if (on) {
-        // Auto connect has been enabled allow it to
-        // be immediately connected.
-        manualDisconnectionTimer.invalidate();
-        lastManuallyDisconnectedService.clear();
-    }
+    // Auto connect has been changed allow it to
+    // be immediately connected.
+    manualDisconnectionTimer.invalidate();
+    lastManuallyDisconnectedService.clear();
     if (scanTimer->isActive())
         scanTimer->stop();
     autoConnect();
