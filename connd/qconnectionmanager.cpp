@@ -820,7 +820,8 @@ bool QConnectionManager::isBestService(const QString &servicePath)
     if (tetheringEnabled) return false;
     if (netman->defaultRoute()->path().contains(servicePath)) return false;
     if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
-    if (netman->defaultRoute()->strength() != 0
+    if ((servicesMap.value(servicePath)->type() == netman->defaultRoute()->type()) //diff tech has diff signal strength
+            && netman->defaultRoute()->strength() != 0
             && averageSignalStrength(netman->defaultRoute()->path()) + 4 > averageSignalStrength(servicePath)) return false;
     // 4 is some random number to try and keep connection switching to a minumum
     return true;
