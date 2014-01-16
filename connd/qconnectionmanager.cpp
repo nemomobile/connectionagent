@@ -907,6 +907,7 @@ void QConnectionManager::goodConnectionTimeout()
         } else {
             numberOfRetries = 0;
             errorReported(serviceInProgress,"limited connection");
+            serviceInProgress.clear();
         }
     }
 }
