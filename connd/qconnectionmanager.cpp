@@ -373,31 +373,25 @@ void QConnectionManager::connectToType(const QString &type)
         netTech.setPowered(true);
     }
     QStringList servicesList = netman->servicesList(type);
-    bool needConfig = false;
+    bool needConfig = true;
 
     if (servicesList.isEmpty()) {
         if (type == "wifi") {
+            needConfig = false;
             QObject::connect(&netTech,SIGNAL(scanFinished()),this,SLOT(onScanFinished()));
             netTech.scan();
-        } else {
-            needConfig = true;
-//            Q_EMIT errorReported("Service not found"); ?? do we want to report an error
         }
     } else {
         currentType = "";
 
         Q_FOREACH (const QString path, servicesList) {
-            // try harder with cell. a favorite is one that has been connected
-            // if there is a context configured but not yet connected, try to connect anyway
-
-            if (servicesMap.contains(path) &&
-                    (servicesMap.value(path)->favorite()
-                     || servicesMap.value(path)->type() == "cellular")) {
-                connectToNetworkService(path);
-                needConfig = false;
-                return;
-            } else {
-                needConfig = true;
+            NetworkService *service = servicesMap.value(path);
+            if (service) {
+                if (service->favorite() && service->autoConnect()) {
+                    needConfig = false;
+                    connectToNetworkService(path);
+                    break;
+                }
             }
         }
     }
