@@ -389,7 +389,11 @@ void QConnectionManager::connectToType(const QString &type)
             if (service) {
                 if (service->favorite() && service->autoConnect()) {
                     needConfig = false;
-                    connectToNetworkService(path);
+                    if (!connectToNetworkService(path))
+                        continue;
+
+                    lastManuallyConnectedService = serviceInProgress;
+                    manualConnnectionTimer.start();
                     break;
                 }
             }
