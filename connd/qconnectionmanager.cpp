@@ -407,19 +407,17 @@ void QConnectionManager::connectToType(const QString &type)
 bool QConnectionManager::connectToNetworkService(const QString &servicePath)
 {
     qDebug() << servicePath
-             << netman->state();
+             << netman->state()
+             << serviceInProgress;
 
     if (!servicesMap.contains(servicePath) || !serviceInProgress.isEmpty())
         return false;
 
-    NetworkTechnology technology;
     QString type = servicesMap.value(servicePath)->type();
     if (type.isEmpty())
         return false;
-    technology.setPath(netman->technologyPathForType(type));
-    qDebug() << technology.powered();
 
-    if (technology.powered()) {
+    if (netman->getTechnology(type)->powered()) {
         if (servicePath.contains("cellular")) {
 
             QOfonoManager oManager;
