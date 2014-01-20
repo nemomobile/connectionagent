@@ -62,6 +62,9 @@ Q_SIGNALS:
 
     void requestBrowser(/*const QString &path,*/ const QString &url);
 
+    void networkConnectivityUnavailable();
+    void networkConnectivityEstablished();
+
 public Q_SLOTS:
 
     void onUserInputRequested(const QString &servicePath, const QVariantMap &fields);
@@ -74,6 +77,7 @@ public Q_SLOTS:
     void sendUserReply(const QVariantMap &input);
 
     void connectToType(const QString &type);
+    void connectToService(const QString &service);
 
 private:
     explicit QConnectionManager(QObject *parent = 0);
@@ -162,6 +166,10 @@ private slots:
     void goodConnectionTimeout();
     void serviceAutoconnectChanged(bool);
     void scanTimeout();
+
+    void openConnectionDialog();
+    void connectionSelectorClosed(bool);
+    void defaultSessionConnectedChanged(bool);
 
 };
 
