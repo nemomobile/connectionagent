@@ -228,6 +228,8 @@ void QConnectionManager::servicesListChanged(const QStringList &list)
 void QConnectionManager::serviceErrorChanged(const QString &error)
 {
     qDebug() << error;
+    if (error == "Operation aborted")
+        return;
     NetworkService *service = static_cast<NetworkService *>(sender());
     if (error == "connect-failed")
         service->requestDisconnect();
