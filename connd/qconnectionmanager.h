@@ -163,6 +163,8 @@ private slots:
     void serviceAutoconnectChanged(bool);
     void scanTimeout();
 
+    void delayedAutoconnect();
+
 };
 
 #endif // QCONNECTIONMANAGER_H
