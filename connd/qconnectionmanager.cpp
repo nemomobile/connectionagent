@@ -222,7 +222,12 @@ void QConnectionManager::servicesListChanged(const QStringList &list)
         }
     }
     if (ok && serviceInProgress.isEmpty())
-        autoConnect();
+        QTimer::singleShot(1000,this,SLOT(delayedAutoconnect()));
+}
+
+void QConnectionManager::delayedAutoconnect()
+{
+    autoConnect();
 }
 
 void QConnectionManager::serviceErrorChanged(const QString &error)
@@ -241,8 +246,10 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << state << service->name() << service->strength();
-    if (!service->favorite())
+    if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
+        qDebug() << "not fav or not powered";
         return;
+    }
     if (state == "disconnect") {
         ua->sendConnectReply("Clear");
         // Stop the good connect timer when a service disconnects.
@@ -306,9 +313,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
             autoConnect();
         }
     }
-
-
-        currentNetworkState = state;
+    currentNetworkState = state;
         QSettings confFile;
         confFile.beginGroup("Connectionagent");
         confFile.setValue("connected",currentNetworkState);
@@ -345,6 +350,7 @@ bool QConnectionManager::autoConnect()
     // connectionagent from aborting a manual connection initiated by another process.
     if (manualDisconnectionTimer.isValid() && !manualDisconnectionTimer.hasExpired(10000) &&
         lastManuallyDisconnectedService == selectedService) {
+        qDebug() << "Don't immediately reconnect if the manual disconnection timer has not expired.";
         return false;
     }
 
@@ -445,14 +451,15 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
             //isCellRoaming
             if (servicesMap.value(servicePath)->roaming()
                     && !oConnManager.roamingAllowed()) {
-                    //roaming and user doesnt want connection while roaming
-                    qDebug() << "roaming not allowed";
-                    return false;
-                }
-
-                requestConnect(servicePath);
+                //roaming and user doesnt want connection while roaming
+                qDebug() << "roaming not allowed";
+                return false;
+            }
+            delayedConnectService = servicePath;
+            delayedConnect();
         } else {
-            requestConnect(servicePath);
+            delayedConnectService = servicePath;
+            delayedConnect();
         }
     }
     return true;
@@ -548,7 +555,7 @@ QString QConnectionManager::findBestConnectableService()
                  << lastManuallyConnectedService;
 
         bool online = isStateOnline(netman->defaultRoute()->state());
-        qDebug() << "state is online" << netman->defaultRoute()->path();
+        qDebug() << "state is"<< online << netman->defaultRoute()->path();
 
         if (!service->autoConnect()) {
             continue;
@@ -762,7 +769,7 @@ void QConnectionManager::technologyPowerChanged(bool b)
     }
 
     lastManuallyDisconnectedService.clear();
-    autoConnect();
+    QTimer::singleShot(1000,this,SLOT(delayedAutoconnect()));
 }
 
 void QConnectionManager::techChanged()
@@ -817,6 +824,7 @@ bool QConnectionManager::isBestService(const QString &servicePath)
     qDebug() << averageSignalStrength(servicePath) << averageSignalStrength( netman->defaultRoute()->path());
 
     if (tetheringEnabled) return false;
+    if (netman->defaultRoute()->type() == "wifi" && servicesMap.value(servicePath)->type() == "cellular") return false;
     if (netman->defaultRoute()->path().contains(servicePath)) return false;
     if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
     if ((servicesMap.value(servicePath)->type() == netman->defaultRoute()->type()) //diff tech has diff signal strength
@@ -852,7 +860,8 @@ void QConnectionManager::requestConnect(const QString &servicePath)
              delayedConnectService = servicePath;
              requestDisconnect(netman->defaultRoute()->path());
          } else {
-             servicesMap.value(servicePath)->requestConnect();
+             delayedConnectService = servicePath;
+             delayedConnect();
          }
     }
 }
@@ -916,11 +925,12 @@ void QConnectionManager::serviceAutoconnectChanged(bool on)
 
     qDebug() << service->path() << "AutoConnect is" << on
              << lastManuallyDisconnectedService;
-
-    // Auto connect has been changed allow it to
-    // be immediately connected.
-    manualDisconnectionTimer.invalidate();
-    lastManuallyDisconnectedService.clear();
+    if (on && service->path() == lastManuallyDisconnectedService) {
+        // Auto connect has been changed allow it to
+        // be immediately connected.
+        manualDisconnectionTimer.invalidate();
+        lastManuallyDisconnectedService.clear();
+    }
     if (scanTimer->isActive())
         scanTimer->stop();
     autoConnect();
