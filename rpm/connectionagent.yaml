@@ -1,10 +1,10 @@
 Name: connectionagent
 Summary: User Agent daemon
-Version: 0.9.21
+Version: 0.9.22
 Release: 0
 Group: "Communications/Connectivity Adaptation"
 License: LGPLv2
-URL: http://github.com/lpotter/connectionagent 
+URL: http://github.com/lpotter/connectionagent
 Description: |
     Connection Agent provides multi user access to connman's User Agent.
     It also provides autoconnecting features.
