@@ -575,7 +575,7 @@ QString QConnectionManager::findBestConnectableService()
             return QString(); // prefer connected wifi
 
         bool isCellRoaming = false;
-        if (service->type() == "cellular" && service->roaming()) {
+        if (service->type() == "cellular" && service->roaming() && !service->connected()) {
 
             isCellRoaming = askForRoaming;
 
