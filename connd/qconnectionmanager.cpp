@@ -824,6 +824,7 @@ bool QConnectionManager::isBestService(const QString &servicePath)
     qDebug() << averageSignalStrength(servicePath) << averageSignalStrength( netman->defaultRoute()->path());
 
     if (tetheringEnabled) return false;
+    if (netman->offlineMode() && servicesMap.value(servicePath)->type() == "cellular") return false;
     if (netman->defaultRoute()->type() == "wifi" && servicesMap.value(servicePath)->type() == "cellular") return false;
     if (netman->defaultRoute()->path().contains(servicePath)) return false;
     if (!serviceInProgress.isEmpty() && serviceInProgress != servicePath) return false;
