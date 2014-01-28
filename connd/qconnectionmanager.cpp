@@ -938,8 +938,6 @@ void QConnectionManager::serviceAutoconnectChanged(bool on)
 
 void QConnectionManager::scanTimeout()
 {
-    qDebug() << netman->defaultRoute()->type()  << tetheringWifiTech->powered() << tetheringWifiTech->connected();
-
     if (tetheringWifiTech && tetheringWifiTech->powered() && !tetheringWifiTech->connected() && netman->defaultRoute()->type() != "wifi" ) {
         tetheringWifiTech->scan();
         qDebug() << "start scanner" << scanTimeoutInterval;
