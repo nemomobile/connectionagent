@@ -422,46 +422,37 @@ bool QConnectionManager::connectToNetworkService(const QString &servicePath)
         return false;
 
     QString type = servicesMap.value(servicePath)->type();
-    if (type.isEmpty())
+    if (type.isEmpty() || !netman->getTechnology(type)->powered())
         return false;
 
-    if (netman->getTechnology(type)->powered()) {
-        if (servicePath.contains("cellular")) {
+    if (servicePath.contains("cellular")) {
 
-            QOfonoManager oManager;
-            if (!oManager.available()) {
-                qDebug() << "ofono not available.";
-                return false;
-            }
-            if (oManager.modems().count() < 1)
-                return false;
+        QOfonoManager oManager;
+        if (!oManager.available() || oManager.modems().count() < 1) {
+            qDebug() << "ofono not available.";
+            return false;
+        }
+        QOfonoNetworkRegistration ofonoReg;
+        ofonoReg.setModemPath(oManager.modems().at(0));
 
-            QOfonoNetworkRegistration ofonoReg;
-            ofonoReg.setModemPath(oManager.modems().at(0));
+        if (ofonoReg.status() != "registered"
+                &&  ofonoReg.status() != "roaming") { //not on any cell network so bail
+            qDebug() << "ofono is not registered yet";
+            return false;
+        }
 
-            if (ofonoReg.status() != "registered"
-                    &&  ofonoReg.status() != "roaming") { //not on any cell network so bail
-                qDebug() << "ofono is not registered yet";
-                return false;
-            }
+        QOfonoConnectionManager oConnManager;
+        oConnManager.setModemPath(oManager.modems().at(0));
 
-            QOfonoConnectionManager oConnManager;
-            oConnManager.setModemPath(oManager.modems().at(0));
-
-            //isCellRoaming
-            if (servicesMap.value(servicePath)->roaming()
-                    && !oConnManager.roamingAllowed()) {
-                //roaming and user doesnt want connection while roaming
-                qDebug() << "roaming not allowed";
-                return false;
-            }
-            delayedConnectService = servicePath;
-            delayedConnect();
-        } else {
-            delayedConnectService = servicePath;
-            delayedConnect();
+        //isCellRoaming
+        if (servicesMap.value(servicePath)->roaming()
+                && !oConnManager.roamingAllowed()) {
+            //roaming and user doesnt want connection while roaming
+            qDebug() << "roaming not allowed";
+            return false;
         }
     }
+    requestConnect(servicePath);
     return true;
 }
 
