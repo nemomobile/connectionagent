@@ -15,6 +15,7 @@ Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
+Source1:    connectionagent.tracing
 Source100:  connectionagent-qt5.yaml
 Requires:   connman-qt5-declarative
 Requires:   systemd
@@ -52,6 +53,15 @@ Requires:   %{name} = %{version}
 %description test
 This package contains the auto tests for connection agent.
 
+%package tracing
+Summary:    Configuration for Connectionagent to enable tracing
+Group:      Development/Tools
+Requires:   %{name} = %{version}-%{release}
+
+%description tracing
+Will enable tracing for Connectionagent
+
+
 %prep
 %setup -q -n %{name}-%{version}
 
@@ -74,6 +84,10 @@ rm -rf %{buildroot}
 # >> install pre
 # << install pre
 %qmake5_install
+
+%make_install
+mkdir -p %{buildroot}%{_sysconfdir}/tracing/connectionagent/
+cp -a %{SOURCE1} %{buildroot}%{_sysconfdir}/tracing/connectionagent/
 
 # >> install post
 mkdir -p %{buildroot}%{_libdir}/systemd/user/user-session.target.wants
@@ -117,3 +131,10 @@ fi
 %{_prefix}/opt/tests/libqofono/*
 # >> files test
 # << files test
+
+%files tracing
+%defattr(-,root,root,-)
+%config %{_sysconfdir}/tracing/connectionagent
+# >> files tracing
+# << files tracing
+

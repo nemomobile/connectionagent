@@ -4,7 +4,8 @@ Requires=dbus.service
 After=pre-user-session.target
 
 [Service]
-ExecStart=/usr/bin/connectionagent
+EnvironmentFile=-/etc/tracing/connectionagent/connectionagent.tracing
+ExecStart=/usr/bin/connectionagent $TRACING
 Type=dbus
 BusName=com.jolla.Connectiond
 Restart=always

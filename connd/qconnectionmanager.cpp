@@ -787,6 +787,8 @@ void QConnectionManager::techChanged()
 void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
 {
     Q_UNUSED(servicePath)
+    qDebug() << servicePath;
+    qDebug() << url;
 
     Q_EMIT requestBrowser(url);
 }
