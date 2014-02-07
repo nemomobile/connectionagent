@@ -45,7 +45,7 @@ class QConnectionManager : public QObject
 
 public:
     ~QConnectionManager();
-    
+
     static QConnectionManager &instance();
     bool askRoaming() const;
     void setAskRoaming(bool value);
@@ -121,7 +121,6 @@ private:
 
     QString delayedConnectService;
     void delayedConnect();
-    int numberOfRetries;
     QTimer *scanTimer;
 
     QMap <QString, QList <uint> > wifiStrengths;

@@ -65,8 +65,7 @@ QConnectionManager::QConnectionManager(QObject *parent) :
      tetheringWifiTech(0),
      tetheringEnabled(false),
      flightModeSuppression(false),
-     scanTimeoutInterval(1),
-     numberOfRetries(0)
+     scanTimeoutInterval(1)
 {
     qDebug() << Q_FUNC_INFO;
 
@@ -129,7 +128,6 @@ QConnectionManager::QConnectionManager(QObject *parent) :
     connmanAvailable = QDBusConnection::systemBus().interface()->isServiceRegistered("net.connman");
     goodConnectTimer = new QTimer(this);
     goodConnectTimer->setSingleShot(true);
-    goodConnectTimer->setInterval(12 * 1000);
     connect(goodConnectTimer,SIGNAL(timeout()),this,SLOT(goodConnectionTimeout()));
 
     scanTimer = new QTimer(this);
@@ -252,11 +250,6 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     }
     if (state == "disconnect") {
         ua->sendConnectReply("Clear");
-        // Stop the good connect timer when a service disconnects.
-        if (service->path() == serviceInProgress) {
-            qDebug() << "stopping good connection timer";
-            goodConnectTimer->stop();
-        }
     }
     if (state == "failure") {
         serviceInProgress.clear();
@@ -264,6 +257,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     }
     if (currentNetworkState == "idle" && state == "association") {
         qDebug() << "Starting good connection timer";
+        goodConnectTimer->setInterval(120 * 1000); //2 minutes, same as connman input request timeout
         goodConnectTimer->start();
     }
 
@@ -274,7 +268,6 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         manualConnnectionTimer.start();
     }
 
-    //auto migrate
     if (service->path() == serviceInProgress
             && state == "online") {
         Q_EMIT connectionState(state, service->type());
@@ -789,6 +782,10 @@ void QConnectionManager::browserRequest(const QString &servicePath, const QStrin
     Q_UNUSED(servicePath)
     qDebug() << servicePath;
     qDebug() << url;
+    goodConnectTimer->stop();
+
+    goodConnectTimer->setInterval(5 * 60 * 1000);//may take user up to 5 mintues to figure out the passphrase
+    goodConnectTimer->start();
 
     Q_EMIT requestBrowser(url);
 }
@@ -897,19 +894,22 @@ void QConnectionManager::sleepStateChanged(bool on)
 
 void QConnectionManager::goodConnectionTimeout()
 {
-    qDebug() <<netman->state() << numberOfRetries;
+    qDebug() <<netman->state();
     if (netman->state() != "online") {
 
-        if (numberOfRetries < 3) {
-            numberOfRetries++;
+        if (servicesMap.contains(serviceInProgress) && servicesMap.value(serviceInProgress)->state() == "ready") {
             delayedConnectService = serviceInProgress;
-            if (servicesMap.contains(serviceInProgress) && servicesMap.value(serviceInProgress)->state() != "idle")
-                requestDisconnect(serviceInProgress);
-        } else {
-            numberOfRetries = 0;
-            errorReported(serviceInProgress,"limited connection");
-            serviceInProgress.clear();
+            requestDisconnect(serviceInProgress);
         }
+        errorReported(serviceInProgress,"connection failure");
+
+        if (servicesMap.value(serviceInProgress)->state() == "association"
+                && servicesMap.value(serviceInProgress)->type() == "wifi") {
+            // connman is stuck in association state, we need to do something drastic to reset
+            netman->getTechnology("wifi")->setPowered(false);
+            netman->getTechnology("wifi")->setPowered(true);
+        }
+        serviceInProgress.clear();
     }
 }
 
