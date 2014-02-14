@@ -758,7 +758,13 @@ void QConnectionManager::technologyPowerChanged(bool b)
 
 void QConnectionManager::techChanged()
 {
-    qDebug() << knownTechnologies;
+    if (netman->getTechnologies().isEmpty()) {
+        knownTechnologies.clear();
+    }
+    if (!netman->getTechnology("wifi")) {
+        tetheringWifiTech = 0;
+        return;
+    }
     if (tetheringWifiTech) {
         tetheringEnabled = tetheringWifiTech->tethering();
         qDebug() << "tethering is" << tetheringEnabled;
@@ -766,15 +772,17 @@ void QConnectionManager::techChanged()
                          this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
     }
 
-    Q_FOREACH(const NetworkTechnology *technology,netman->getTechnologies()) {
+    Q_FOREACH(NetworkTechnology *technology,netman->getTechnologies()) {
         if (!knownTechnologies.contains(technology->path())) {
             knownTechnologies << technology->path();
-            connect(technology,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
+            if (technology->type() == "wifi") {
+                tetheringWifiTech = technology;
+                connect(tetheringWifiTech,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
+            }
         } else {
             knownTechnologies.removeOne(technology->path());
         }
     }
-
 }
 
 void QConnectionManager::browserRequest(const QString &servicePath, const QString &url)
