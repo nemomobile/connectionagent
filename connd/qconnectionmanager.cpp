@@ -787,6 +787,11 @@ void QConnectionManager::browserRequest(const QString &servicePath, const QStrin
     goodConnectTimer->setInterval(5 * 60 * 1000);//may take user up to 5 mintues to figure out the passphrase
     goodConnectTimer->start();
 
+    if (netman->defaultRoute()->type() == "cellular") {
+        lastManuallyDisconnectedService = netman->defaultRoute()->path();
+        requestDisconnect(netman->defaultRoute()->path());
+    }
+
     Q_EMIT requestBrowser(url);
 }
 
