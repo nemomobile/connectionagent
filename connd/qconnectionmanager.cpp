@@ -231,6 +231,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << state << service->name() << service->strength();
+    qDebug() << "currentNetworkState" << currentNetworkState;
     if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
         return;
@@ -269,7 +270,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         }
 
         if (!delayedConnectService.isEmpty()) {
-            delayedConnect();
+            QTimer::singleShot(750,this,SLOT(delayedConnect()));
+//            delayedConnect();
         }
 
         if (serviceInProgress == service->path())
@@ -456,15 +458,17 @@ void QConnectionManager::updateServicesMap()
         QVector<NetworkService*> services = netman->getServices(tech);
 
         Q_FOREACH (NetworkService *serv, services) {
+            const QString servicePath = serv->path();
+
             qDebug() << "known service:" << serv->name() << serv->strength();
 
-            servicesMap.insert(serv->path(), serv);
-            orderedServicesList << serv->path();
+            servicesMap.insert(servicePath, serv);
+            orderedServicesList << servicePath;
 
-            if (!oldServices.contains(serv->path())) {
+            if (!oldServices.contains(servicePath)) {
                 //new!
                 qDebug() <<"new service"
-                         << serv->path();
+                         << servicePath;
 
                 QObject::connect(serv, SIGNAL(stateChanged(QString)),
                                  this,SLOT(serviceStateChanged(QString)), Qt::UniqueConnection);
@@ -484,6 +488,7 @@ void QConnectionManager::updateServicesMap()
             }
         }
     }
+
     qDebug() << orderedServicesList;
 }
 
@@ -520,7 +525,7 @@ QString QConnectionManager::findBestConnectableService()
 
         NetworkService *service = servicesMap.value(path);
         if (!service)
-            return QString();
+            continue;
 
         qDebug() << "looking at"
                  << service->name()
@@ -742,7 +747,6 @@ void QConnectionManager::setup()
                 && (!isEthernet && confFile.value("connected", "online").toString() == "online")) {
             autoConnect();
         }
-        disconnect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
     }
 }
 
@@ -752,6 +756,8 @@ void QConnectionManager::technologyPowerChanged(bool b)
     qDebug() << tech->name() << b;
 
     if (b && tech->type() == "wifi") {
+        if (serviceInProgress.contains("wifi"))
+            serviceInProgress.clear();
         tetheringWifiTech->scan();
     }
 
@@ -860,16 +866,20 @@ void QConnectionManager::requestDisconnect(const QString &servicePath)
 
 void QConnectionManager::requestConnect(const QString &servicePath)
 {
-    if (servicesMap.contains(servicePath)) {
-        qDebug() << servicePath;
-         serviceInProgress = servicePath;
-         if (netman->defaultRoute()->connected()) {
-             delayedConnectService = servicePath;
-             requestDisconnect(netman->defaultRoute()->path());
-         } else {
-             delayedConnectService = servicePath;
-             delayedConnect();
-         }
+    qDebug() << "currentNetworkState" << currentNetworkState;
+
+    // if already trying to connect, just return
+    if (currentNetworkState == "association")
+        return;
+
+    qDebug() << servicePath;
+    serviceInProgress = servicePath;
+    if (netman->defaultRoute()->connected()) {
+        delayedConnectService = servicePath;
+        requestDisconnect(netman->defaultRoute()->path());
+    } else {
+        delayedConnectService = servicePath;
+        QTimer::singleShot(750,this,SLOT(delayedConnect()));
     }
 }
 
@@ -910,12 +920,15 @@ void QConnectionManager::sleepStateChanged(bool on)
 
 void QConnectionManager::goodConnectionTimeout()
 {
-    qDebug();
-    if (netman->isAvailable() && netman->state() != "online") {
+    qDebug() <<"serviceInProgress" << serviceInProgress;
+    if (serviceInProgress.isEmpty())
+        return;
+    if (connmanAvailable && netman->state() != "online") {
         qDebug() <<netman->state();
 
         if (servicesMap.contains(serviceInProgress) && servicesMap.value(serviceInProgress)->state() == "ready") {
             delayedConnectService = serviceInProgress;
+            lastManuallyDisconnectedService = serviceInProgress;
             requestDisconnect(serviceInProgress);
         }
         errorReported(serviceInProgress,"connection failure");
