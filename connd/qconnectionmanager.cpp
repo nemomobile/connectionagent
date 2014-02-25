@@ -53,19 +53,20 @@ QConnectionManager* QConnectionManager::self = NULL;
 
 QConnectionManager::QConnectionManager(QObject *parent) :
     QObject(parent),
-     netman(NetworkManagerFactory::createInstance()),
-     currentNetworkState(QString()),
-     currentType(QString()),
-     currentNotification(0),
-     askForRoaming(false),
-     isEthernet(false),
-     connmanAvailable(false),
-     handoverInProgress(false),
-     oContext(0),
-     tetheringWifiTech(0),
-     tetheringEnabled(false),
-     flightModeSuppression(false),
-     scanTimeoutInterval(1)
+    ua(0),
+    netman(NetworkManagerFactory::createInstance()),
+    currentNetworkState(QString()),
+    currentType(QString()),
+    currentNotification(0),
+    askForRoaming(false),
+    isEthernet(false),
+    connmanAvailable(false),
+    handoverInProgress(false),
+    oContext(0),
+    tetheringWifiTech(0),
+    tetheringEnabled(false),
+    flightModeSuppression(false),
+    scanTimeoutInterval(1)
 {
     qDebug() << Q_FUNC_INFO;
 
@@ -87,22 +88,8 @@ QConnectionManager::QConnectionManager(QObject *parent) :
 
     askForRoaming = askRoaming();
 
-    ua = new UserAgent(this);
-
-    connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
-            this,SLOT(onUserInputRequested(QString,QVariantMap)));
-
-    connect(ua,SIGNAL(connectionRequest()),this,SLOT(onConnectionRequest()));
-    connect(ua,SIGNAL(errorReported(QString, QString)),this,SLOT(onErrorReported(QString, QString)));
-    connect(ua,SIGNAL(userInputCanceled()),this,SLOT(onUserInputCanceled()));
-    connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
-            this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
-    connect(ua,SIGNAL(browserRequested(QString,QString)),
-            this,SLOT(browserRequest(QString,QString)), Qt::UniqueConnection);
-
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
-    connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
     connect(netman,SIGNAL(offlineModeChanged(bool)),this,SLOT(offlineModeChanged(bool)));
 
     QFile connmanConf("/etc/connman/main.conf");
@@ -244,6 +231,7 @@ void QConnectionManager::serviceStateChanged(const QString &state)
 {
     NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << state << service->name() << service->strength();
+    qDebug() << "currentNetworkState" << currentNetworkState;
     if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
         return;
@@ -282,7 +270,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
         }
 
         if (!delayedConnectService.isEmpty()) {
-            delayedConnect();
+            QTimer::singleShot(750,this,SLOT(delayedConnect()));
+//            delayedConnect();
         }
 
         if (serviceInProgress == service->path())
@@ -469,15 +458,17 @@ void QConnectionManager::updateServicesMap()
         QVector<NetworkService*> services = netman->getServices(tech);
 
         Q_FOREACH (NetworkService *serv, services) {
+            const QString servicePath = serv->path();
+
             qDebug() << "known service:" << serv->name() << serv->strength();
 
-            servicesMap.insert(serv->path(), serv);
-            orderedServicesList << serv->path();
+            servicesMap.insert(servicePath, serv);
+            orderedServicesList << servicePath;
 
-            if (!oldServices.contains(serv->path())) {
+            if (!oldServices.contains(servicePath)) {
                 //new!
                 qDebug() <<"new service"
-                         << serv->path();
+                         << servicePath;
 
                 QObject::connect(serv, SIGNAL(stateChanged(QString)),
                                  this,SLOT(serviceStateChanged(QString)), Qt::UniqueConnection);
@@ -497,6 +488,7 @@ void QConnectionManager::updateServicesMap()
             }
         }
     }
+
     qDebug() << orderedServicesList;
 }
 
@@ -532,6 +524,8 @@ QString QConnectionManager::findBestConnectableService()
         QString path = orderedServicesList.at(i);
 
         NetworkService *service = servicesMap.value(path);
+        if (!service)
+            continue;
 
         qDebug() << "looking at"
                  << service->name()
@@ -674,7 +668,6 @@ void QConnectionManager::connmanAvailabilityChanged(bool b)
     connmanAvailable = b;
     if (b) {
         setup();
-        connect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
         currentNetworkState = netman->state();
     } else {
         servicesMap.clear();
@@ -708,6 +701,21 @@ void QConnectionManager::setup()
     if (connmanAvailable) {
         qDebug() << Q_FUNC_INFO
                  << netman->state();
+        if (ua)
+            delete ua;
+
+        ua = new UserAgent(this);
+
+        connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
+                this,SLOT(onUserInputRequested(QString,QVariantMap)));
+
+        connect(ua,SIGNAL(connectionRequest()),this,SLOT(onConnectionRequest()));
+        connect(ua,SIGNAL(errorReported(QString, QString)),this,SLOT(onErrorReported(QString, QString)));
+        connect(ua,SIGNAL(userInputCanceled()),this,SLOT(onUserInputCanceled()));
+        connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
+                this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
+        connect(ua,SIGNAL(browserRequested(QString,QString)),
+                this,SLOT(browserRequest(QString,QString)), Qt::UniqueConnection);
 
         updateServicesMap();
         offlineModeChanged(netman->offlineMode());
@@ -739,7 +747,6 @@ void QConnectionManager::setup()
                 && (!isEthernet && confFile.value("connected", "online").toString() == "online")) {
             autoConnect();
         }
-        disconnect(netman,SIGNAL(servicesChanged()),this,SLOT(setup()));
     }
 }
 
@@ -749,6 +756,8 @@ void QConnectionManager::technologyPowerChanged(bool b)
     qDebug() << tech->name() << b;
 
     if (b && tech->type() == "wifi") {
+        if (serviceInProgress.contains("wifi"))
+            serviceInProgress.clear();
         tetheringWifiTech->scan();
     }
 
@@ -857,16 +866,20 @@ void QConnectionManager::requestDisconnect(const QString &servicePath)
 
 void QConnectionManager::requestConnect(const QString &servicePath)
 {
-    if (servicesMap.contains(servicePath)) {
-        qDebug() << servicePath;
-         serviceInProgress = servicePath;
-         if (netman->defaultRoute()->connected()) {
-             delayedConnectService = servicePath;
-             requestDisconnect(netman->defaultRoute()->path());
-         } else {
-             delayedConnectService = servicePath;
-             delayedConnect();
-         }
+    qDebug() << "currentNetworkState" << currentNetworkState;
+
+    // if already trying to connect, just return
+    if (currentNetworkState == "association")
+        return;
+
+    qDebug() << servicePath;
+    serviceInProgress = servicePath;
+    if (netman->defaultRoute()->connected()) {
+        delayedConnectService = servicePath;
+        requestDisconnect(netman->defaultRoute()->path());
+    } else {
+        delayedConnectService = servicePath;
+        QTimer::singleShot(750,this,SLOT(delayedConnect()));
     }
 }
 
@@ -907,11 +920,15 @@ void QConnectionManager::sleepStateChanged(bool on)
 
 void QConnectionManager::goodConnectionTimeout()
 {
-    qDebug() <<netman->state();
-    if (netman->state() != "online") {
+    qDebug() <<"serviceInProgress" << serviceInProgress;
+    if (serviceInProgress.isEmpty())
+        return;
+    if (connmanAvailable && netman->state() != "online") {
+        qDebug() <<netman->state();
 
         if (servicesMap.contains(serviceInProgress) && servicesMap.value(serviceInProgress)->state() == "ready") {
             delayedConnectService = serviceInProgress;
+            lastManuallyDisconnectedService = serviceInProgress;
             requestDisconnect(serviceInProgress);
         }
         errorReported(serviceInProgress,"connection failure");

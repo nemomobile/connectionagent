@@ -120,7 +120,6 @@ private:
     QString lastManuallyDisconnectedService;
 
     QString delayedConnectService;
-    void delayedConnect();
     QTimer *scanTimer;
 
     QMap <QString, QList <uint> > wifiStrengths;
@@ -163,6 +162,7 @@ private slots:
     void scanTimeout();
 
     void delayedAutoconnect();
+    void delayedConnect();
 
 };
 
