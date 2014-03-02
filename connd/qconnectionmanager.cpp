@@ -157,7 +157,7 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
-    qDebug() << error;
+    qDebug() << "<<<<<<<<<<<<<<<<<<<<" << servicePath << error;
     Q_EMIT errorReported(servicePath, error);
     serviceInProgress.clear();
 }
@@ -232,6 +232,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << state << service->name() << service->strength();
     qDebug() << "currentNetworkState" << currentNetworkState;
+    qDebug() << "delayedConnectService" << delayedConnectService;
+
     if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
         return;
@@ -869,8 +871,10 @@ void QConnectionManager::requestConnect(const QString &servicePath)
     qDebug() << "currentNetworkState" << currentNetworkState;
 
     // if already trying to connect, just return
-    if (currentNetworkState == "association")
+    if (!serviceInProgress.isEmpty() && currentNetworkState == "association")
         return;
+    else
+        currentNetworkState.clear();
 
     qDebug() << servicePath;
     serviceInProgress = servicePath;
