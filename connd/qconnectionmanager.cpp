@@ -959,6 +959,26 @@ void QConnectionManager::serviceAutoconnectChanged(bool on)
         manualDisconnectionTimer.invalidate();
         lastManuallyDisconnectedService.clear();
     }
+    if (!on && serviceInProgress == service->path()) {
+        serviceInProgress.clear();
+        delayedConnectService.clear();
+        if (service->type() == "cellular") {
+            QOfonoManager oManager;
+            QOfonoConnectionManager oConnManager;
+            oConnManager.setModemPath(oManager.modems().at(0));
+            Q_FOREACH(const QString &context, oConnManager.contexts()) {
+                qDebug() << context <<serviceInProgress.section("_",2,2) << context.contains(serviceInProgress.section("_",2,2));
+                if (context.contains(serviceInProgress.section("_",2,2))) {
+                    QOfonoConnectionContext connContext;
+                    connContext.setContextPath(context);
+                    connContext.setActive(false);
+                }
+            }
+        }
+        servicesMap.value(service->path())->requestDisconnect();
+        return;
+    }
+
     if (scanTimer->isActive())
         scanTimer->stop();
     autoConnect();
