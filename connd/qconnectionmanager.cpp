@@ -157,7 +157,7 @@ void QConnectionManager::onUserInputCanceled()
 // from useragent
 void QConnectionManager::onErrorReported(const QString &servicePath, const QString &error)
 {
-    qDebug() << error;
+    qDebug() << "<<<<<<<<<<<<<<<<<<<<" << servicePath << error;
     Q_EMIT errorReported(servicePath, error);
     serviceInProgress.clear();
 }
@@ -232,6 +232,8 @@ void QConnectionManager::serviceStateChanged(const QString &state)
     NetworkService *service = static_cast<NetworkService *>(sender());
     qDebug() << state << service->name() << service->strength();
     qDebug() << "currentNetworkState" << currentNetworkState;
+    qDebug() << "delayedConnectService" << delayedConnectService;
+
     if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
         return;
@@ -869,8 +871,10 @@ void QConnectionManager::requestConnect(const QString &servicePath)
     qDebug() << "currentNetworkState" << currentNetworkState;
 
     // if already trying to connect, just return
-    if (currentNetworkState == "association")
+    if (!serviceInProgress.isEmpty() && currentNetworkState == "association")
         return;
+    else
+        currentNetworkState.clear();
 
     qDebug() << servicePath;
     serviceInProgress = servicePath;
@@ -955,6 +959,26 @@ void QConnectionManager::serviceAutoconnectChanged(bool on)
         manualDisconnectionTimer.invalidate();
         lastManuallyDisconnectedService.clear();
     }
+    if (!on && serviceInProgress == service->path()) {
+        serviceInProgress.clear();
+        delayedConnectService.clear();
+        if (service->type() == "cellular") {
+            QOfonoManager oManager;
+            QOfonoConnectionManager oConnManager;
+            oConnManager.setModemPath(oManager.modems().at(0));
+            Q_FOREACH(const QString &context, oConnManager.contexts()) {
+                qDebug() << context <<serviceInProgress.section("_",2,2) << context.contains(serviceInProgress.section("_",2,2));
+                if (context.contains(serviceInProgress.section("_",2,2))) {
+                    QOfonoConnectionContext connContext;
+                    connContext.setContextPath(context);
+                    connContext.setActive(false);
+                }
+            }
+        }
+        servicesMap.value(service->path())->requestDisconnect();
+        return;
+    }
+
     if (scanTimer->isActive())
         scanTimer->stop();
     autoConnect();
