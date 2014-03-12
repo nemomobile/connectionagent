@@ -878,7 +878,9 @@ void QConnectionManager::requestConnect(const QString &servicePath)
 
     qDebug() << servicePath;
     serviceInProgress = servicePath;
-    if (netman->defaultRoute()->connected()) {
+    if (netman->defaultRoute()->connected()
+            && serviceInProgress.contains("wifi") && netman->defaultRoute()->type() == "cellular") {
+        //wifi is preferred and should have default route when connected.
         delayedConnectService = servicePath;
         requestDisconnect(netman->defaultRoute()->path());
     } else {
