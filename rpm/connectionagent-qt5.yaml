@@ -1,6 +1,6 @@
 Name: connectionagent-qt5
 Summary: User Agent daemon
-Version: 0.9.2
+Version: 0.9.29
 Release: 0
 Group: "Communications/Connectivity Adaptation"
 License: LGPLv2
@@ -10,7 +10,7 @@ Description: |
     It also provides autoconnecting features.
 
 Sources:
-    - "%{name}-%{version}.tar.bz28"
+    - "%{name}-%{version}.tar.bz"
 Requires:
     - connman-qt5-declarative
     - systemd
