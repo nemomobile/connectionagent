@@ -12,7 +12,7 @@ equals(QT_MAJOR_VERSION, 5):  {
     PKGCONFIG += connman-qt5 qofono-qt5
 }
 
-CONFIG   += console link_pkgconfig 
+CONFIG   += console link_pkgconfig
 CONFIG   -= app_bundle
 
 TEMPLATE = app
@@ -25,12 +25,12 @@ OTHER_FILES += com.jolla.Connectiond.xml
 #system(qdbusxml2cpp -c ConnAdaptor -a connadaptor.h:connadaptor.cpp com.jollamobile.Connectiond.xml)
 
 SOURCES += main.cpp \
-    qconnectionmanager.cpp \
+    qconnectionagent.cpp \
     connadaptor.cpp \
     wakeupwatcher.cpp
 
 HEADERS+= \
-    qconnectionmanager.h \
+    qconnectionagent.h \
     connadaptor.h \
     wakeupwatcher.h
 

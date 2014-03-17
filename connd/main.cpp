@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "qconnectionmanager.h"
+#include "qconnectionagent.h"
 #include "connadaptor.h"
 
 static void signal_handler(int signum)
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    QConnectionManager::instance();
+    QConnectionAgent::instance();
 
     return a.exec();
 }
