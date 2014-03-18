@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 
 #include "qconnectionmanager.h"
-#include "connadaptor.h"
+#include "connectiond_adaptor.h"
 
 static void signal_handler(int signum)
 {

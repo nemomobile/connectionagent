@@ -15,7 +15,7 @@
 ****************************************************************************/
 
 #include "qconnectionmanager.h"
-#include "connadaptor.h"
+#include "connectiond_adaptor.h"
 #include "wakeupwatcher.h"
 
 #include <connman-qt5/useragent.h>
