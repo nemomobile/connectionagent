@@ -15,7 +15,6 @@ Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
-Source100:  connectionagent.yaml
 BuildRequires:  pkgconfig(QtCore)
 BuildRequires:  pkgconfig(QtDBus)
 BuildRequires:  pkgconfig(connman-qt4)
