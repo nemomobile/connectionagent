@@ -15,10 +15,9 @@
 ****************************************************************************/
 
 #include "qconnectionmanager.h"
-#include "connadaptor.h"
+#include "connectiond_adaptor.h"
 #include "wakeupwatcher.h"
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <connman-qt5/useragent.h>
 #include <connman-qt5/networkmanager.h>
 #include <connman-qt5/networktechnology.h>
@@ -28,17 +27,6 @@
 #include <qofono-qt5/qofonoconnectionmanager.h>
 #include <qofono-qt5/qofononetworkregistration.h>
 #include <qofono-qt5/qofonomanager.h>
-
-#else
-#include <connman-qt/useragent.h>
-#include <connman-qt/networkmanager.h>
-#include <connman-qt/networktechnology.h>
-#include <connman-qt/networkservice.h>
-#include <connman-qt/sessionagent.h>
-#include <qofono-qt/qofonoconnectioncontext.h>
-#include <qofono-qt/qofonoconnectionmanager.h>
-#include <qofono-qt/qofonomanager.h>
-#endif
 
 #include <QtDBus/QDBusConnection>
 
