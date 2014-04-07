@@ -1,37 +1,30 @@
 
-QT += core network dbus gui
-QT -= gui
+QT = core network dbus
 
-equals(QT_MAJOR_VERSION, 4):  {
-    TARGET = connectionagent
-    PKGCONFIG += connman-qt4 qofono-qt
-
-}
-equals(QT_MAJOR_VERSION, 5):  {
-    TARGET = connectionagent
-    PKGCONFIG += connman-qt5 qofono-qt5
-}
+TARGET = connectionagent
+PKGCONFIG += connman-qt5 qofono-qt5
 
 CONFIG   += console link_pkgconfig
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-QT += core network dbus
-
 OTHER_FILES += com.jolla.Connectiond.xml
+
+DBUS_ADAPTORS = connadaptor
+connadaptor.files = com.jollamobile.Connectiond.xml
+connadaptor.header_flags = -c ConnAdaptor
+connadaptor.source_flags = -c ConnAdaptor
 
 # create adaptor
 #system(qdbusxml2cpp -c ConnAdaptor -a connadaptor.h:connadaptor.cpp com.jollamobile.Connectiond.xml)
 
 SOURCES += main.cpp \
     qconnectionagent.cpp \
-    connadaptor.cpp \
     wakeupwatcher.cpp
 
 HEADERS+= \
     qconnectionagent.h \
-    connadaptor.h \
     wakeupwatcher.h
 
 target.path = /usr/bin

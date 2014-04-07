@@ -15,7 +15,7 @@
 ****************************************************************************/
 
 #include "qconnectionagent.h"
-#include "connadaptor.h"
+#include "connectiond_adaptor.h"
 #include "wakeupwatcher.h"
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
