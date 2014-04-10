@@ -552,7 +552,7 @@ void QConnectionAgent::serviceAutoconnectChanged(bool on)
     qDebug() << service->path() << "AutoConnect is" << on;
     if (!on) {
         servicesMap.value(service->path())->requestDisconnect();
-    } else {
+    } else if (!servicesMap.value(service->path())->connected()){
         servicesMap.value(service->path())->requestConnect();
     }
 }
