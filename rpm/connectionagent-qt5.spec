@@ -4,14 +4,13 @@ Name:       connectionagent-qt5
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.9.29
+Version:    0.10.1
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
 Source1:    connectionagent.tracing
-Source100:  connectionagent-qt5.yaml
 Requires:   connman-qt5-declarative
 Requires:   systemd
 Requires:   systemd-user-session-targets
@@ -22,7 +21,7 @@ BuildRequires:  pkgconfig(qofono-qt5)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Test)
 BuildRequires:  pkgconfig(Qt5Qml)
-Provides:   connectionagent > 0.7.6
+Provides:   connectionagent > 0.10.1
 Obsoletes:   connectionagent <= 0.7.6
 
 %description

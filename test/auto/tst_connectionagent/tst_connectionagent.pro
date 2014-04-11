@@ -10,12 +10,11 @@ TEMPLATE = app
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 SOURCES += tst_connectionagent.cpp \
-        ../../../connd/qconnectionmanager.cpp \
+        ../../../connd/qconnectionagent.cpp \
         ../../../connd/connectiond_adaptor.cpp \
         ../../../connd/wakeupwatcher.cpp
-
 HEADERS += \
-        ../../../connd/qconnectionmanager.h \
+        ../../../connd/qconnectionagent.h \
         ../../../connd/connectiond_adaptor.h \
         ../../../connd/wakeupwatcher.h
 

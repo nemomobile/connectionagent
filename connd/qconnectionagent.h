@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Jolla Ltd
+** Copyright (C) 2014 Jolla Ltd
 ** Contact: lorn.potter@gmail.com
 **
 **
@@ -14,8 +14,8 @@
 **
 ****************************************************************************/
 
-#ifndef QCONNECTIONMANAGER_H
-#define QCONNECTIONMANAGER_H
+#ifndef QCONNECTIONAGENT_H
+#define QCONNECTIONAGENT_H
 
 #include <QObject>
 #include <QMap>
@@ -38,15 +38,15 @@ class NetworkTechnology;
 class WakeupWatcher;
 class QTimer;
 
-class QConnectionManager : public QObject
+class QConnectionAgent : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool askRoaming READ askRoaming WRITE setAskRoaming)
 
 public:
-    ~QConnectionManager();
+    ~QConnectionAgent();
 
-    static QConnectionManager &instance();
+    static QConnectionAgent &instance();
     bool askRoaming() const;
     void setAskRoaming(bool value);
 
@@ -60,7 +60,7 @@ Q_SIGNALS:
     void connectionState(const QString &state, const QString &type);
     void connectNow(const QString &path);
 
-    void requestBrowser(/*const QString &path,*/ const QString &url);
+    void requestBrowser(const QString &url);
 
 public Q_SLOTS:
 
@@ -76,54 +76,33 @@ public Q_SLOTS:
     void connectToType(const QString &type);
 
 private:
-    explicit QConnectionManager(QObject *parent = 0);
-    static QConnectionManager *self;
+    explicit QConnectionAgent(QObject *parent = 0);
+    static QConnectionAgent *self;
     ConnAdaptor *connectionAdaptor;
     UserAgent *ua;
 
-    bool autoConnect();
     NetworkManager *netman;
     SessionAgent *sessionAgent;
 
     QString currentNetworkState;
-    QString currentType;
-    bool serviceConnect;
-    uint currentNotification;
 
     QMap<QString,NetworkService *> servicesMap;
     QStringList orderedServicesList;
 
-    QString findBestConnectableService();
     QStringList techPreferenceList;
     bool askForRoaming;
     bool isEthernet;
     bool connmanAvailable;
-    bool handoverInProgress;
-    QString serviceInProgress;
 
-    bool isBestService(const QString &servicePath);
     bool isStateOnline(const QString &state);
-    void requestDisconnect(const QString &service);
-    void requestConnect(const QString &service);
     QOfonoConnectionContext *oContext;
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
     bool flightModeSuppression;
     WakeupWatcher *mceWatch;
-    QTimer *goodConnectTimer;
-
-    QElapsedTimer manualConnnectionTimer;
-    QString lastManuallyConnectedService;
     uint scanTimeoutInterval;
 
-    QElapsedTimer manualDisconnectionTimer;
-    QString lastManuallyDisconnectedService;
-
-    QString delayedConnectService;
     QTimer *scanTimer;
-
-    QMap <QString, QList <uint> > wifiStrengths;
-    uint averageSignalStrength(const QString &servicePath);
     QStringList knownTechnologies;
 
 private slots:
@@ -133,8 +112,6 @@ private slots:
     void serviceErrorChanged(const QString &error);
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);
-    void onServiceStrengthChanged(uint);
-    bool connectToNetworkService(const QString &service);
 
     void connmanAvailabilityChanged(bool b);
     void setup();
@@ -142,10 +119,6 @@ private slots:
     void ofonoServicesError(const QString &);
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
-    void onServiceConnectionStarted();
-
-    void onServiceDisconnectionStarted();
-    void techTetheringChanged(bool);
     void techChanged();
 
     void serviceRemoved(const QString &);
@@ -155,15 +128,11 @@ private slots:
     void flightModeDialogSuppressionTimeout();
 
     void displayStateChanged(const QString &);
-    void sleepStateChanged(bool);
+//    void sleepStateChanged(bool);
 
-    void goodConnectionTimeout();
     void serviceAutoconnectChanged(bool);
     void scanTimeout();
 
-    void delayedAutoconnect();
-    void delayedConnect();
-
 };
 
-#endif // QCONNECTIONMANAGER_H
+#endif // QCONNECTIONAGENT_H
