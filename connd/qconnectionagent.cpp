@@ -259,9 +259,6 @@ void QConnectionAgent::connectToType(const QString &type)
     NetworkTechnology netTech;
     netTech.setPath(techPath);
 
-    if (!netTech.powered()) { // user has indicated they want a connection
-        netTech.setPowered(true);
-    }
     QStringList servicesList = netman->servicesList(type);
     bool needConfig = true;
 
