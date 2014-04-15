@@ -104,6 +104,9 @@ private:
 
     QTimer *scanTimer;
     QStringList knownTechnologies;
+    bool isBestService(NetworkService *service);
+    QString findBestConnectableService();
+    void removeAllTypes(const QString &type);
 
 private slots:
     void onScanFinished();
@@ -132,7 +135,10 @@ private slots:
 
     void serviceAutoconnectChanged(bool);
     void scanTimeout();
+    void techTetheringChanged(bool b);
+    void servicesChanged();
 
+    void openConnectionDialog(const QString &type);
 };
 
 #endif // QCONNECTIONAGENT_H

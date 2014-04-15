@@ -14,6 +14,7 @@ Source1:    connectionagent.tracing
 Requires:   connman-qt5-declarative
 Requires:   systemd
 Requires:   systemd-user-session-targets
+Requires: connman >= 1.21
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(connman-qt5)
