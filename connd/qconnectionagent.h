@@ -137,6 +137,8 @@ private slots:
     void scanTimeout();
     void techTetheringChanged(bool b);
     void servicesChanged();
+
+    void openConnectionDialog(const QString &type);
 };
 
 #endif // QCONNECTIONAGENT_H

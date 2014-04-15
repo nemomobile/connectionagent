@@ -82,6 +82,7 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
         qDebug() << "XXXXXXXXXXX could not register object XXXXXXXXXXXXXXXXXX";
     }
 
+    connect(this,SIGNAL(configurationNeeded(QString)),this,SLOT(openConnectionDialog(QString)));
     askForRoaming = askRoaming();
 
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
@@ -706,4 +707,26 @@ void QConnectionAgent::removeAllTypes(const QString &type)
      if (path.contains(type))
          orderedServicesList.removeOne(path);
     }
+}
+
+void QConnectionAgent::openConnectionDialog(const QString &type)
+{
+    // open Connection Selector
+    QDBusInterface *connSelectorInterface = new QDBusInterface(QStringLiteral("com.jolla.lipstick.ConnectionSelector"),
+                                                               QStringLiteral("/"),
+                                                               QStringLiteral("com.jolla.lipstick.ConnectionSelectorIf"),
+                                                               QDBusConnection::sessionBus(),
+                                                               this);
+
+    connSelectorInterface->connection().connect(QStringLiteral("com.jolla.lipstick.ConnectionSelector"),
+                                                QStringLiteral("/"),
+                                                QStringLiteral("com.jolla.lipstick.ConnectionSelectorIf"),
+                                                QStringLiteral("connectionSelectorClosed"),
+                                                this,
+                                                SLOT(connectionSelectorClosed(bool)));
+
+    QList<QVariant> args;
+    args.append(type);
+    QDBusMessage reply = connSelectorInterface->callWithArgumentList(QDBus::NoBlock,
+                                                                     QStringLiteral("openConnection"), args);
 }
