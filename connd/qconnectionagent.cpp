@@ -248,42 +248,28 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
 // from plugin/qml
 void QConnectionAgent::connectToType(const QString &type)
 {
-    qDebug() << type;
-    QString techPath = netman->technologyPathForType(type);
+    if (!netman)
+        return;
 
-    if (techPath.isEmpty()) {
+    if (netman->technologyPathForType(type).isEmpty()) {
         Q_EMIT errorReported("","Type not valid");
         return;
     }
 
-    NetworkTechnology netTech;
-    netTech.setPath(techPath);
-
-    QStringList servicesList = netman->servicesList(type);
-    bool needConfig = true;
-
-    if (servicesList.isEmpty()) {
-        if (type == "wifi") {
-            needConfig = false;
-            QObject::connect(&netTech,SIGNAL(scanFinished()),this,SLOT(onScanFinished()));
-            netTech.scan();
-        }
-    } else {
-        Q_FOREACH (const QString path, servicesList) {
-            NetworkService *service = servicesMap.value(path);
-            if (service) {
-                if (service->favorite() && service->autoConnect()) {
-                    needConfig = false;
-                    qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
-                    service->requestConnect();
-                    break;
+    Q_FOREACH (const QString &path, servicesMap.keys()) {
+        if (path.contains(type)) {
+            if (!isStateOnline(servicesMap.value(path)->state())) {
+                if (servicesMap.value(path)->autoConnect()) {
+                    servicesMap.value(path)->requestConnect();
+                    return;
                 }
+            } else {
+                return;
             }
         }
     }
-    if (needConfig) {
-        Q_EMIT configurationNeeded(type);
-    }
+
+    Q_EMIT configurationNeeded(type);
 }
 
 void QConnectionAgent::onScanFinished()
