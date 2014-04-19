@@ -152,6 +152,10 @@ void QConnectionAgent::onUserInputCanceled()
 // from useragent
 void QConnectionAgent::onErrorReported(const QString &servicePath, const QString &error)
 {
+    if (error == "connect-failed"
+            && (servicePath.contains("cellular") && netman->offlineMode())) {
+     return;
+    }
     qDebug() << "<<<<<<<<<<<<<<<<<<<<" << servicePath << error;
     Q_EMIT errorReported(servicePath, error);
 }
@@ -206,9 +210,14 @@ void QConnectionAgent::serviceErrorChanged(const QString &error)
     if (error == "Operation aborted")
         return;
     NetworkService *service = static_cast<NetworkService *>(sender());
-    if (error == "connect-failed")
-        service->requestDisconnect();
-    if (error != "In progress")
+
+    if (error == "connect-failed"
+            && (service->type() == "cellular") && netman->offlineMode()) {
+     return;
+    }
+    if (error == "In progress" || error.contains("Method")) // catch dbus errors and discard
+        return;
+
         Q_EMIT errorReported(service->path(),error);
 }
 
