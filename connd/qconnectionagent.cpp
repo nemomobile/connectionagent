@@ -152,6 +152,10 @@ void QConnectionAgent::onUserInputCanceled()
 // from useragent
 void QConnectionAgent::onErrorReported(const QString &servicePath, const QString &error)
 {
+    if (error == "connect-failed"
+            && (servicePath.contains("cellular") && netman->offlineMode())) {
+     return;
+    }
     qDebug() << "<<<<<<<<<<<<<<<<<<<<" << servicePath << error;
     Q_EMIT errorReported(servicePath, error);
 }
@@ -206,9 +210,14 @@ void QConnectionAgent::serviceErrorChanged(const QString &error)
     if (error == "Operation aborted")
         return;
     NetworkService *service = static_cast<NetworkService *>(sender());
-    if (error == "connect-failed")
-        service->requestDisconnect();
-    if (error != "In progress")
+
+    if (error == "connect-failed"
+            && (service->type() == "cellular") && netman->offlineMode()) {
+     return;
+    }
+    if (error == "In progress" || error.contains("Method")) // catch dbus errors and discard
+        return;
+
         Q_EMIT errorReported(service->path(),error);
 }
 
@@ -248,42 +257,28 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
 // from plugin/qml
 void QConnectionAgent::connectToType(const QString &type)
 {
-    qDebug() << type;
-    QString techPath = netman->technologyPathForType(type);
+    if (!netman)
+        return;
 
-    if (techPath.isEmpty()) {
+    if (netman->technologyPathForType(type).isEmpty()) {
         Q_EMIT errorReported("","Type not valid");
         return;
     }
 
-    NetworkTechnology netTech;
-    netTech.setPath(techPath);
-
-    QStringList servicesList = netman->servicesList(type);
-    bool needConfig = true;
-
-    if (servicesList.isEmpty()) {
-        if (type == "wifi") {
-            needConfig = false;
-            QObject::connect(&netTech,SIGNAL(scanFinished()),this,SLOT(onScanFinished()));
-            netTech.scan();
-        }
-    } else {
-        Q_FOREACH (const QString path, servicesList) {
-            NetworkService *service = servicesMap.value(path);
-            if (service) {
-                if (service->favorite() && service->autoConnect()) {
-                    needConfig = false;
-                    qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
-                    service->requestConnect();
-                    break;
+    Q_FOREACH (const QString &path, servicesMap.keys()) {
+        if (path.contains(type)) {
+            if (!isStateOnline(servicesMap.value(path)->state())) {
+                if (servicesMap.value(path)->autoConnect()) {
+                    servicesMap.value(path)->requestConnect();
+                    return;
                 }
+            } else {
+                return;
             }
         }
     }
-    if (needConfig) {
-        Q_EMIT configurationNeeded(type);
-    }
+
+    Q_EMIT configurationNeeded(type);
 }
 
 void QConnectionAgent::onScanFinished()
