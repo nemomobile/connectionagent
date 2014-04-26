@@ -234,18 +234,35 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
     if (state == "disconnect") {
         ua->sendConnectReply("Clear");
     }
-//    if (state == "failure") {
+    if (state == "failure") {
+        if (delayedTethering && service->type() == "cellular" && tetheringWifiTech->tethering()) {
+            Q_EMIT tetheringFinished(false);
+        }
 //        serviceInProgress.clear();
 //     //   service->requestDisconnect();
-//    }
-
-    if (state == "online") {
-        Q_EMIT connectionState(state, service->type());
     }
 
+    if (delayedTethering && service->type() == "wifi" && state == "association") {
+        service->requestDisconnect();
+    }
+    if (state == "online") {
+        Q_EMIT connectionState(state, service->type());
+
+        if (service->type() == "wifi" && delayedTethering) {
+            netman->getTechnology(service->type())->setTethering(true);
+        }
+        if (service->type() == "cellular" && delayedTethering) {
+            if (!tetheringWifiTech->tethering()) {
+                tetheringWifiTech->setTethering(true);
+            }
+        }
+    }
     //auto migrate
     if (state == "idle") {
-        } else {
+        if (service->type() == "wifi" && delayedTethering) {
+            netman->getTechnology(service->type())->setTethering(true);
+        }
+    } else {
         updateServicesMap();
     }
     currentNetworkState = state;
@@ -358,9 +375,25 @@ void QConnectionAgent::networkStateChanged(const QString &state)
 
     if ((state == "online" && netman->defaultRoute()->type() == "cellular")
             || (state == "idle")) {
+
+        if (tetheringWifiTech && tetheringWifiTech->powered()
+                && !tetheringWifiTech->tethering())
+                tetheringWifiTech->scan();
         // on gprs, scan wifi every scanTimeoutInterval minutes
         if (scanTimeoutInterval != 0)
             scanTimer->start(scanTimeoutInterval * 60 * 1000);
+    }
+
+    if (delayedTethering && state == "online") {
+
+        if (tetheringWifiTech->tethering()) {
+            if (netman->defaultRoute()->type() == "cellular") {
+                delayedTethering = false;
+                Q_EMIT tetheringFinished(true);
+            }
+        } else {
+            tetheringWifiTech->setTethering(true);
+        }
     }
 }
 
@@ -457,10 +490,13 @@ void QConnectionAgent::technologyPowerChanged(bool powered)
 {
     NetworkTechnology *tech = static_cast<NetworkTechnology *>(sender());
     qDebug() << tech->name() << powered;
-    if (tech->type() == "wifi") {
-        if (powered) {
-            tetheringWifiTech->scan();
-        } else {
+
+    if (netman && tech->type() == "wifi" && powered && delayedTethering) {
+        tech->setTethering(true);
+    }
+
+    if (!delayedTethering && tech->type() == "wifi") {
+        if (!powered) {
             removeAllTypes("wifi"); //dont wait for connman, he's too slow at this
             QString bestService = findBestConnectableService();
             if (!bestService.isEmpty()) {
@@ -473,7 +509,8 @@ void QConnectionAgent::technologyPowerChanged(bool powered)
 
 void QConnectionAgent::techChanged()
 {
-    qDebug() << netman->getTechnology("wifi");
+    if (!netman)
+        return;
     if (netman->getTechnologies().isEmpty()) {
         knownTechnologies.clear();
     }
@@ -483,9 +520,6 @@ void QConnectionAgent::techChanged()
     }
     if (tetheringWifiTech) {
         tetheringEnabled = tetheringWifiTech->tethering();
-        qDebug() << "tethering is" << tetheringEnabled;
-        QObject::connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
-                         this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
     }
 
     Q_FOREACH(NetworkTechnology *technology,netman->getTechnologies()) {
@@ -495,6 +529,8 @@ void QConnectionAgent::techChanged()
                 tetheringWifiTech = technology;
                 connect(tetheringWifiTech,SIGNAL(poweredChanged(bool)),this,SLOT(technologyPowerChanged(bool)));
                 connect(tetheringWifiTech,SIGNAL(scanFinished()),this,SLOT(onScanFinished()));
+                connect(tetheringWifiTech, SIGNAL(tetheringChanged(bool)),
+                                 this,SLOT(techTetheringChanged(bool)), Qt::UniqueConnection);
             }
         } else {
             knownTechnologies.removeOne(technology->path());
@@ -518,10 +554,28 @@ bool QConnectionAgent::isStateOnline(const QString &state)
     return false;
 }
 
-void QConnectionAgent::techTetheringChanged(bool b)
+void QConnectionAgent::techTetheringChanged(bool on)
 {
-    qDebug() << b;
-    tetheringEnabled = b;
+    qDebug() << on;
+    tetheringEnabled = on;
+    NetworkTechnology *technology = static_cast<NetworkTechnology *>(sender());
+
+    if (on && delayedTethering && technology) {
+        QVector <NetworkService *> services = netman->getServices("cellular");
+        if (services.isEmpty())
+            return;
+        NetworkService* cellService = services.at(0);
+        if (cellService) {
+            if (cellService->state() == "idle"|| cellService->state() == "failure") {
+                cellService->requestConnect();
+            } else if (cellService->connected()) {
+                delayedTethering = false;
+                Q_EMIT tetheringFinished(true);
+            }
+        } else {
+            stopTethering();
+        }
+    }
 }
 
 void QConnectionAgent::offlineModeChanged(bool b)
@@ -542,7 +596,7 @@ void QConnectionAgent::displayStateChanged(const QString &state)
 {
     if (state == "on") {
         NetworkTechnology *wifiTech = netman->getTechnology("wifi");
-        if (wifiTech && wifiTech->powered() && !wifiTech->connected()) {
+        if (wifiTech && wifiTech->powered() && !wifiTech->connected() && !wifiTech->tethering()) {
             wifiTech->scan();
         }
     }
@@ -603,7 +657,10 @@ bool QConnectionAgent::isBestService(NetworkService *service)
 
 void QConnectionAgent::scanTimeout()
 {
-    if (tetheringWifiTech && tetheringWifiTech->powered() && !tetheringWifiTech->connected() && netman->defaultRoute()->type() != "wifi" ) {
+    if (!tetheringWifiTech || tetheringWifiTech->tethering())
+            return;
+
+    if (tetheringWifiTech->powered() && !tetheringWifiTech->connected() && netman->defaultRoute()->type() != "wifi" ) {
         tetheringWifiTech->scan();
         qDebug() << "start scanner" << scanTimeoutInterval;
         if (scanTimeoutInterval != 0) {
@@ -721,4 +778,84 @@ void QConnectionAgent::openConnectionDialog(const QString &type)
     args.append(type);
     QDBusMessage reply = connSelectorInterface->callWithArgumentList(QDBus::NoBlock,
                                                                      QStringLiteral("openConnection"), args);
+}
+
+void QConnectionAgent::startTethering(const QString &type)
+{
+    if (!netman | (type != "wifi")) { //we only support wifi for now
+        Q_EMIT tetheringFinished(false);
+        return;
+    }
+
+    NetworkTechnology *tetherTech = netman->getTechnology(type);
+    if (!tetherTech) {
+        Q_EMIT tetheringFinished(false);
+        return;
+    }
+
+    QVector <NetworkService *> services = netman->getServices("cellular");
+    if (services.isEmpty()) {
+        Q_EMIT tetheringFinished(false);
+        return;
+    }
+
+    NetworkService *cellService = services.at(0);
+    if (!cellService || netman->offlineMode()) {
+        Q_EMIT tetheringFinished(false);
+        return;
+    }
+
+    QSettings confFile;
+    confFile.beginGroup("Connectionagent");
+    bool cellConnected = cellService->connected();
+    bool cellAutoconnect = cellService->autoConnect();
+
+    // save cellular connection state
+    confFile.setValue("tetheringCellularConnected",cellConnected);
+    confFile.setValue("tetheringCellularAutoconnect",cellAutoconnect);
+
+    bool techPowered = tetherTech->powered();
+
+    // save wifi powered state
+    confFile.setValue("tetheringTechPowered",techPowered);
+    confFile.setValue("tetheringType",type);
+
+    delayedTethering = true;
+    if (!techPowered) {
+        tetherTech->setPowered(true);
+    } else {
+        tetherTech->setTethering(true);
+    }
+}
+
+void QConnectionAgent::stopTethering()
+{
+    delayedTethering = false;
+    QSettings confFile;
+    confFile.beginGroup("Connectionagent");
+
+    NetworkTechnology *tetherTech = netman->getTechnology(confFile.value("tetheringType","wifi").toString());
+    if (tetherTech && tetherTech->tethering()) {
+        tetherTech->setTethering(false);
+    }
+    bool b = confFile.value("tetheringCellularConnected").toBool();
+    bool ab = confFile.value("tetheringCellularAutoconnect").toBool();
+
+    Q_FOREACH (const QString &path, servicesMap.keys()) {
+        if (path.contains("cellular")) {
+            if (isStateOnline(servicesMap.value(path)->state())) {
+                qDebug() << "disconnect mobile data";
+                if (!b)
+                    servicesMap.value(path)->requestDisconnect();
+                if (!ab)
+                    servicesMap.value(path)->setAutoConnect(false);
+            }
+        }
+    }
+
+    b = confFile.value("tetheringTechPowered").toBool();
+    if (!b  && tetherTech) {
+        tetherTech->setPowered(false);
+    }
+    Q_EMIT tetheringFinished(false);
 }

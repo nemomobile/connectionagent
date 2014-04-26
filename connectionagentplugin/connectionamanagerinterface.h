@@ -63,6 +63,19 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("sendUserReply"), argumentList);
     }
 
+    inline QDBusPendingReply<> startTethering(const QString &in0)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(in0);
+        return asyncCallWithArgumentList(QLatin1String("startTethering"), argumentList);
+    }
+
+    inline QDBusPendingReply<> stopTethering()
+    {
+        return asyncCall(QLatin1String("stopTethering"));
+    }
+
+
 Q_SIGNALS: // SIGNALS
     void configurationNeeded(const QString &type);
     void connectionRequest();
@@ -72,6 +85,7 @@ Q_SIGNALS: // SIGNALS
     void roamingAskChanged(bool askRoaming);
     void userInputCanceled();
     void userInputRequested(const QString &service, const QVariantMap &fields);
+    void tetheringFinished(bool);
 };
 
 namespace com {
