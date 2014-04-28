@@ -48,8 +48,6 @@ ConnectionAgentPlugin::~ConnectionAgentPlugin()
 
 void ConnectionAgentPlugin::connectToConnectiond(QString)
 {
-    qDebug() << Q_FUNC_INFO;
-
     if (connManagerInterface) {
         delete connManagerInterface;
         connManagerInterface = 0;
