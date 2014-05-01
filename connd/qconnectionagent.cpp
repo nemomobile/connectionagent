@@ -227,6 +227,13 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
     qDebug() << state << service->name() << service->strength();
     qDebug() << "currentNetworkState" << currentNetworkState;
 
+    if (state == "association")
+        associationTimers[service->path()].start();
+    else
+        associationTimers.remove(service->path());
+
+    restartAssociationTimer();
+
     if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
         return;
@@ -242,6 +249,10 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
     if (state == "online") {
         Q_EMIT connectionState(state, service->type());
     }
+
+    // Service was in the process of connecting when auto connect was disabled. Disconnect it now.
+    if (!service->autoConnect() && (state == "ready" || state == "online"))
+        service->requestDisconnect();
 
     //auto migrate
     if (state == "idle") {
@@ -281,6 +292,27 @@ void QConnectionAgent::connectToType(const QString &type)
     Q_EMIT configurationNeeded(type);
 }
 
+void QConnectionAgent::timerEvent(QTimerEvent *event)
+{
+    if (event->timerId() == associationTimer.timerId()) {
+        foreach (NetworkService *service, servicesMap) {
+            if (!service)
+                continue;
+
+            if (service->state() == "association" &&
+                associationTimers.value(service->path()).hasExpired(10000)) {
+                // restart timer in case disconnect fails.
+                associationTimers[service->path()].start();
+                service->requestDisconnect();
+            }
+        }
+
+        restartAssociationTimer();
+    } else {
+        QObject::timerEvent(event);
+    }
+}
+
 void QConnectionAgent::onScanFinished()
 {
     qDebug() << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>";
@@ -291,6 +323,7 @@ void QConnectionAgent::updateServicesMap()
     qDebug() << Q_FUNC_INFO;
     QStringList oldServices = orderedServicesList;
     orderedServicesList.clear();
+    servicesMap.clear();
 
     Q_FOREACH (const QString &tech,techPreferenceList) {
         QVector<NetworkService*> services = netman->getServices(tech);
@@ -407,6 +440,7 @@ void QConnectionAgent::serviceRemoved(const QString &srv)
     qDebug() << Q_FUNC_INFO << "<<<<" << srv;
     if (orderedServicesList.contains(srv)) {
         orderedServicesList.removeOne(srv);
+        servicesMap.remove(srv);
     }
 }
 
@@ -557,7 +591,8 @@ void QConnectionAgent::serviceAutoconnectChanged(bool on)
     bool mobileConnected = false;
 
     if (!on) {
-        if (service->state() != "idle")
+        // Only disconnect if service is finished connecting.
+        if (service->state() == "ready" || service->state() == "online")
             service->requestDisconnect();
 
         qDebug() << "find best service here";
@@ -698,6 +733,18 @@ void QConnectionAgent::removeAllTypes(const QString &type)
     Q_FOREACH (const QString &path, orderedServicesList) {
      if (path.contains(type))
          orderedServicesList.removeOne(path);
+    }
+}
+
+void QConnectionAgent::restartAssociationTimer()
+{
+    if (associationTimers.isEmpty()) {
+        associationTimer.stop();
+    } else {
+        qint64 maxElapsed = 0;
+        foreach (const QElapsedTimer &timer, associationTimers)
+            maxElapsed = qMax(maxElapsed, timer.elapsed());
+        associationTimer.start(qMax(10000 - maxElapsed, qint64(0)), this);
     }
 }
 
