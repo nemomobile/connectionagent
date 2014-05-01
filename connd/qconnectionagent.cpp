@@ -243,6 +243,10 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
         Q_EMIT connectionState(state, service->type());
     }
 
+    // Service was in the process of connecting when auto connect was disabled. Disconnect it now.
+    if (!service->autoConnect() && (state == "ready" || state == "online"))
+        service->requestDisconnect();
+
     //auto migrate
     if (state == "idle") {
         } else {
@@ -559,7 +563,8 @@ void QConnectionAgent::serviceAutoconnectChanged(bool on)
     bool mobileConnected = false;
 
     if (!on) {
-        if (service->state() != "idle")
+        // Only disconnect if service is finished connecting.
+        if (service->state() == "ready" || service->state() == "online")
             service->requestDisconnect();
 
         qDebug() << "find best service here";
