@@ -26,6 +26,7 @@
 #include <QQueue>
 #include <QPair>
 #include <QElapsedTimer>
+#include <QBasicTimer>
 
 class UserAgent;
 class SessionAgent;
@@ -75,6 +76,9 @@ public Q_SLOTS:
 
     void connectToType(const QString &type);
 
+protected:
+    void timerEvent(QTimerEvent *event);
+
 private:
     explicit QConnectionAgent(QObject *parent = 0);
     static QConnectionAgent *self;
@@ -104,9 +108,15 @@ private:
 
     QTimer *scanTimer;
     QStringList knownTechnologies;
+
+    QHash<QString, QElapsedTimer> associationTimers;
+    QBasicTimer associationTimer;
+
     bool isBestService(NetworkService *service);
     QString findBestConnectableService();
     void removeAllTypes(const QString &type);
+
+    void restartAssociationTimer();
 
 private slots:
     void onScanFinished();
