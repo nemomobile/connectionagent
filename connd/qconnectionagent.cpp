@@ -291,6 +291,7 @@ void QConnectionAgent::updateServicesMap()
     qDebug() << Q_FUNC_INFO;
     QStringList oldServices = orderedServicesList;
     orderedServicesList.clear();
+    servicesMap.clear();
 
     Q_FOREACH (const QString &tech,techPreferenceList) {
         QVector<NetworkService*> services = netman->getServices(tech);
@@ -407,6 +408,7 @@ void QConnectionAgent::serviceRemoved(const QString &srv)
     qDebug() << Q_FUNC_INFO << "<<<<" << srv;
     if (orderedServicesList.contains(srv)) {
         orderedServicesList.removeOne(srv);
+        servicesMap.remove(srv);
     }
 }
 
