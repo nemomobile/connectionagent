@@ -28,6 +28,9 @@
     <signal name="roamingAskChanged">
       <arg name="askRoaming" type="b" direction="out"/>
     </signal>
+    <signal name="tetheringFinished">
+      <arg name="success" type="b" direction="out"/>
+    </signal>
     <method name="connectToType">
       <arg name="in0" type="s" direction="in"/>
     </method>
@@ -39,5 +42,11 @@
       <arg name="input" type="a{sv}" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
+    <method name="startTethering">
+      <arg name="in0" type="s" direction="in"/>
+    </method>
+    <method name="stopTethering">
+    </method>
   </interface>
 </node>
+

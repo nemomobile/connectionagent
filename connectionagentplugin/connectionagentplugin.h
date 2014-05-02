@@ -27,7 +27,7 @@ class ConnectionAgentPlugin : public QObject
     Q_PROPERTY(bool askRoaming READ askRoaming WRITE setAskRoaming)
 
     Q_DISABLE_COPY(ConnectionAgentPlugin)
-    
+
 public:
     explicit ConnectionAgentPlugin(QObject *parent = 0);
     ~ConnectionAgentPlugin();
@@ -38,6 +38,8 @@ public slots:
     void sendUserReply(const QVariantMap &input);
     void sendConnectReply(const QString &replyMessage, int timeout = 120);
     void connectToType(const QString &type);
+    void startTethering(const QString &type);
+    void stopTethering();
 
 signals:
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
@@ -47,6 +49,7 @@ signals:
     void configurationNeeded(const QString &type);
     void connectionState(const QString &state, const QString &type);
     void browserRequested(const QString &url);
+    void tetheringFinished(bool);
 
 private:
     com::jolla::Connectiond *connManagerInterface;
@@ -58,6 +61,7 @@ private slots:
     void onUserInputRequested(const QString &service, const QVariantMap &fields);
     void onConnectionRequested();
     void onConnectionState(const QString &state, const QString &type);
+    void onTetheringFinished(bool);
 
     void connectToConnectiond(const QString = QString());
     void connectiondUnregistered(const QString = QString());

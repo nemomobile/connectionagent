@@ -33,7 +33,7 @@
 class Tst_connectionagent_pluginTest : public QObject
 {
     Q_OBJECT
-    
+
 public:
     Tst_connectionagent_pluginTest();
     ~Tst_connectionagent_pluginTest();
@@ -44,15 +44,20 @@ private Q_SLOTS:
 
     void testUserInputRequested_data();
     void testUserInputRequested();
-
     void testErrorReported();
+
+    void tst_tethering();
+
 private:
     ConnectionAgentPlugin *plugin;
+     NetworkManager *netman;
 };
 
 Tst_connectionagent_pluginTest::Tst_connectionagent_pluginTest()
 {
     plugin = new ConnectionAgentPlugin(this);
+    netman = NetworkManagerFactory::createInstance();
+    QTest::qWait(5000);
 }
 
 Tst_connectionagent_pluginTest::~Tst_connectionagent_pluginTest()
@@ -146,6 +151,70 @@ void Tst_connectionagent_pluginTest::testUserInputRequested()
     plugin->sendUserReply(map); //cancel
 }
 
+
+void Tst_connectionagent_pluginTest::tst_tethering()
+{
+    NetworkService *wlanService;
+    NetworkService *mobiledataService;
+
+    QVector <NetworkService *>wifiServices = netman->getServices("wifi");
+    QVERIFY(wifiServices.count() > 0);
+
+    Q_FOREACH (wlanService, wifiServices) {
+        if (wlanService->autoConnect()) {
+            break;
+        }
+    }
+    bool wlanOnline = wlanService->connected();
+
+    QVector <NetworkService *>cellServices = netman->getServices("cellular");
+    QVERIFY(cellServices.count() > 0);
+    mobiledataService = cellServices.at(0);
+
+    bool mdOnline = mobiledataService->connected();
+    bool mdAutoconnect = mobiledataService->autoConnect();
+
+    QSignalSpy spy(plugin, SIGNAL(tetheringFinished(bool)));
+    plugin->startTethering("wifi");
+
+    QVERIFY(spy.isValid());
+    QVERIFY(spy.wait(7000));
+
+    QCOMPARE(spy.count(),1);
+    QList<QVariant> arguments;
+    arguments = spy.takeFirst();
+    QCOMPARE(arguments.at(0).toBool(), true);
+
+    QTest::qWait(5000);
+
+    QVERIFY(mobiledataService->state() == "online");
+
+    plugin->stopTethering();
+    QTest::qWait(2500);
+
+    QCOMPARE(spy.count(),1);
+    arguments = spy.takeFirst();
+    QCOMPARE(arguments.at(0).toBool(), false);
+
+    QTest::qWait(5000);
+
+    QVERIFY(wlanService->connected() == wlanOnline);
+    QVERIFY(mobiledataService->connected() == mdOnline);
+    QVERIFY(mobiledataService->autoConnect() == mdAutoconnect);
+
+//    plugin->startTethering("wifi");
+
+
+//    plugin->stopTethering();
+
+//    QCOMPARE(spy.count(),1);
+//    arguments = spy.takeFirst();
+//    QCOMPARE(arguments.at(0).toBool(), false);
+
+//    NetworkManager *netman = NetworkManagerFactory::createInstance();
+//    NetworkService *cellServices = netman->getServices("cellular").at(0);
+//    QVERIFY(cellServices->state() == "idle");
+}
 
 QTEST_MAIN(Tst_connectionagent_pluginTest)
 

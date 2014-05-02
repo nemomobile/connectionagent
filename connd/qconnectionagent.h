@@ -61,6 +61,7 @@ Q_SIGNALS:
     void connectNow(const QString &path);
 
     void requestBrowser(const QString &url);
+    void tetheringFinished(bool);
 
 public Q_SLOTS:
 
@@ -74,6 +75,9 @@ public Q_SLOTS:
     void sendUserReply(const QVariantMap &input);
 
     void connectToType(const QString &type);
+
+    void startTethering(const QString &type);
+    void stopTethering();
 
 private:
     explicit QConnectionAgent(QObject *parent = 0);
@@ -107,6 +111,8 @@ private:
     bool isBestService(NetworkService *service);
     QString findBestConnectableService();
     void removeAllTypes(const QString &type);
+    bool tetheringStarted;
+    bool delayedTethering;
 
 private slots:
     void onScanFinished();

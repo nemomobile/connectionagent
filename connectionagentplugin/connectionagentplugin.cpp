@@ -87,10 +87,13 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
 
     connect(connManagerInterface,SIGNAL(userInputRequested(QString,QVariantMap)),
                      this,SLOT(onUserInputRequested(QString,QVariantMap)), Qt::UniqueConnection);
+
+    connect(connManagerInterface,SIGNAL(tetheringFinished(bool)),
+            this,SLOT(onTetheringFinished(bool)));
 }
 
 void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
-{    
+{
     if (!connManagerInterface || !connManagerInterface->isValid()) {
         Q_EMIT errorReported("","ConnectionAgent not available");
         return;
@@ -179,3 +182,17 @@ void ConnectionAgentPlugin::setAskRoaming(bool value)
     connManagerInterface->setAskRoaming(value);
 }
 
+void ConnectionAgentPlugin::startTethering(const QString &type)
+{
+    connManagerInterface->startTethering(type);
+}
+
+void ConnectionAgentPlugin::onTetheringFinished(bool success)
+{
+    Q_EMIT tetheringFinished(success);
+}
+
+void ConnectionAgentPlugin::stopTethering()
+{
+    connManagerInterface->stopTethering();
+}
