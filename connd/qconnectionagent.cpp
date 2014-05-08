@@ -65,7 +65,8 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
     tetheringWifiTech(0),
     tetheringEnabled(false),
     flightModeSuppression(false),
-    scanTimeoutInterval(1)
+    scanTimeoutInterval(1),
+    delayedTethering(false)
 {
     qDebug() << Q_FUNC_INFO;
 
