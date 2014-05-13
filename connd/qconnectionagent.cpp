@@ -562,12 +562,22 @@ void QConnectionAgent::techTetheringChanged(bool on)
     qDebug() << on;
     tetheringEnabled = on;
     NetworkTechnology *technology = static_cast<NetworkTechnology *>(sender());
+    QVector <NetworkService *> services = netman->getServices("cellular");
 
-    if (on && delayedTethering && technology) {
-        QVector <NetworkService *> services = netman->getServices("cellular");
-        if (services.isEmpty())
-            return;
-        NetworkService* cellService = services.at(0);
+    if (!technology) {
+        Q_EMIT tetheringFinished(false);
+        return;
+    }
+    if (!services || services.isEmpty()) {
+        if (on) {
+            technology->setTethering(false);
+        }
+        delayedTethering = false;
+        Q_EMIT tetheringFinished(false);
+        return;
+    }
+    if (on && delayedTethering) {
+        NetworkService *cellService = services.at(0);
         if (cellService) {
             if (cellService->state() == "idle"|| cellService->state() == "failure") {
                 cellService->requestConnect();
