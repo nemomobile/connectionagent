@@ -75,6 +75,19 @@ public Q_SLOTS: // METHODS
         return asyncCall(QLatin1String("stopTethering"));
     }
 
+    inline QDBusPendingReply<> setTetheringSsid(const QString &in0)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(in0);
+        return asyncCallWithArgumentList(QLatin1String("setTetheringSsid"), argumentList);
+    }
+
+    inline QDBusPendingReply<> setTetheringPassphrase(const QString &in0)
+    {
+        QList<QVariant> argumentList;
+        argumentList << QVariant::fromValue(in0);
+        return asyncCallWithArgumentList(QLatin1String("setTetheringPassphrase"), argumentList);
+    }
 
 Q_SIGNALS: // SIGNALS
     void configurationNeeded(const QString &type);

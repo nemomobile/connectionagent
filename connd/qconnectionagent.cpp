@@ -862,3 +862,23 @@ void QConnectionAgent::stopTethering()
     }
     Q_EMIT tetheringFinished(false);
 }
+
+void QConnectionAgent::setTetheringSsid(const QString &ssid)
+{
+    QSettings confFile;
+    confFile.beginGroup("Connectionagent");
+    NetworkTechnology *tetherTech = netman->getTechnology(confFile.value("tetheringType","wifi").toString());
+    if (tetherTech) {
+        tetherTech->setTetheringId(ssid);
+    }
+}
+
+void QConnectionAgent::setTetheringPassphrase(const QString &passphrase)
+{
+    QSettings confFile;
+    confFile.beginGroup("Connectionagent");
+    NetworkTechnology *tetherTech = netman->getTechnology(confFile.value("tetheringType","wifi").toString());
+    if (tetherTech) {
+        tetherTech->setTetheringPassphrase(passphrase);
+    }
+}

@@ -196,3 +196,13 @@ void ConnectionAgentPlugin::stopTethering()
 {
     connManagerInterface->stopTethering();
 }
+
+void ConnectionAgentPlugin::setTetheringSsid(const QString &ssid)
+{
+    connManagerInterface->setTetheringSsid(ssid);
+}
+
+void ConnectionAgentPlugin::setTetheringPassphrase(const QString &passphrase)
+{
+    connManagerInterface->setTetheringPassphrase(passphrase);
+}
