@@ -78,6 +78,8 @@ public Q_SLOTS:
 
     void startTethering(const QString &type);
     void stopTethering();
+    void setTetheringSsid(const QString &ssid);
+    void setTetheringPassphrase(const QString &passphrase);
 
 private:
     explicit QConnectionAgent(QObject *parent = 0);

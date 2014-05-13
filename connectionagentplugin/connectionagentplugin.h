@@ -40,6 +40,8 @@ public slots:
     void connectToType(const QString &type);
     void startTethering(const QString &type);
     void stopTethering();
+    void setTetheringSsid(const QString &ssid);
+    void setTetheringPassphrase(const QString &passphrase);
 
 signals:
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);
