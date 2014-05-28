@@ -225,10 +225,13 @@ void QConnectionAgent::serviceErrorChanged(const QString &error)
 void QConnectionAgent::serviceStateChanged(const QString &state)
 {
     NetworkService *service = static_cast<NetworkService *>(sender());
+    if (!service)
+        return;
     qDebug() << state << service->name() << service->strength();
     qDebug() << "currentNetworkState" << currentNetworkState;
 
-    if (!service->favorite() || !netman->getTechnology(service->type())->powered()) {
+    if (!service->favorite() || !netman->getTechnology(service->type())
+            || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
         return;
     }
