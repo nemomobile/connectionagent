@@ -628,19 +628,21 @@ void QConnectionAgent::serviceAutoconnectChanged(bool on)
             servicesMap.value(selectedServicePath)->requestConnect();
         }
     } else {
-        if (service->type() == "cellular") {
-            QVector<NetworkService*> cellServices = netman->getServices("cellular");
-            Q_FOREACH (NetworkService *cService, cellServices) {
-                if (isStateOnline(cService->state())) {
-                    mobileConnected = true;
+        if (!isStateOnline(service->state())) {
+            if (service->type() == "cellular") {
+                QVector<NetworkService*> cellServices = netman->getServices("cellular");
+                Q_FOREACH (NetworkService *cService, cellServices) {
+                    if (isStateOnline(cService->state())) {
+                        mobileConnected = true;
+                    }
                 }
             }
-        }
 
-        if ((service->type() == "wifi" && mobileConnected)
-                || isBestService(service)) {
-            qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
-            service->requestConnect();
+            if ((service->type() == "wifi" && mobileConnected)
+                    || isBestService(service)) {
+                qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
+                service->requestConnect();
+            }
         }
     }
 }
