@@ -290,6 +290,7 @@ void QConnectionAgent::connectToType(const QString &type)
         if (path.contains(type)) {
             if (!isStateOnline(servicesMap.value(path)->state())) {
                 if (servicesMap.value(path)->autoConnect()) {
+                    qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
                     servicesMap.value(path)->requestConnect();
                     return;
                 }
@@ -573,6 +574,7 @@ void QConnectionAgent::techTetheringChanged(bool on)
         NetworkService* cellService = services.at(0);
         if (cellService) {
             if (cellService->state() == "idle"|| cellService->state() == "failure") {
+                qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
                 cellService->requestConnect();
             } else if (cellService->connected()) {
                 delayedTethering = false;
