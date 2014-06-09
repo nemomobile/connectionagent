@@ -67,9 +67,11 @@ Will enable tracing for Connectionagent
 # >> build pre
 # << build pre
 
-%qmake5
+%{!?qtc_qmake5:%define qtc_qmake5 %qmake5}
+%{!?qtc_make:%define qtc_make make}
 
-make %{?_smp_mflags}
+%qtc_qmake5
+%qtc_make %{?_smp_mflags}
 
 # >> build post
 # << build post
