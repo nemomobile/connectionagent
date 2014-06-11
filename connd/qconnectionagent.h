@@ -145,6 +145,7 @@ private slots:
     void servicesChanged();
 
     void openConnectionDialog(const QString &type);
+    void setWifiTetheringEnabled();
 };
 
 #endif // QCONNECTIONAGENT_H
