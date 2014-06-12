@@ -496,13 +496,16 @@ void QConnectionAgent::setup()
 void QConnectionAgent::technologyPowerChanged(bool powered)
 {
     NetworkTechnology *tech = static_cast<NetworkTechnology *>(sender());
-    qDebug() << tech->name() << powered;
+    if (tech->type() != "wifi")
+        return;
+    qDebug() << tetheringWifiTech->name() << powered;
 
-    if (netman && tech->type() == "wifi" && powered && delayedTethering) {
-        tech->setTethering(true);
+    if (netman && powered && delayedTethering) {
+        // wifi tech might not be ready, so delay this
+        QTimer::singleShot(1000,this,SLOT(setWifiTetheringEnabled()));
     }
 
-    if (!delayedTethering && tech->type() == "wifi") {
+    if (!delayedTethering) {
         if (!powered) {
             removeAllTypes("wifi"); //dont wait for connman, he's too slow at this
             QString bestService = findBestConnectableService();
@@ -868,4 +871,12 @@ void QConnectionAgent::stopTethering()
         tetherTech->setPowered(false);
     }
     Q_EMIT tetheringFinished(false);
+}
+
+void QConnectionAgent::setWifiTetheringEnabled()
+{
+    if (tetheringWifiTech) {
+        qDebug() << "set tethering";
+        tetheringWifiTech->setTethering(delayedTethering);
+    }
 }
