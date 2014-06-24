@@ -153,10 +153,14 @@ void QConnectionAgent::onUserInputCanceled()
 // from useragent
 void QConnectionAgent::onErrorReported(const QString &servicePath, const QString &error)
 {
-    if (error == "connect-failed"
-            && (servicePath.contains("cellular") && netman->offlineMode())) {
-     return;
-    }
+    // Suppress errors when switching to offline mode
+    if (error == "connect-failed" && servicePath.contains("cellular") && netman->offlineMode())
+        return;
+
+    // Suppress errors when switching to tethering mode
+    if ((delayedTethering || tetheringWifiTech->tethering()) && servicePath.contains(QStringLiteral("wifi")))
+        return;
+
     qDebug() << "<<<<<<<<<<<<<<<<<<<<" << servicePath << error;
     Q_EMIT errorReported(servicePath, error);
 }
