@@ -234,6 +234,12 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
     qDebug() << state << service->name() << service->strength();
     qDebug() << "currentNetworkState" << currentNetworkState;
 
+    if (state == "ready" && service->type() == "wifi"
+            && !delayedTethering
+            && netman->defaultRoute()->type() == "cellular") {
+        netman->defaultRoute()->requestDisconnect();
+    }
+
     if (!service->favorite() || !netman->getTechnology(service->type())
             || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
@@ -253,11 +259,7 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
     if (delayedTethering && service->type() == "wifi" && state == "association") {
         service->requestDisconnect();
     }
-    if (state == "ready" && service->type() == "wifi"
-            && !delayedTethering
-            && netman->defaultRoute()->type() == "cellular") {
-        netman->defaultRoute()->requestDisconnect();
-    }
+
     if (state == "online") {
         Q_EMIT connectionState(state, service->type());
 
