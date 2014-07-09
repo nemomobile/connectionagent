@@ -170,7 +170,15 @@ void QConnectionAgent::onConnectionRequest()
 {
     sendConnectReply("Suppress", 15);
     qDebug() << flightModeSuppression;
-    if (!flightModeSuppression) {
+    bool okToRequest = true;
+    Q_FOREACH (const QString &path, servicesMap.keys()) {
+        qDebug() << "checking" <<servicesMap.value(path)->name() << servicesMap.value(path)->autoConnect();
+        if (servicesMap.value(path)->autoConnect()) {
+            okToRequest = false;
+            break;
+        }
+    }
+    if (!flightModeSuppression && okToRequest) {
         Q_EMIT connectionRequest();
     }
 }
