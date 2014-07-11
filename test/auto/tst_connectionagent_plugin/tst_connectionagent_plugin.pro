@@ -16,12 +16,15 @@ TEMPLATE = app
 
 
 SOURCES += tst_connectionagent_plugintest.cpp \
-        ../../../connectionagentplugin/connectionagentplugin.cpp \
-        ../../../connectionagentplugin/connectionamanagerinterface.cpp
+        ../../../connectionagentplugin/connectionagentplugin.cpp
 
 HEADERS += \
-        ../../../connectionagentplugin/connectionagentplugin.h \
-        ../../../connectionagentplugin/connectionamanagerinterface.h
+        ../../../connectionagentplugin/connectionagentplugin.h
+
+DBUS_INTERFACES = connectiond_interface
+connectiond_interface.files = ../../../connd/com.jollamobile.Connectiond.xml
+connectiond_interface.header_flags = "-c ConnectionManagerInterface"
+connectiond_interface.source_flags = "-c ConnectionManagerInterface"
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
