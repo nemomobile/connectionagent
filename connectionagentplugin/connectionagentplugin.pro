@@ -5,18 +5,18 @@ CONFIG += qt plugin
 
 uri = com.jolla.connection
 
-#create client
-#system(qdbusxml2cpp ../connd/com.jollamobile.Connectiond.xml -c ConnectionManagerInterface -p connectionamanagerinterface)
-
 SOURCES += \
     connectionagentplugin_plugin.cpp \
-    connectionagentplugin.cpp \
-    connectionamanagerinterface.cpp
+    connectionagentplugin.cpp
 
 HEADERS += \
     connectionagentplugin_plugin.h \
-    connectionagentplugin.h \
-    connectionamanagerinterface.h
+    connectionagentplugin.h
+
+DBUS_INTERFACES = connectiond_interface
+connectiond_interface.files = ../connd/com.jollamobile.Connectiond.xml
+connectiond_interface.header_flags = "-c ConnectionManagerInterface"
+connectiond_interface.source_flags = "-c ConnectionManagerInterface"
 
 OTHER_FILES = qmldir
 

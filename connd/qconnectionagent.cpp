@@ -864,7 +864,7 @@ void QConnectionAgent::startTethering(const QString &type)
     }
 }
 
-void QConnectionAgent::stopTethering()
+void QConnectionAgent::stopTethering(bool keepPowered)
 {
     delayedTethering = false;
     QSettings confFile;
@@ -890,7 +890,7 @@ void QConnectionAgent::stopTethering()
     }
 
     b = confFile.value("tetheringTechPowered").toBool();
-    if (!b  && tetherTech) {
+    if (!b && tetherTech && !keepPowered) {
         tetherTech->setPowered(false);
     }
     Q_EMIT tetheringFinished(false);

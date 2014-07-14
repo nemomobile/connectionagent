@@ -15,7 +15,7 @@
 ****************************************************************************/
 
 #include "connectionagentplugin.h"
-#include "connectionamanagerinterface.h"
+#include "connectiond_interface.h"
 
 #include <connman-qt5/networkmanager.h>
 #include <connman-qt5/networktechnology.h>
@@ -192,7 +192,7 @@ void ConnectionAgentPlugin::onTetheringFinished(bool success)
     Q_EMIT tetheringFinished(success);
 }
 
-void ConnectionAgentPlugin::stopTethering()
+void ConnectionAgentPlugin::stopTethering(bool keepPowered)
 {
-    connManagerInterface->stopTethering();
+    connManagerInterface->stopTethering(keepPowered);
 }

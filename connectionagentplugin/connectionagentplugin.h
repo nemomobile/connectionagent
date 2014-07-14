@@ -18,7 +18,7 @@
 #define CONNECTIONAGENTPLUGIN_H
 
 #include "connectionagentplugin.h"
-#include "connectionamanagerinterface.h"
+#include "connectiond_interface.h"
 
 class NetworkManager;
 class ConnectionAgentPlugin : public QObject
@@ -39,7 +39,7 @@ public slots:
     void sendConnectReply(const QString &replyMessage, int timeout = 120);
     void connectToType(const QString &type);
     void startTethering(const QString &type);
-    void stopTethering();
+    void stopTethering(bool keepPowered = false);
 
 signals:
     void userInputRequested(const QString &servicePath, const QVariantMap &fields);

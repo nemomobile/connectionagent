@@ -77,7 +77,7 @@ public Q_SLOTS:
     void connectToType(const QString &type);
 
     void startTethering(const QString &type);
-    void stopTethering();
+    void stopTethering(bool keepPowered = false);
 
 private:
     explicit QConnectionAgent(QObject *parent = 0);

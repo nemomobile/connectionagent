@@ -47,6 +47,9 @@
     </method>
     <method name="stopTethering">
     </method>
+    <method name="stopTethering">
+      <arg name="in0" type="b" direction="in"/>
+    </method>
   </interface>
 </node>
 
