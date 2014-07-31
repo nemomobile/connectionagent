@@ -660,7 +660,7 @@ void QConnectionAgent::serviceAutoconnectChanged(bool on)
                         mobileConnected = true;
                     }
                 }
-                if (!mobileConnected && askRoaming() && !flightModeSuppression) {
+                if (!mobileConnected && service->roaming() && askRoaming() && !flightModeSuppression) {
                     Q_EMIT connectionRequest();
                     return;
                 }
