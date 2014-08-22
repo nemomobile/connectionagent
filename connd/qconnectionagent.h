@@ -41,14 +41,11 @@ class QTimer;
 class QConnectionAgent : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool askRoaming READ askRoaming WRITE setAskRoaming)
 
 public:
     ~QConnectionAgent();
 
     static QConnectionAgent &instance();
-    bool askRoaming() const;
-    void setAskRoaming(bool value);
 
 Q_SIGNALS:
 
@@ -94,7 +91,6 @@ private:
     QStringList orderedServicesList;
 
     QStringList techPreferenceList;
-    bool askForRoaming;
     bool isEthernet;
     bool connmanAvailable;
 

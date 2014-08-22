@@ -24,15 +24,12 @@ class NetworkManager;
 class ConnectionAgentPlugin : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(bool askRoaming READ askRoaming WRITE setAskRoaming)
 
     Q_DISABLE_COPY(ConnectionAgentPlugin)
 
 public:
     explicit ConnectionAgentPlugin(QObject *parent = 0);
     ~ConnectionAgentPlugin();
-    bool askRoaming() const;
-    void setAskRoaming(bool value);
 
 public slots:
     void sendUserReply(const QVariantMap &input);
