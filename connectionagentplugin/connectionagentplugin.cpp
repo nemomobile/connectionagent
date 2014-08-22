@@ -172,16 +172,6 @@ void ConnectionAgentPlugin::onConnectionState(const QString &state, const QStrin
     Q_EMIT connectionState(state, type);
 }
 
-bool ConnectionAgentPlugin::askRoaming() const
-{
-    return connManagerInterface->askRoaming();
-}
-
-void ConnectionAgentPlugin::setAskRoaming(bool value)
-{
-    connManagerInterface->setAskRoaming(value);
-}
-
 void ConnectionAgentPlugin::startTethering(const QString &type)
 {
     connManagerInterface->startTethering(type);
