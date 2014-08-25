@@ -155,6 +155,7 @@ void QConnectionAgent::onErrorReported(const QString &servicePath, const QString
     if (error == "connect-failed" && servicePath.contains("cellular") && netman->offlineMode())
         return;
 
+    if (!tetheringWifiTech) return;
     // Suppress errors when switching to tethering mode
     if ((delayedTethering || tetheringWifiTech->tethering()) && servicePath.contains(QStringLiteral("wifi")))
         return;
@@ -825,6 +826,8 @@ void QConnectionAgent::startTethering(const QString &type)
     confFile.setValue("tetheringType",type);
 
     delayedTethering = true;
+    tetheringWifiTech = tetherTech;
+
     if (!techPowered) {
         tetherTech->setPowered(true);
     } else {
