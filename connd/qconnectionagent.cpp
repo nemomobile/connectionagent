@@ -497,7 +497,10 @@ void QConnectionAgent::technologyPowerChanged(bool powered)
     NetworkTechnology *tech = static_cast<NetworkTechnology *>(sender());
     if (tech->type() != "wifi")
         return;
-    qDebug() << tetheringWifiTech->name() << powered;
+    if (tetheringWifiTech)
+        qDebug() << tetheringWifiTech->name() << powered;
+    else
+        qDebug() << "tetheringWifiTech is null";
 
     if (netman && powered && delayedTethering) {
         // wifi tech might not be ready, so delay this
