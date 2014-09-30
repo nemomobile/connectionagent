@@ -26,6 +26,7 @@
 #include <QQueue>
 #include <QPair>
 #include <QElapsedTimer>
+#include <QVector>
 
 class UserAgent;
 class SessionAgent;
@@ -77,6 +78,42 @@ public Q_SLOTS:
     void stopTethering(bool keepPowered = false);
 
 private:
+
+    class Service
+    {
+    public:
+            QString path;
+            NetworkService *service;
+
+            bool operator==(const Service &other) const {
+                    return other.path == path;
+            }
+    };
+
+    class ServiceList : public QVector<Service>
+    {
+    public:
+            int indexOf(const QString &path, int from = 0) const {
+                    Service key;
+                    key.path = path;
+                    return QVector<Service>::indexOf(key, from);
+            }
+
+            bool contains(const QString &path) const {
+                    Service key;
+                    key.path = path;
+                    return QVector<Service>::indexOf(key) >= 0;
+            }
+
+            void remove(const QString &path) {
+                    Service key;
+                    key.path = path;
+                    int pos = QVector<Service>::indexOf(key);
+                    if (pos >= 0)
+                            QVector<Service>::remove(pos);
+            }
+    };
+
     explicit QConnectionAgent(QObject *parent = 0);
     static QConnectionAgent *self;
     ConnAdaptor *connectionAdaptor;
@@ -87,8 +124,7 @@ private:
 
     QString currentNetworkState;
 
-    QMap<QString,NetworkService *> servicesMap;
-    QStringList orderedServicesList;
+    ServiceList orderedServicesList;
 
     QStringList techPreferenceList;
     bool isEthernet;
@@ -112,7 +148,7 @@ private:
 
 private slots:
     void onScanFinished();
-    void updateServicesMap();
+    void updateServices();
 
     void serviceErrorChanged(const QString &error);
     void serviceStateChanged(const QString &state);
@@ -126,7 +162,6 @@ private slots:
     void browserRequest(const QString &servicePath, const QString &url);
     void techChanged();
 
-    void serviceRemoved(const QString &);
     void serviceAdded(const QString &);
     void servicesListChanged(const QStringList &);
     void offlineModeChanged(bool);
