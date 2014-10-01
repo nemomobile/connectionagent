@@ -311,6 +311,9 @@ void QConnectionAgent::connectToType(const QString &type)
                     qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
                     servicesMap.value(path)->requestConnect();
                     return;
+                } else if (path.contains("cellular")) {
+                    // do not continue if cellular is not autoconnect
+                    return;
                 }
             } else {
                 return;
