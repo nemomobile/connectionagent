@@ -304,8 +304,17 @@ void QConnectionAgent::connectToType(const QString &type)
         return;
     }
 
+    QString convType;
+    if (type.contains("mobile")) {
+        convType="cellular";
+    } else if (type.contains("wlan")) {
+        convType="wifi";
+    } else {
+        convType=type;
+    }
+
     Q_FOREACH (const QString &path, servicesMap.keys()) {
-        if (path.contains(type)) {
+        if (path.contains(convType)) {
             if (!isStateOnline(servicesMap.value(path)->state())) {
                 if (servicesMap.value(path)->autoConnect()) {
                     qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
@@ -321,7 +330,13 @@ void QConnectionAgent::connectToType(const QString &type)
         }
     }
 
-    Q_EMIT configurationNeeded(type);
+    if (type.contains("cellular")) {
+        convType="mobile";
+    } else if (type.contains("wifi")) {
+        convType="wlan";
+    }
+
+    Q_EMIT configurationNeeded(convType);
 }
 
 void QConnectionAgent::onScanFinished()
