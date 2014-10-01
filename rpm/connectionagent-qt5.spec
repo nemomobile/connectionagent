@@ -4,7 +4,7 @@ Name:       connectionagent-qt5
 # << macros
 
 Summary:    User Agent daemon
-Version:    0.11.18
+Version:    0.11.21
 Release:    0
 Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
