@@ -308,6 +308,7 @@ void QConnectionAgent::connectToType(const QString &type)
         return;
     }
 
+    // Connman is using "cellular" and "wifi" as part of the service path
     QString convType;
     if (type.contains("mobile")) {
         convType="cellular";
@@ -317,16 +318,17 @@ void QConnectionAgent::connectToType(const QString &type)
         convType=type;
     }
 
+    bool found = false;
     Q_FOREACH (Service elem, orderedServicesList) {
-        if (elem.path.contains(type)) {
+        if (elem.path.contains(convType)) {
             if (!isStateOnline(elem.service->state())) {
                 if (elem.service->autoConnect()) {
                     qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
                     elem.service->requestConnect();
                     return;
-                } else if (elem.path.contains("cellular")) {
-                    // do not continue if cellular is not autoconnect
-                    return;
+                } else if (!elem.path.contains("cellular")) {
+                    // ignore cellular that are not on autoconnect
+                    found = true;
                 }
             } else {
                 return;
@@ -334,11 +336,13 @@ void QConnectionAgent::connectToType(const QString &type)
         }
     }
 
-    if (type.contains("cellular")) {
-        convType="mobile";
-    } else if (type.contains("wifi")) {
+    // Can't connect to the service of a type that doesn't exist
+    if (!found)
+        return;
+
+    // Substitute "wifi" with "wlan" for lipstick
+    if (type.contains("wifi"))
         convType="wlan";
-    }
 
     Q_EMIT configurationNeeded(convType);
 }
