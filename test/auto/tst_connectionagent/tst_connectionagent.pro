@@ -18,7 +18,7 @@ HEADERS += \
         ../../../connd/connectiond_adaptor.h \
         ../../../connd/wakeupwatcher.h
 
-INCLUDEPATH += ../../../connd
+INCLUDEPATH += $$OUT_PWD/../../../connd
 
 CONFIG += link_pkgconfig
 PKGCONFIG += connman-qt5 qofono-qt5
