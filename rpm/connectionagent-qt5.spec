@@ -22,6 +22,7 @@ BuildRequires:  pkgconfig(qofono-qt5)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Test)
 BuildRequires:  pkgconfig(Qt5Qml)
+BuildRequires:  pkgconfig(qt5-boostable)
 Provides:   connectionagent > 0.10.1
 Obsoletes:   connectionagent <= 0.7.6
 

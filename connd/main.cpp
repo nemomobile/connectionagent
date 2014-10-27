@@ -87,7 +87,7 @@ void messageOutput(QtMsgType type, const QMessageLogContext &context, const QStr
         previousMessageHandler(type,context,str);
  }
 
-int main(int argc, char *argv[])
+Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     previousMessageHandler = qInstallMessageHandler(messageOutput);
 
