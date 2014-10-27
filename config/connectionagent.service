@@ -1,11 +1,11 @@
 [Unit]
 Description=Connection Agent
-Requires=dbus.service
-After=pre-user-session.target
+Requires=dbus.service booster-qt5.service
+After=pre-user-session.target booster-qt5.service
 
 [Service]
 EnvironmentFile=-/etc/tracing/connectionagent/connectionagent.tracing
-ExecStart=/usr/bin/connectionagent $TRACING
+ExecStart=/usr/bin/invoker -o --type=qt5 /usr/bin/connectionagent $TRACING
 Type=dbus
 BusName=com.jolla.Connectiond
 Restart=always

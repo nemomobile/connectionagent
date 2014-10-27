@@ -4,6 +4,13 @@ QT = core network dbus
 TARGET = connectionagent
 PKGCONFIG += connman-qt5 qofono-qt5
 
+packagesExist(qt5-boostable) {
+    DEFINES += HAS_BOOSTER
+    PKGCONFIG += qt5-boostable
+} else {
+    warning("qt5-boostable not available; startup times will be slower")
+}
+
 CONFIG   += console link_pkgconfig
 CONFIG   -= app_bundle
 
