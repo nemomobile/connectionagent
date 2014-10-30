@@ -1,0 +1,8 @@
+#!/bin/sh
+
+ENVFILE=/etc/tracing/connectionagent/connectionagent.tracing
+if [ -f "${ENVFILE}" ]; then
+   source "${ENVFILE}"
+fi
+
+exec /usr/bin/invoker -o --type=qt5 /usr/bin/connectionagent $TRACING
