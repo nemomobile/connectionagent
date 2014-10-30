@@ -7,7 +7,6 @@ Group:      Communications/Connectivity Adaptation
 License:    LGPLv2
 URL:        http://github.com/lpotter/connectionagent
 Source0:    %{name}-%{version}.tar.bz2
-Source1:    connectionagent.tracing
 Requires:   connman-qt5-declarative
 Requires:   systemd
 Requires:   systemd-user-session-targets
@@ -69,8 +68,6 @@ rm -rf %{buildroot}
 %qmake5_install
 
 %make_install
-mkdir -p %{buildroot}%{_sysconfdir}/tracing/connectionagent/
-cp -a %{SOURCE1} %{buildroot}%{_sysconfdir}/tracing/connectionagent/
 
 mkdir -p %{buildroot}%{_libdir}/systemd/user/user-session.target.wants
 ln -s ../connectionagent.service %{buildroot}%{_libdir}/systemd/user/user-session.target.wants/
@@ -105,4 +102,4 @@ fi
 
 %files tracing
 %defattr(-,root,root,-)
-%config %{_sysconfdir}/tracing/connectionagent
+%config /var/lib/environment/nemo/70-connectionagent-tracing.conf
