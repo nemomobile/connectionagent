@@ -90,6 +90,7 @@ fi
 %files
 %defattr(-,root,root,-)
 %{_bindir}/connectionagent
+%{_bindir}/connectionagent-wrapper
 %{_datadir}/dbus-1/services/com.jolla.Connectiond.service
 %{_libdir}/systemd/user/connectionagent.service
 %{_sysconfdir}/dbus-1/session.d/connectionagent.conf

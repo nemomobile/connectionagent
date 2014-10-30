@@ -4,7 +4,8 @@ SUBDIRS = \
     connectionagentplugin \
     test \
     config \
-    connd
+    connd \
+    scripts
 
 test.depends = connd # xml interface
 
