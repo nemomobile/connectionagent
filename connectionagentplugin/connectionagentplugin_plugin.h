@@ -18,25 +18,15 @@
 #define CONNECTIONAGENTPLUGIN_PLUGIN_H
 #include <QtPlugin>
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-# include <QtQml>
-# include <QQmlEngine>
-# include <QQmlExtensionPlugin>
-# define QDeclarativeEngine QQmlEngine
-# define QDeclarativeExtensionPlugin QQmlExtensionPlugin
-#else
-# include <QtDeclarative>
-# include <QDeclarativeEngine>
-# include <QDeclarativeExtensionPlugin>
-#endif
+#include <QtQml>
+#include <QQmlEngine>
+#include <QQmlExtensionPlugin>
 
-class ConnectionagentpluginPlugin : public QDeclarativeExtensionPlugin
+class ConnectionagentpluginPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-#if QT_VERSION >= 0x050000
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
-#endif
-    
+
 public:
     void registerTypes(const char *uri);
 
