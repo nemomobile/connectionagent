@@ -233,12 +233,6 @@ void QConnectionAgent::serviceStateChanged(const QString &state)
     qDebug() << state << service->name() << service->strength();
     qDebug() << "currentNetworkState" << currentNetworkState;
 
-    if (state == "ready" && service->type() == "wifi"
-            && !delayedTethering
-            && netman->defaultRoute()->type() == "cellular") {
-        netman->defaultRoute()->requestDisconnect();
-    }
-
     if (!service->favorite() || !netman->getTechnology(service->type())
             || !netman->getTechnology(service->type())->powered()) {
         qDebug() << "not fav or not powered";
@@ -293,6 +287,12 @@ void QConnectionAgent::connectToType(const QString &type)
 
     if (netman->technologyPathForType(type).isEmpty()) {
         Q_EMIT errorReported("","Type not valid");
+        return;
+    }
+
+    if ((type.contains("mobile") || type.contains("cellular")) &&
+        netman->defaultRoute()->type() == "wifi") {
+        qDebug() << "<<<<<<<<<<< wlan/wifi connected, skipping... >>>>>>>>>>>>";
         return;
     }
 
