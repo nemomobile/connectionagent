@@ -511,18 +511,6 @@ void QConnectionAgent::technologyPowerChanged(bool powered)
         // wifi tech might not be ready, so delay this
         QTimer::singleShot(1000,this,SLOT(setWifiTetheringEnabled()));
     }
-
-    if (!delayedTethering) {
-        if (!powered) {
-            removeAllTypes("wifi"); //dont wait for connman, he's too slow at this
-            QString bestService = findBestConnectableService();
-            if (!bestService.isEmpty()) {
-                qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
-                int pos = orderedServicesList.indexOf(bestService);
-                orderedServicesList.at(pos).service->requestConnect();
-            }
-        }
-    }
 }
 
 void QConnectionAgent::techChanged()
@@ -627,36 +615,10 @@ void QConnectionAgent::serviceAutoconnectChanged(bool on)
     if (!service)
         return;
     qDebug() << service->path() << "AutoConnect is" << on;
-    bool mobileConnected = false;
 
     if (!on) {
         if (service->state() != "idle")
             service->requestDisconnect();
-
-        qDebug() << "find best service here";
-        QString selectedServicePath = findBestConnectableService();
-        if (!selectedServicePath.isEmpty()) {
-            qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
-            int pos = orderedServicesList.indexOf(selectedServicePath);
-            orderedServicesList.at(pos).service->requestConnect();
-        }
-    } else {
-        if (!isStateOnline(service->state())) {
-            if (service->type() == "cellular") {
-                QVector<NetworkService*> cellServices = netman->getServices("cellular");
-                Q_FOREACH (NetworkService *cService, cellServices) {
-                    if (isStateOnline(cService->state())) {
-                        mobileConnected = true;
-                    }
-                }
-            }
-
-            if ((service->type() == "wifi" && mobileConnected)
-                    || isBestService(service)) {
-                qDebug() << "<<<<<<<<<<< requestConnect() >>>>>>>>>>>>";
-                service->requestConnect();
-            }
-        }
     }
 }
 
