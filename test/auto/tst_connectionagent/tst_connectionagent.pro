@@ -21,5 +21,5 @@ HEADERS += \
 INCLUDEPATH += $$OUT_PWD/../../../connd
 
 CONFIG += link_pkgconfig
-PKGCONFIG += connman-qt5 qofono-qt5
+PKGCONFIG += connman-qt5
 

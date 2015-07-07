@@ -23,10 +23,6 @@
 #include <connman-qt5/networktechnology.h>
 #include <connman-qt5/networkservice.h>
 #include <connman-qt5/sessionagent.h>
-#include <qofono-qt5/qofonoconnectioncontext.h>
-#include <qofono-qt5/qofonoconnectionmanager.h>
-#include <qofono-qt5/qofononetworkregistration.h>
-#include <qofono-qt5/qofonomanager.h>
 
 #include <QtDBus/QDBusConnection>
 

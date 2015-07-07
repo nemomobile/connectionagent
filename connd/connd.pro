@@ -2,7 +2,7 @@
 QT = core network dbus
 
 TARGET = connectionagent
-PKGCONFIG += connman-qt5 qofono-qt5
+PKGCONFIG += connman-qt5
 
 packagesExist(qt5-boostable) {
     DEFINES += HAS_BOOSTER
