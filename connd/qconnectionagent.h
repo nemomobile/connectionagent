@@ -113,6 +113,8 @@ private:
     };
 
     explicit QConnectionAgent(QObject *parent = 0);
+    void setup();
+    void updateServices();
     bool isStateOnline(const QString &state);
     bool isBestService(NetworkService *service);
     QString findBestConnectableService();
@@ -145,14 +147,12 @@ private:
 
 private slots:
     void onScanFinished();
-    void updateServices();
 
     void serviceErrorChanged(const QString &error);
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);
 
     void connmanAvailabilityChanged(bool b);
-    void setup();
     void servicesError(const QString &);
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
