@@ -6,11 +6,10 @@ CONFIG += qt plugin
 uri = com.jolla.connection
 
 SOURCES += \
-    connectionagentplugin_plugin.cpp \
+    plugin.cpp \
     declarativeconnectionagent.cpp
 
 HEADERS += \
-    connectionagentplugin_plugin.h \
     declarativeconnectionagent.h
 
 DBUS_INTERFACES = connectiond_interface
