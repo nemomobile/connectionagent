@@ -56,7 +56,6 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
 {
     qDebug() << Q_FUNC_INFO;
 
-    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
 
     new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
@@ -71,6 +70,7 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
 
     connect(this,SIGNAL(configurationNeeded(QString)),this,SLOT(openConnectionDialog(QString)));
 
+    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
     connect(netman,SIGNAL(offlineModeChanged(bool)),this,SLOT(offlineModeChanged(bool)));
