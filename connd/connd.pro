@@ -30,15 +30,15 @@ SOURCES += main.cpp \
     qconnectionagent.cpp \
     wakeupwatcher.cpp
 
-HEADERS+= \
+HEADERS += \
     qconnectionagent.h \
     wakeupwatcher.h
 
 target.path = /usr/bin
 INSTALLS += target
 
-MOC_DIR=.moc
-OBJECTS_DIR=.obj
+MOC_DIR = .moc
+OBJECTS_DIR = .obj
 
 
 
