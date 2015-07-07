@@ -29,8 +29,6 @@
 #include <QObject>
 #include <QSettings>
 
-#define CONNMAN_1_21
-
 #define CONND_SERVICE "com.jolla.Connectiond"
 #define CONND_PATH "/Connectiond"
 #define CONND_SESSION_PATH = "/ConnectionSession"
@@ -607,7 +605,7 @@ bool QConnectionAgent::isBestService(NetworkService *service)
 void QConnectionAgent::scanTimeout()
 {
     if (!tetheringWifiTech || tetheringWifiTech->tethering())
-            return;
+        return;
 
     if (tetheringWifiTech->powered() && !tetheringWifiTech->connected() && netman->defaultRoute()->type() != "wifi" ) {
         tetheringWifiTech->scan();

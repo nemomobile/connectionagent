@@ -81,36 +81,36 @@ private:
     class Service
     {
     public:
-            QString path;
-            NetworkService *service;
+        QString path;
+        NetworkService *service;
 
-            bool operator==(const Service &other) const {
-                    return other.path == path;
-            }
+        bool operator==(const Service &other) const {
+            return other.path == path;
+        }
     };
 
     class ServiceList : public QVector<Service>
     {
     public:
-            int indexOf(const QString &path, int from = 0) const {
-                    Service key;
-                    key.path = path;
-                    return QVector<Service>::indexOf(key, from);
-            }
+        int indexOf(const QString &path, int from = 0) const {
+            Service key;
+            key.path = path;
+            return QVector<Service>::indexOf(key, from);
+        }
 
-            bool contains(const QString &path) const {
-                    Service key;
-                    key.path = path;
-                    return QVector<Service>::indexOf(key) >= 0;
-            }
+        bool contains(const QString &path) const {
+            Service key;
+            key.path = path;
+            return QVector<Service>::indexOf(key) >= 0;
+        }
 
-            void remove(const QString &path) {
-                    Service key;
-                    key.path = path;
-                    int pos = QVector<Service>::indexOf(key);
-                    if (pos >= 0)
-                            QVector<Service>::remove(pos);
-            }
+        void remove(const QString &path) {
+            Service key;
+            key.path = path;
+            int pos = QVector<Service>::indexOf(key);
+            if (pos >= 0)
+                QVector<Service>::remove(pos);
+        }
     };
 
     void setup();
