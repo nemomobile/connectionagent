@@ -115,6 +115,11 @@ private:
     };
 
     explicit QConnectionAgent(QObject *parent = 0);
+    bool isStateOnline(const QString &state);
+    bool isBestService(NetworkService *service);
+    QString findBestConnectableService();
+    void removeAllTypes(const QString &type);
+
     static QConnectionAgent *self;
     ConnAdaptor *connectionAdaptor;
     UserAgent *ua;
@@ -130,7 +135,6 @@ private:
     bool isEthernet;
     bool connmanAvailable;
 
-    bool isStateOnline(const QString &state);
     QOfonoConnectionContext *oContext;
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
@@ -140,9 +144,6 @@ private:
 
     QTimer *scanTimer;
     QStringList knownTechnologies;
-    bool isBestService(NetworkService *service);
-    QString findBestConnectableService();
-    void removeAllTypes(const QString &type);
     bool tetheringStarted;
     bool delayedTethering;
 
