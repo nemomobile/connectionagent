@@ -48,7 +48,6 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
     currentNetworkState(QString()),
     isEthernet(false),
     connmanAvailable(false),
-    oContext(0),
     tetheringWifiTech(0),
     tetheringEnabled(false),
     flightModeSuppression(false),
@@ -59,7 +58,7 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
 
     connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
 
-    connectionAdaptor = new ConnAdaptor(this);
+    new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
 
     if (!dbus.registerService(CONND_SERVICE)) {

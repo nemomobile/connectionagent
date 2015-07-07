@@ -31,10 +31,8 @@
 class UserAgent;
 class SessionAgent;
 
-class ConnAdaptor;
 class NetworkManager;
 class NetworkService;
-class QOfonoConnectionContext;
 class NetworkTechnology;
 class WakeupWatcher;
 class QTimer;
@@ -121,7 +119,6 @@ private:
     void removeAllTypes(const QString &type);
 
     static QConnectionAgent *self;
-    ConnAdaptor *connectionAdaptor;
     UserAgent *ua;
 
     NetworkManager *netman;
@@ -135,7 +132,6 @@ private:
     bool isEthernet;
     bool connmanAvailable;
 
-    QOfonoConnectionContext *oContext;
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
     bool flightModeSuppression;
