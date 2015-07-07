@@ -14,22 +14,56 @@
 **
 ****************************************************************************/
 
-#ifndef CONNECTIONAGENTPLUGIN_H
-#define CONNECTIONAGENTPLUGIN_H
+#ifndef DECLARATIVECONNECTIONAGENT_H
+#define DECLARATIVECONNECTIONAGENT_H
 
-#include "connectionagentplugin.h"
+#include "declarativeconnectionagent.h"
 #include "connectiond_interface.h"
 
-class NetworkManager;
-class ConnectionAgentPlugin : public QObject
+/*
+ *This class is for accessing connman's UserAgent from multiple sources.
+ *This is because currently, there can only be one UserAgent per system.
+ *
+ *It also makes use of a patch to connman, that allows the UserAgent
+ *to get signaled when a connection is needed. This is the real reason
+ *this daemon is needed. An InputRequest is short lived, and thus, may
+ *not clash with other apps that need to use UserAgent.
+ *
+ *When you are trying to intercept a connection request, you need a long
+ *living process to wait until such time. This will immediately clash if
+ *a wlan needs user Input signal from connman, and the configure will never
+ *get the proper signal.
+ *
+ *This qml type can be used as such:
+ *
+ *import com.jolla.connection 1.0
+ *
+ *    ConnectionAgent {
+ *       id: userAgent
+ *        onUserInputRequested: {
+ *            console.log("        onUserInputRequested:")
+ *        }
+ *
+ *       onConnectionRequest: {
+ *          console.log("onConnectionRequest ")
+ *            sendSuppress()
+ *        }
+ *        onErrorReported: {
+ *            console.log("Got error from connman: " + error);
+ *       }
+ *   }
+ *
+ **/
+
+class DeclarativeConnectionAgent : public QObject
 {
     Q_OBJECT
 
-    Q_DISABLE_COPY(ConnectionAgentPlugin)
+    Q_DISABLE_COPY(DeclarativeConnectionAgent)
 
 public:
-    explicit ConnectionAgentPlugin(QObject *parent = 0);
-    ~ConnectionAgentPlugin();
+    explicit DeclarativeConnectionAgent(QObject *parent = 0);
+    ~DeclarativeConnectionAgent();
 
 public slots:
     void sendUserReply(const QVariantMap &input);
@@ -64,5 +98,5 @@ private slots:
     void connectiondUnregistered(const QString = QString());
 };
 
-#endif // CONNECTIONAGENTPLUGIN_H
+#endif
 

@@ -15,45 +15,10 @@
 ****************************************************************************/
 
 #include "connectionagentplugin_plugin.h"
-#include "connectionagentplugin.h"
-
-/*
- *This class is for accessing connman's UserAgent from multiple sources.
- *This is because currently, there can only be one UserAgent per system.
- *
- *It also makes use of a patch to connman, that allows the UserAgent
- *to get signaled when a connection is needed. This is the real reason
- *this daemon is needed. An InputRequest is short lived, and thus, may
- *not clash with other apps that need to use UserAgent.
- *
- *When you are trying to intercept a connection request, you need a long
- *living process to wait until such time. This will immediately clash if
- *a wlan needs user Input signal from connman, and the configure will never
- *get the proper signal.
- *
- *This qml type can be used as such:
- *
- *import com.jolla.connection 1.0
- *
- *    ConnectionAgent {
- *       id: userAgent
- *        onUserInputRequested: {
- *            console.log("        onUserInputRequested:")
- *        }
- *
- *       onConnectionRequest: {
- *          console.log("onConnectionRequest ")
- *            sendSuppress()
- *        }
- *        onErrorReported: {
- *            console.log("Got error from connman: " + error);
- *       }
- *   }
- *
- **/
+#include "declarativeconnectionagent.h"
 
 void ConnectionagentpluginPlugin::registerTypes(const char *uri)
 {
     // @uri com.jolla.connection
-    qmlRegisterType<ConnectionAgentPlugin>(uri, 1, 0, "ConnectionAgent");
+    qmlRegisterType<DeclarativeConnectionAgent>(uri, 1, 0, "ConnectionAgent");
 }

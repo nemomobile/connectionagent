@@ -20,7 +20,7 @@
 
 #include <QString>
 #include <QtTest>
-#include "../../../connectionagentplugin/connectionagentplugin.h"
+#include "../../../connectionagentplugin/declarativeconnectionagent.h"
 
 #include <networkmanager.h>
 #include <networktechnology.h>
@@ -49,13 +49,13 @@ private Q_SLOTS:
     void tst_tethering();
 
 private:
-    ConnectionAgentPlugin *plugin;
-     NetworkManager *netman;
+    DeclarativeConnectionAgent *plugin;
+    NetworkManager *netman;
 };
 
 Tst_connectionagent_pluginTest::Tst_connectionagent_pluginTest()
 {
-    plugin = new ConnectionAgentPlugin(this);
+    plugin = new DeclarativeConnectionAgent(this);
     netman = NetworkManagerFactory::createInstance();
     QTest::qWait(5000);
 }

@@ -16,10 +16,10 @@ TEMPLATE = app
 
 
 SOURCES += tst_connectionagent_plugintest.cpp \
-        ../../../connectionagentplugin/connectionagentplugin.cpp
+        ../../../connectionagentplugin/declarativeconnectionagent.cpp
 
 HEADERS += \
-        ../../../connectionagentplugin/connectionagentplugin.h
+        ../../../connectionagentplugin/declarativeconnectionagent.h
 
 DBUS_INTERFACES = connectiond_interface
 connectiond_interface.files = ../../../connd/com.jollamobile.Connectiond.xml

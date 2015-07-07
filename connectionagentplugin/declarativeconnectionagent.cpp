@@ -14,7 +14,7 @@
 **
 ****************************************************************************/
 
-#include "connectionagentplugin.h"
+#include "declarativeconnectionagent.h"
 #include "connectiond_interface.h"
 
 #include <connman-qt5/networkmanager.h>
@@ -26,7 +26,7 @@
 #define CONND_SERVICE "com.jolla.Connectiond"
 #define CONND_PATH "/Connectiond"
 
-ConnectionAgentPlugin::ConnectionAgentPlugin(QObject *parent):
+DeclarativeConnectionAgent::DeclarativeConnectionAgent(QObject *parent):
     QObject(parent),
     connManagerInterface(0)
 {
@@ -42,11 +42,11 @@ ConnectionAgentPlugin::ConnectionAgentPlugin(QObject *parent):
     connectToConnectiond();
 }
 
-ConnectionAgentPlugin::~ConnectionAgentPlugin()
+DeclarativeConnectionAgent::~DeclarativeConnectionAgent()
 {
 }
 
-void ConnectionAgentPlugin::connectToConnectiond(QString)
+void DeclarativeConnectionAgent::connectToConnectiond(QString)
 {
     if (connManagerInterface) {
         delete connManagerInterface;
@@ -92,7 +92,7 @@ void ConnectionAgentPlugin::connectToConnectiond(QString)
             this,SLOT(onTetheringFinished(bool)));
 }
 
-void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
+void DeclarativeConnectionAgent::sendUserReply(const QVariantMap &input)
 {
     if (!connManagerInterface || !connManagerInterface->isValid()) {
         Q_EMIT errorReported("","ConnectionAgent not available");
@@ -106,7 +106,7 @@ void ConnectionAgentPlugin::sendUserReply(const QVariantMap &input)
     }
 }
 
-void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int timeout)
+void DeclarativeConnectionAgent::sendConnectReply(const QString &replyMessage, int timeout)
 {
     if (!connManagerInterface || !connManagerInterface->isValid()) {
         Q_EMIT errorReported("","ConnectionAgent not available");
@@ -115,7 +115,7 @@ void ConnectionAgentPlugin::sendConnectReply(const QString &replyMessage, int ti
     connManagerInterface->sendConnectReply(replyMessage,timeout);
 }
 
-void ConnectionAgentPlugin::connectToType(const QString &type)
+void DeclarativeConnectionAgent::connectToType(const QString &type)
 {
     if (!connManagerInterface || !connManagerInterface->isValid()) {
         Q_EMIT errorReported("","ConnectionAgent not available");
@@ -125,18 +125,18 @@ void ConnectionAgentPlugin::connectToType(const QString &type)
     connManagerInterface->connectToType(type);
 }
 
-void ConnectionAgentPlugin::onErrorReported(const QString &servicePath, const QString &error)
+void DeclarativeConnectionAgent::onErrorReported(const QString &servicePath, const QString &error)
 {
     Q_EMIT errorReported(servicePath, error);
 }
 
-void ConnectionAgentPlugin::onRequestBrowser(const QString &url)
+void DeclarativeConnectionAgent::onRequestBrowser(const QString &url)
 {
     qDebug() << Q_FUNC_INFO <<url;
     Q_EMIT browserRequested(url);
 }
 
-void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const QVariantMap &fields)
+void DeclarativeConnectionAgent::onUserInputRequested(const QString &service, const QVariantMap &fields)
 {
     // we do this as qtdbus does not understand QVariantMap very well.
     // we need to manually demarshall
@@ -152,13 +152,13 @@ void ConnectionAgentPlugin::onUserInputRequested(const QString &service, const Q
     Q_EMIT userInputRequested(service, map);
 }
 
-void ConnectionAgentPlugin::onConnectionRequested()
+void DeclarativeConnectionAgent::onConnectionRequested()
 {
     qDebug() << Q_FUNC_INFO;
     Q_EMIT connectionRequest();
 }
 
-void ConnectionAgentPlugin::connectiondUnregistered(QString)
+void DeclarativeConnectionAgent::connectiondUnregistered(QString)
 {
     if (connManagerInterface) {
         delete connManagerInterface;
@@ -166,23 +166,23 @@ void ConnectionAgentPlugin::connectiondUnregistered(QString)
     }
 }
 
-void ConnectionAgentPlugin::onConnectionState(const QString &state, const QString &type)
+void DeclarativeConnectionAgent::onConnectionState(const QString &state, const QString &type)
 {
     qDebug() << Q_FUNC_INFO << state;
     Q_EMIT connectionState(state, type);
 }
 
-void ConnectionAgentPlugin::startTethering(const QString &type)
+void DeclarativeConnectionAgent::startTethering(const QString &type)
 {
     connManagerInterface->startTethering(type);
 }
 
-void ConnectionAgentPlugin::onTetheringFinished(bool success)
+void DeclarativeConnectionAgent::onTetheringFinished(bool success)
 {
     Q_EMIT tetheringFinished(success);
 }
 
-void ConnectionAgentPlugin::stopTethering(bool keepPowered)
+void DeclarativeConnectionAgent::stopTethering(bool keepPowered)
 {
     connManagerInterface->stopTethering(keepPowered);
 }
