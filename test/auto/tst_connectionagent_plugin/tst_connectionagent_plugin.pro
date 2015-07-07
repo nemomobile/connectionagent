@@ -1,11 +1,4 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2013-05-28T05:39:06
-#
-#-------------------------------------------------
-
 QT       += testlib dbus network
-
 QT       -= gui
 
 TARGET = tst_connectionagent_plugintest
@@ -27,8 +20,6 @@ connectiond_interface.header_flags = "-c ConnectionManagerInterface"
 connectiond_interface.source_flags = "-c ConnectionManagerInterface"
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
-
-INCLUDEPATH += ../../../connectiongentplugin
 
 CONFIG += link_pkgconfig
 PKGCONFIG += connman-qt5
