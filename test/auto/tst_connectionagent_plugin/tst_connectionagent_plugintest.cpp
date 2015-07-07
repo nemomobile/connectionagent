@@ -154,7 +154,7 @@ void Tst_connectionagent_pluginTest::testUserInputRequested()
 
 void Tst_connectionagent_pluginTest::tst_tethering()
 {
-    NetworkService *wlanService;
+    NetworkService *wlanService = 0;
     NetworkService *mobiledataService;
 
     QVector <NetworkService *>wifiServices = netman->getServices("wifi");
