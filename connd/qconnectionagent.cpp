@@ -386,20 +386,6 @@ void QConnectionAgent::servicesError(const QString &errorMessage)
     Q_EMIT onErrorReported(serv->path(), errorMessage);
 }
 
-void QConnectionAgent::ofonoServicesError(const QString &errorMessage)
-{
-    QOfonoConnectionContext *context = static_cast<QOfonoConnectionContext *>(sender());
-    QVector<NetworkService*> services = netman->getServices("cellular");
-    Q_FOREACH (NetworkService *serv, services) {
-        if (context->contextPath().contains(serv->path().section("_",2,2))) {
-            Q_EMIT onErrorReported(serv->path(), errorMessage);
-            qDebug() << serv->name() << errorMessage;
-            return;
-        }
-    }
-    qWarning() << "ofono error but could not discover connman service";
-}
-
 void QConnectionAgent::networkStateChanged(const QString &state)
 {
     qDebug() << state;
@@ -445,12 +431,6 @@ void QConnectionAgent::connmanAvailabilityChanged(bool b)
     } else {
         currentNetworkState = "error";
     }
-}
-
-void QConnectionAgent::serviceAdded(const QString &srv)
-{
-    qDebug() << Q_FUNC_INFO << "<<<<"<< srv;
-    updateServices();
 }
 
 void QConnectionAgent::setup()
@@ -592,8 +572,7 @@ void QConnectionAgent::offlineModeChanged(bool b)
 
 void QConnectionAgent::flightModeDialogSuppressionTimeout()
 {
-    if (flightModeSuppression)
-        flightModeSuppression = false;
+    flightModeSuppression = false;
 }
 
 void QConnectionAgent::displayStateChanged(const QString &state)

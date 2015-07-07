@@ -154,12 +154,10 @@ private slots:
     void connmanAvailabilityChanged(bool b);
     void setup();
     void servicesError(const QString &);
-    void ofonoServicesError(const QString &);
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
     void techChanged();
 
-    void serviceAdded(const QString &);
     void servicesListChanged(const QStringList &);
     void offlineModeChanged(bool);
     void flightModeDialogSuppressionTimeout();
