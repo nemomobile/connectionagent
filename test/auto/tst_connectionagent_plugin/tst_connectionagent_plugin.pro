@@ -24,5 +24,5 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 CONFIG += link_pkgconfig
 PKGCONFIG += connman-qt5
 
-target.path = $$[QT_INSTALL_PREFIX]/opt/tests/libqofono/
+target.path = $$[QT_INSTALL_PREFIX]/opt/tests/connectionagent/
 INSTALLS += target

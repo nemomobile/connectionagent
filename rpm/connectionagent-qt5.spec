@@ -97,7 +97,7 @@ fi
 
 %files test
 %defattr(-,root,root,-)
-%{_prefix}/opt/tests/libqofono/*
+%{_prefix}/opt/tests/connectionagent/*
 
 %files tracing
 %defattr(-,root,root,-)
