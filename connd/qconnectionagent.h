@@ -42,9 +42,10 @@ class QConnectionAgent : public QObject
     Q_OBJECT
 
 public:
+    explicit QConnectionAgent(QObject *parent = 0);
     ~QConnectionAgent();
 
-    static QConnectionAgent &instance();
+    bool isValid() const;
 
 Q_SIGNALS:
 
@@ -112,7 +113,6 @@ private:
             }
     };
 
-    explicit QConnectionAgent(QObject *parent = 0);
     void setup();
     void updateServices();
     bool isStateOnline(const QString &state);
@@ -120,7 +120,6 @@ private:
     QString findBestConnectableService();
     void removeAllTypes(const QString &type);
 
-    static QConnectionAgent *self;
     UserAgent *ua;
 
     NetworkManager *netman;
@@ -144,6 +143,7 @@ private:
     QStringList knownTechnologies;
     bool tetheringStarted;
     bool delayedTethering;
+    bool valid;
 
 private slots:
     void onScanFinished();

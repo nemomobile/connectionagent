@@ -31,8 +31,6 @@
 
 #define CONNMAN_1_21
 
-QConnectionAgent* QConnectionAgent::self = NULL;
-
 #define CONND_SERVICE "com.jolla.Connectiond"
 #define CONND_PATH "/Connectiond"
 #define CONND_SESSION_PATH = "/ConnectionSession"
@@ -48,20 +46,22 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
     tetheringEnabled(false),
     flightModeSuppression(false),
     scanTimeoutInterval(1),
-    delayedTethering(false)
+    delayedTethering(false),
+    valid(true)
 {
     qDebug() << Q_FUNC_INFO;
-
 
     new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
 
     if (!dbus.registerService(CONND_SERVICE)) {
         qDebug() << "XXXXXXXXXXX could not register service XXXXXXXXXXXXXXXXXX";
+        valid = false;
     }
 
     if (!dbus.registerObject(CONND_PATH, this)) {
         qDebug() << "XXXXXXXXXXX could not register object XXXXXXXXXXXXXXXXXX";
+        valid = false;
     }
 
     connect(this,SIGNAL(configurationNeeded(QString)),this,SLOT(openConnectionDialog(QString)));
@@ -97,23 +97,17 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
     scanTimer = new QTimer(this);
     connect(scanTimer,SIGNAL(timeout()),this,SLOT(scanTimeout()));
     scanTimer->setSingleShot(true);
-    if (connmanAvailable)
+    if (connmanAvailable && valid)
         setup();
 }
 
 QConnectionAgent::~QConnectionAgent()
 {
-    delete self;
 }
 
-QConnectionAgent & QConnectionAgent::instance()
+bool QConnectionAgent::isValid() const
 {
-    qDebug() << Q_FUNC_INFO;
-    if (!self) {
-        self = new QConnectionAgent;
-    }
-
-    return *self;
+    return valid;
 }
 
 // from useragent

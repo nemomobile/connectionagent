@@ -33,45 +33,23 @@ class Tst_connectionagent : public QObject
 {
     Q_OBJECT
 
-public:
-    Tst_connectionagent();
-
 private Q_SLOTS:
-    void tst_networkInstance();
-    void tst_restartconnman();
-
     void tst_onUserInputRequested();
     void tst_onUserInputCanceled();
     void tst_onErrorReported();
     void tst_onConnectionRequest();
-    void tst_sendConnectReply();
-    void tst_sendUserReply();
-    void tst_connectToType();
+
+private:
+    QConnectionAgent agent;
 };
-
-Tst_connectionagent::Tst_connectionagent()
-{
-}
-
-void Tst_connectionagent::tst_networkInstance()
-{
-    NetworkManager *netman = NetworkManagerFactory::createInstance();
-    QString currentState = netman->state();
-    QConnectionAgent::instance();
-    QVERIFY(currentState == netman->state());
-}
-
-void Tst_connectionagent::tst_restartconnman()
-{
-}
 
 void Tst_connectionagent::tst_onUserInputRequested()
 {
-    QSignalSpy spy(&QConnectionAgent::instance(), SIGNAL(userInputRequested(QString,QVariantMap)));
+    QSignalSpy spy(&agent, SIGNAL(userInputRequested(QString,QVariantMap)));
     QVariantMap map;
     map.insert("test",true);
 
-    QConnectionAgent::instance().onUserInputRequested(QLatin1String("test_path"), map);
+    agent.onUserInputRequested(QLatin1String("test_path"), map);
     QCOMPARE(spy.count(),1);
     QList<QVariant> arguments;
     arguments = spy.takeFirst();
@@ -83,15 +61,15 @@ void Tst_connectionagent::tst_onUserInputRequested()
 
 void Tst_connectionagent::tst_onUserInputCanceled()
 {
-    QSignalSpy spy(&QConnectionAgent::instance(), SIGNAL(userInputCanceled()));
-    QConnectionAgent::instance().onUserInputCanceled();
+    QSignalSpy spy(&agent, SIGNAL(userInputCanceled()));
+    agent.onUserInputCanceled();
     QCOMPARE(spy.count(),1);
 }
 
 void Tst_connectionagent::tst_onErrorReported()
 {
-    QSignalSpy spy(&QConnectionAgent::instance(), SIGNAL(errorReported(QString,QString)));
-    QConnectionAgent::instance().onErrorReported("test_path","Test error");
+    QSignalSpy spy(&agent, SIGNAL(errorReported(QString,QString)));
+    agent.onErrorReported("test_path","Test error");
 
     QCOMPARE(spy.count(),1);
     QList<QVariant> arguments;
@@ -99,7 +77,7 @@ void Tst_connectionagent::tst_onErrorReported()
     QCOMPARE(arguments.at(0).toString(), QString("test_path"));
     QCOMPARE(arguments.at(1).toString(), QString("Test error"));
 
-    QConnectionAgent::instance().connectToType("test");
+    agent.connectToType("test");
     QCOMPARE(spy.count(),1);
     arguments = spy.takeFirst();
     QCOMPARE(arguments.at(0).toString(), QString(""));
@@ -116,8 +94,8 @@ void Tst_connectionagent::tst_onConnectionRequest()
         service->requestDisconnect();
 //        service->requestConnect();
     }
-    QSignalSpy spy(&QConnectionAgent::instance(), SIGNAL(connectionRequest()));
-    QConnectionAgent::instance().onConnectionRequest();
+    QSignalSpy spy(&agent, SIGNAL(connectionRequest()));
+    agent.onConnectionRequest();
 
     if (currentState == "online")
         QCOMPARE(spy.count(),0);
@@ -125,19 +103,6 @@ void Tst_connectionagent::tst_onConnectionRequest()
         QCOMPARE(spy.count(),0);
 
 }
-
-void Tst_connectionagent::tst_sendConnectReply()
-{
-}
-
-void Tst_connectionagent::tst_sendUserReply()
-{
-}
-
-void Tst_connectionagent::tst_connectToType()
-{
-}
-
 
 QTEST_APPLESS_MAIN(Tst_connectionagent)
 
