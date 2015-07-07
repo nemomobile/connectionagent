@@ -461,9 +461,7 @@ void QConnectionAgent::setup()
     if (connmanAvailable) {
         qDebug() << Q_FUNC_INFO
                  << netman->state();
-        if (ua)
-            delete ua;
-
+        delete ua;
         ua = new UserAgent(this);
 
         connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
