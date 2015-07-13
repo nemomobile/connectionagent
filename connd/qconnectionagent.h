@@ -31,10 +31,8 @@
 class UserAgent;
 class SessionAgent;
 
-class ConnAdaptor;
 class NetworkManager;
 class NetworkService;
-class QOfonoConnectionContext;
 class NetworkTechnology;
 class WakeupWatcher;
 class QTimer;
@@ -44,9 +42,10 @@ class QConnectionAgent : public QObject
     Q_OBJECT
 
 public:
+    explicit QConnectionAgent(QObject *parent = 0);
     ~QConnectionAgent();
 
-    static QConnectionAgent &instance();
+    bool isValid() const;
 
 Q_SIGNALS:
 
@@ -82,41 +81,45 @@ private:
     class Service
     {
     public:
-            QString path;
-            NetworkService *service;
+        QString path;
+        NetworkService *service;
 
-            bool operator==(const Service &other) const {
-                    return other.path == path;
-            }
+        bool operator==(const Service &other) const {
+            return other.path == path;
+        }
     };
 
     class ServiceList : public QVector<Service>
     {
     public:
-            int indexOf(const QString &path, int from = 0) const {
-                    Service key;
-                    key.path = path;
-                    return QVector<Service>::indexOf(key, from);
-            }
+        int indexOf(const QString &path, int from = 0) const {
+            Service key;
+            key.path = path;
+            return QVector<Service>::indexOf(key, from);
+        }
 
-            bool contains(const QString &path) const {
-                    Service key;
-                    key.path = path;
-                    return QVector<Service>::indexOf(key) >= 0;
-            }
+        bool contains(const QString &path) const {
+            Service key;
+            key.path = path;
+            return QVector<Service>::indexOf(key) >= 0;
+        }
 
-            void remove(const QString &path) {
-                    Service key;
-                    key.path = path;
-                    int pos = QVector<Service>::indexOf(key);
-                    if (pos >= 0)
-                            QVector<Service>::remove(pos);
-            }
+        void remove(const QString &path) {
+            Service key;
+            key.path = path;
+            int pos = QVector<Service>::indexOf(key);
+            if (pos >= 0)
+                QVector<Service>::remove(pos);
+        }
     };
 
-    explicit QConnectionAgent(QObject *parent = 0);
-    static QConnectionAgent *self;
-    ConnAdaptor *connectionAdaptor;
+    void setup();
+    void updateServices();
+    bool isStateOnline(const QString &state);
+    bool isBestService(NetworkService *service);
+    QString findBestConnectableService();
+    void removeAllTypes(const QString &type);
+
     UserAgent *ua;
 
     NetworkManager *netman;
@@ -130,8 +133,6 @@ private:
     bool isEthernet;
     bool connmanAvailable;
 
-    bool isStateOnline(const QString &state);
-    QOfonoConnectionContext *oContext;
     NetworkTechnology *tetheringWifiTech;
     bool tetheringEnabled;
     bool flightModeSuppression;
@@ -140,29 +141,23 @@ private:
 
     QTimer *scanTimer;
     QStringList knownTechnologies;
-    bool isBestService(NetworkService *service);
-    QString findBestConnectableService();
-    void removeAllTypes(const QString &type);
     bool tetheringStarted;
     bool delayedTethering;
+    bool valid;
 
 private slots:
     void onScanFinished();
-    void updateServices();
 
     void serviceErrorChanged(const QString &error);
     void serviceStateChanged(const QString &state);
     void networkStateChanged(const QString &state);
 
     void connmanAvailabilityChanged(bool b);
-    void setup();
     void servicesError(const QString &);
-    void ofonoServicesError(const QString &);
     void technologyPowerChanged(bool);
     void browserRequest(const QString &servicePath, const QString &url);
     void techChanged();
 
-    void serviceAdded(const QString &);
     void servicesListChanged(const QStringList &);
     void offlineModeChanged(bool);
     void flightModeDialogSuppressionTimeout();

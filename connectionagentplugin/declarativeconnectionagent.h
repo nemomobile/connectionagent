@@ -14,8 +14,11 @@
 **
 ****************************************************************************/
 
-#include "connectionagentplugin_plugin.h"
-#include "connectionagentplugin.h"
+#ifndef DECLARATIVECONNECTIONAGENT_H
+#define DECLARATIVECONNECTIONAGENT_H
+
+#include "declarativeconnectionagent.h"
+#include "connectiond_interface.h"
 
 /*
  *This class is for accessing connman's UserAgent from multiple sources.
@@ -52,8 +55,48 @@
  *
  **/
 
-void ConnectionagentpluginPlugin::registerTypes(const char *uri)
+class DeclarativeConnectionAgent : public QObject
 {
-    // @uri com.jolla.connection
-    qmlRegisterType<ConnectionAgentPlugin>(uri, 1, 0, "ConnectionAgent");
-}
+    Q_OBJECT
+
+    Q_DISABLE_COPY(DeclarativeConnectionAgent)
+
+public:
+    explicit DeclarativeConnectionAgent(QObject *parent = 0);
+    ~DeclarativeConnectionAgent();
+
+public slots:
+    void sendUserReply(const QVariantMap &input);
+    void sendConnectReply(const QString &replyMessage, int timeout = 120);
+    void connectToType(const QString &type);
+    void startTethering(const QString &type);
+    void stopTethering(bool keepPowered = false);
+
+signals:
+    void userInputRequested(const QString &servicePath, const QVariantMap &fields);
+    void userInputCanceled();
+    void errorReported(const QString &servicePath, const QString &error);
+    void connectionRequest();
+    void configurationNeeded(const QString &type);
+    void connectionState(const QString &state, const QString &type);
+    void browserRequested(const QString &url);
+    void tetheringFinished(bool);
+
+private:
+    com::jolla::Connectiond *connManagerInterface;
+    QDBusServiceWatcher *connectiondWatcher;
+
+private slots:
+    void onErrorReported(const QString &servicePath, const QString &error);
+    void onRequestBrowser(const QString &url);
+    void onUserInputRequested(const QString &service, const QVariantMap &fields);
+    void onConnectionRequested();
+    void onConnectionState(const QString &state, const QString &type);
+    void onTetheringFinished(bool);
+
+    void connectToConnectiond(const QString = QString());
+    void connectiondUnregistered(const QString = QString());
+};
+
+#endif
+

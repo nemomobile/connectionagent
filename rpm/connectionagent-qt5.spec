@@ -14,7 +14,6 @@ Requires: connman >= 1.21
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(connman-qt5)
-BuildRequires:  pkgconfig(qofono-qt5)
 BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(Qt5Test)
 BuildRequires:  pkgconfig(Qt5Qml)
@@ -98,7 +97,7 @@ fi
 
 %files test
 %defattr(-,root,root,-)
-%{_prefix}/opt/tests/libqofono/*
+%{_prefix}/opt/tests/connectionagent/*
 
 %files tracing
 %defattr(-,root,root,-)

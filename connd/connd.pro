@@ -2,7 +2,7 @@
 QT = core network dbus
 
 TARGET = connectionagent
-PKGCONFIG += connman-qt5 qofono-qt5
+PKGCONFIG += connman-qt5
 
 packagesExist(qt5-boostable) {
     DEFINES += HAS_BOOSTER
@@ -30,15 +30,15 @@ SOURCES += main.cpp \
     qconnectionagent.cpp \
     wakeupwatcher.cpp
 
-HEADERS+= \
+HEADERS += \
     qconnectionagent.h \
     wakeupwatcher.h
 
 target.path = /usr/bin
 INSTALLS += target
 
-MOC_DIR=.moc
-OBJECTS_DIR=.obj
+MOC_DIR = .moc
+OBJECTS_DIR = .obj
 
 
 

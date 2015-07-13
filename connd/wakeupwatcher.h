@@ -20,17 +20,6 @@
 #include <QObject>
 #include <QDBusInterface>
 
-#define MCE_SERVICE                     "com.nokia.mce"
-#define MCE_SIGNAL_PATH                 "/com/nokia/mce/signal"
-#define MCE_SIGNAL_INTERFACE            "com.nokia.mce.signal"
-#define MCE_PSM_STATE_IND               "psm_state_ind"
-#define MCE_DISPLAY_IND                 "display_status_ind"
-
-#define MCE_REQUEST_PATH                "/com/nokia/mce/request"
-#define MCE_REQUEST_INTERFACE           "com.nokia.mce.request"
-#define MCE_DISPLAY_STATUS_GET          "get_display_status"
-#define MCE_PSM_STATE_GET               "get_psm_state"
-
 class WakeupWatcher : public QObject
 {
     Q_OBJECT
@@ -40,11 +29,11 @@ public:
 signals:
     void displayStateChanged(const QString&);
     void sleepStateChanged(bool);
-public slots:
 
 private slots:
     void mceDisplayStateChanged(const QString &state);
     void mceSleepStateChanged(bool mode);
+
 private:
     QDBusInterface *mceInterface;
     QString currentDisplayState;

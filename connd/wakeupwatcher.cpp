@@ -19,6 +19,18 @@
 
 #include "wakeupwatcher.h"
 
+#define MCE_SERVICE                     "com.nokia.mce"
+#define MCE_SIGNAL_PATH                 "/com/nokia/mce/signal"
+#define MCE_SIGNAL_INTERFACE            "com.nokia.mce.signal"
+#define MCE_PSM_STATE_IND               "psm_state_ind"
+#define MCE_DISPLAY_IND                 "display_status_ind"
+
+#define MCE_REQUEST_PATH                "/com/nokia/mce/request"
+#define MCE_REQUEST_INTERFACE           "com.nokia.mce.request"
+#define MCE_DISPLAY_STATUS_GET          "get_display_status"
+#define MCE_PSM_STATE_GET               "get_psm_state"
+
+
 WakeupWatcher::WakeupWatcher(QObject *parent) :
     QObject(parent),
     currentPowerSave(false)

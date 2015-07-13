@@ -14,15 +14,15 @@
 **
 ****************************************************************************/
 
-#ifndef CONNECTIONAGENTPLUGIN_PLUGIN_H
-#define CONNECTIONAGENTPLUGIN_PLUGIN_H
+#include "declarativeconnectionagent.h"
+
 #include <QtPlugin>
 
 #include <QtQml>
 #include <QQmlEngine>
 #include <QQmlExtensionPlugin>
 
-class ConnectionagentpluginPlugin : public QQmlExtensionPlugin
+class ConnectionagentPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
@@ -32,5 +32,10 @@ public:
 
 };
 
-#endif // CONNECTIONAGENTPLUGIN_PLUGIN_H
+void ConnectionagentPlugin::registerTypes(const char *uri)
+{
+    // @uri com.jolla.connection
+    qmlRegisterType<DeclarativeConnectionAgent>(uri, 1, 0, "ConnectionAgent");
+}
 
+#include "plugin.moc"

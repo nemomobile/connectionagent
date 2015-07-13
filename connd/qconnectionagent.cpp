@@ -23,19 +23,11 @@
 #include <connman-qt5/networktechnology.h>
 #include <connman-qt5/networkservice.h>
 #include <connman-qt5/sessionagent.h>
-#include <qofono-qt5/qofonoconnectioncontext.h>
-#include <qofono-qt5/qofonoconnectionmanager.h>
-#include <qofono-qt5/qofononetworkregistration.h>
-#include <qofono-qt5/qofonomanager.h>
 
 #include <QtDBus/QDBusConnection>
 
 #include <QObject>
 #include <QSettings>
-
-#define CONNMAN_1_21
-
-QConnectionAgent* QConnectionAgent::self = NULL;
 
 #define CONND_SERVICE "com.jolla.Connectiond"
 #define CONND_PATH "/Connectiond"
@@ -48,30 +40,31 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
     currentNetworkState(QString()),
     isEthernet(false),
     connmanAvailable(false),
-    oContext(0),
     tetheringWifiTech(0),
     tetheringEnabled(false),
     flightModeSuppression(false),
     scanTimeoutInterval(1),
-    delayedTethering(false)
+    delayedTethering(false),
+    valid(true)
 {
     qDebug() << Q_FUNC_INFO;
 
-    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
-
-    connectionAdaptor = new ConnAdaptor(this);
+    new ConnAdaptor(this);
     QDBusConnection dbus = QDBusConnection::sessionBus();
 
     if (!dbus.registerService(CONND_SERVICE)) {
         qDebug() << "XXXXXXXXXXX could not register service XXXXXXXXXXXXXXXXXX";
+        valid = false;
     }
 
     if (!dbus.registerObject(CONND_PATH, this)) {
         qDebug() << "XXXXXXXXXXX could not register object XXXXXXXXXXXXXXXXXX";
+        valid = false;
     }
 
     connect(this,SIGNAL(configurationNeeded(QString)),this,SLOT(openConnectionDialog(QString)));
 
+    connect(netman,SIGNAL(availabilityChanged(bool)),this,SLOT(connmanAvailabilityChanged(bool)));
     connect(netman,SIGNAL(servicesListChanged(QStringList)),this,SLOT(servicesListChanged(QStringList)));
     connect(netman,SIGNAL(stateChanged(QString)),this,SLOT(networkStateChanged(QString)));
     connect(netman,SIGNAL(offlineModeChanged(bool)),this,SLOT(offlineModeChanged(bool)));
@@ -102,23 +95,17 @@ QConnectionAgent::QConnectionAgent(QObject *parent) :
     scanTimer = new QTimer(this);
     connect(scanTimer,SIGNAL(timeout()),this,SLOT(scanTimeout()));
     scanTimer->setSingleShot(true);
-    if (connmanAvailable)
+    if (connmanAvailable && valid)
         setup();
 }
 
 QConnectionAgent::~QConnectionAgent()
 {
-    delete self;
 }
 
-QConnectionAgent & QConnectionAgent::instance()
+bool QConnectionAgent::isValid() const
 {
-    qDebug() << Q_FUNC_INFO;
-    if (!self) {
-        self = new QConnectionAgent;
-    }
-
-    return *self;
+    return valid;
 }
 
 // from useragent
@@ -387,20 +374,6 @@ void QConnectionAgent::servicesError(const QString &errorMessage)
     Q_EMIT onErrorReported(serv->path(), errorMessage);
 }
 
-void QConnectionAgent::ofonoServicesError(const QString &errorMessage)
-{
-    QOfonoConnectionContext *context = static_cast<QOfonoConnectionContext *>(sender());
-    QVector<NetworkService*> services = netman->getServices("cellular");
-    Q_FOREACH (NetworkService *serv, services) {
-        if (context->contextPath().contains(serv->path().section("_",2,2))) {
-            Q_EMIT onErrorReported(serv->path(), errorMessage);
-            qDebug() << serv->name() << errorMessage;
-            return;
-        }
-    }
-    qWarning() << "ofono error but could not discover connman service";
-}
-
 void QConnectionAgent::networkStateChanged(const QString &state)
 {
     qDebug() << state;
@@ -448,12 +421,6 @@ void QConnectionAgent::connmanAvailabilityChanged(bool b)
     }
 }
 
-void QConnectionAgent::serviceAdded(const QString &srv)
-{
-    qDebug() << Q_FUNC_INFO << "<<<<"<< srv;
-    updateServices();
-}
-
 void QConnectionAgent::setup()
 {
     qDebug() << Q_FUNC_INFO
@@ -462,9 +429,7 @@ void QConnectionAgent::setup()
     if (connmanAvailable) {
         qDebug() << Q_FUNC_INFO
                  << netman->state();
-        if (ua)
-            delete ua;
-
+        delete ua;
         ua = new UserAgent(this);
 
         connect(ua,SIGNAL(userInputRequested(QString,QVariantMap)),
@@ -595,8 +560,7 @@ void QConnectionAgent::offlineModeChanged(bool b)
 
 void QConnectionAgent::flightModeDialogSuppressionTimeout()
 {
-    if (flightModeSuppression)
-        flightModeSuppression = false;
+    flightModeSuppression = false;
 }
 
 void QConnectionAgent::displayStateChanged(const QString &state)
@@ -641,7 +605,7 @@ bool QConnectionAgent::isBestService(NetworkService *service)
 void QConnectionAgent::scanTimeout()
 {
     if (!tetheringWifiTech || tetheringWifiTech->tethering())
-            return;
+        return;
 
     if (tetheringWifiTech->powered() && !tetheringWifiTech->connected() && netman->defaultRoute()->type() != "wifi" ) {
         tetheringWifiTech->scan();

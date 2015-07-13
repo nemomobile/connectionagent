@@ -6,12 +6,11 @@ CONFIG += qt plugin
 uri = com.jolla.connection
 
 SOURCES += \
-    connectionagentplugin_plugin.cpp \
-    connectionagentplugin.cpp
+    plugin.cpp \
+    declarativeconnectionagent.cpp
 
 HEADERS += \
-    connectionagentplugin_plugin.h \
-    connectionagentplugin.h
+    declarativeconnectionagent.h
 
 DBUS_INTERFACES = connectiond_interface
 connectiond_interface.files = ../connd/com.jollamobile.Connectiond.xml

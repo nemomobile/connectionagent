@@ -18,7 +18,6 @@
 #include <QTimer>
 #include <QtGlobal>
 #include <QDebug>
-#include <QDBusConnection>
 #include <signal.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -79,13 +78,13 @@ static void daemonize(void)
 }
 
 static QtMessageHandler previousMessageHandler;
-bool toggleDebug;
+static bool toggleDebug;
 
 void messageOutput(QtMsgType type, const QMessageLogContext &context, const QString &str)
- {
+{
     if (toggleDebug)
         previousMessageHandler(type,context,str);
- }
+}
 
 Q_DECL_EXPORT int main(int argc, char *argv[])
 {
@@ -104,12 +103,12 @@ Q_DECL_EXPORT int main(int argc, char *argv[])
     QCoreApplication::setApplicationVersion("1.0");
 
     QCoreApplication a(argc, argv);
-    if (QDBusConnection::sessionBus().interface()->isServiceRegistered("com.jolla.Connectiond")) {
-        qDebug() << "Connectionagent service is already running. Exiting now";
+
+    QConnectionAgent agent;
+    if (!agent.isValid()) {
+        qDebug() << "Connectionagent service failed to register. Exiting now";
         return 1;
     }
-
-    QConnectionAgent::instance();
 
     return a.exec();
 }
