@@ -1,5 +1,0 @@
-[D-BUS Service]
-Name=com.jolla.Connectiond
-ExecStart=/usr/bin/invoker -o --type=qt5 /usr/bin/connectionagent $CONNECTIONAGENT_TRACING
-SystemdService=connectionagent.service
-Interface=/Connectiond

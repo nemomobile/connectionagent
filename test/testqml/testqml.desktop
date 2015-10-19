@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=testqml
-Icon=icon-launcher-gallery
-Exec=invoker --type=j -s /opt/sdk/bin/testqml
-Comment=Sailfish UI application
-
-
